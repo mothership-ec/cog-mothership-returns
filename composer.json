@@ -15,8 +15,8 @@
 	},
 	"autoload": {
 		"psr-0": {
-			"Message\\Mothership\\Return"      : "src",
-			"Message\\Mothership\\Return\\Test": "tests"
+			"Message\\Mothership\\OrderReturn"      : "src",
+			"Message\\Mothership\\OrderReturn\\Test": "tests"
 		}
 	},
 	"repositories": [
