@@ -1,31 +1,27 @@
-# Uniform Wares Returns
+# Mothership Returns
 
-## General changes
-* Get rid of initial returns list - just add return link to the order summary page in account section
-* Make a return reason collection as return options are different per installation or make it an input box
-* Stage 1 and 2 could be on one stage
-* Approximate amount needs an explanation 
-* We should keep the custom print confirmation screen that UW have
-* We need to keep the original order summary when viewing the order - Returns can then be listed after this seperatly
+_n.b. Namespaces and classes are called `OrderReturn` due to PHP having `return` as a resevered word._
 
-### New customer process
-Stage 1
+## Installation
 
-* Initiate return from order detail page
- 	
-Stage 2
+Install this package using [Composer](http://getcomposer.org/). The package name is `message/cog-mothership-returns`.
 
-* Reason and Resolution
-* If exchange select product
- 		
-Stage 3
+You will need to add Message's private package server to the `repositories` key in `composer.json`:
 
-* Confirmation and print or excahnge another product
- 	
-### New admin process
-* Each returned item is dealt with separately 
-* Return items are in a new tab of order view
-* Desitination should just be stock location
+```
+{
+	"repositories": [
+		{
+			"type": "composer",
+			"url" : "http://packages.message.co.uk"
+		}
+	],
+	"require": {
+		"message/cog-mothership-returns": "1.0.*"
+	}
+}
+```
 
-### Code
-* Returns need to be a new cogule
+## Todo
+
+- everything
