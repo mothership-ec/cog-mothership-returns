@@ -1,0 +1,42 @@
+{
+	"name": "message/cog-mothership-returns",
+	"description": "Cog module for order returns in Mothership",
+	"keywords": ["commerce", "mothership", "order", "orders", "products", "money", "cog", "returns"],
+	"homepage": "http://message.co.uk",
+	"authors": [
+		{
+			"name" : "The Message Development Team",
+			"email": "dev@message.co.uk"
+		}
+	],
+	"support": {
+		"wiki"  : "http://server.local/wiki/projects/cog",
+		"issues": "http://github.com/messagedigital/cog-mothership-returns/issues"
+	},
+	"autoload": {
+		"psr-0": {
+			"Message\\Mothership\\Return"      : "src",
+			"Message\\Mothership\\Return\\Test": "tests"
+		}
+	},
+	"repositories": [
+		{
+			"type": "composer",
+			"url" : "http://packages.message.co.uk"
+		}
+	],
+	"minimum-stability": "dev",
+	"require": {
+		"php": ">=5.3.0",
+
+		"message/cog-mothership-ecommerce" : "dev-master",
+		"message/cog-mothership-cp": "dev-master"
+	},
+	"suggest": {
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.0.x-dev"
+		}
+	}
+}
