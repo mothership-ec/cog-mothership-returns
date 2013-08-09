@@ -16,8 +16,8 @@ class Services implements ServicesInterface
 		};
 
 		$services['return.loader'] = function($c) {
-			return new OrderReturn\Loader($c['db.query']);
-		}
+			return new OrderReturn\Loader($c['db.query'], $c['order.loader'], $c['order.item.loader']);
+		};
 	}
 
 }
