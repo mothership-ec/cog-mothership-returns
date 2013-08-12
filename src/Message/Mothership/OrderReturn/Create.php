@@ -96,7 +96,7 @@ class Create
 			'createdBy'        => $return->authorship->createdBy(),
 			'reason'           => $this->_reason,
 			'resolution'       => $this->_resolution,
-			'exchange_unit_id' => $this->_exchangeUnit
+			'exchange_unit_id' => ($this->_exchangeUnit) ? $this->_exchangeUnit->unit_id : 0
 		));
 
 		// Get the return by the last insert id
