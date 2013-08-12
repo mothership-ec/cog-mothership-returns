@@ -15,16 +15,20 @@
 			{% endif %}
 		</ul>
 
-		<h2 class="title">Received?</h2>
-		received form
+		<h2 class="title">Returned Package</h2>
+		{{ form_start(received_form) }}
+			
+		{{ form_end(received_form) }}
 
 		{% if return.isExchange %}
 			<h2 class="title">Exchange</h2>
 			exchange form
-			
+
 		{% elseif return.isRefund %}
 			<h2 class="title">Refund</h2>
-			refund form
+			{{ form_start(refund_form) }}
+			
+			{{ form_end(refund_form) }}
 		{% endif %}
 
 	</section>

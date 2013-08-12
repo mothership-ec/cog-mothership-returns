@@ -5,7 +5,8 @@
 		<section class="repeatable-group">
 			{% if not returns is empty %}
 				{% for return in returns %}
-					{% include 'Message:Mothership:OrderReturn::order:detail:return:detail' %}
+					{#% include 'Message:Mothership:OrderReturn::order:detail:return:detail' %#}
+					{{ render(controller('Message:Mothership:OrderReturn::Controller:OrderReturn:ReturnDetail#listedItem', { 'returnID' : return.id } )) }}
 				{% endfor %}
 			{% else %}
 				<p>{{ 'ms.commerce.order.return.none'|trans }}</p>

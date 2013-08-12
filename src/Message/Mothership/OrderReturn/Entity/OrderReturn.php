@@ -10,6 +10,7 @@ use Message\Mothership\OrderReturn\Resolutions;
 class OrderReturn implements EntityInterface
 {
 	public $id;
+	public $balance;
 
 	public $item;
 	public $order;

@@ -72,6 +72,8 @@ class Loader
 
 		foreach ($entities as $key => $entity) {
 
+			$entity->id = $result[$key]->return_id;
+
 			// Add created authorship
 			$entity->authorship->create(
 				new DateTimeImmutable(date('c', $result[$key]->created_at)),
@@ -97,7 +99,7 @@ class Loader
 			// Add the entity into the order
 			// $entity->order->addEntity($entity);
 
-			$return[$entity->id] = $entities[$key];
+			$return[$result[$key]->return_id] = $entities[$key];
 		}
 
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
