@@ -9,6 +9,6 @@ namespace Message\Mothership\OrderReturn;
  */
 class Resolutions
 {
-	const REFUND = 0;
-	const EXCHANGE = 100;
+	const REFUND = 100;
+	const EXCHANGE = 200;
 }

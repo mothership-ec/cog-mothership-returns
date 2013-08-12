@@ -9,6 +9,6 @@ namespace Message\Mothership\OrderReturn;
  */
 class Reasons
 {
-	const WRONG_ITEM = 0;
-	const FAULTY_ITEM = 100;
+	const WRONG_ITEM = 100;
+	const FAULTY_ITEM = 200;
 }
