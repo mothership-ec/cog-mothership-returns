@@ -1,0 +1,15 @@
+{% extends 'Message:Mothership:Commerce::order:detail:view' %}
+
+{% block order_content %}
+	<section class="container-content">
+		<section class="repeatable-group">
+			{% if not returns is empty %}
+				{% for return in returns %}
+					{% include 'Message:Mothership:OrderReturn:order:detail:return:detail' %}
+				{% endfor %}
+			{% else %}
+				<p>{{ 'ms.commerce.order.return.none'|trans }}</p>
+			{% endif %}
+		</section>
+	</section>
+{% endblock %}

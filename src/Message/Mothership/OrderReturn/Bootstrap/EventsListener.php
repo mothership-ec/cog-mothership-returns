@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Cog\Filesystem;
+namespace Message\Mothership\OrderReturn;
 
 use Message\Cog\Event\SubscriberInterface;
 use Message\Cog\Event\Event;
@@ -16,7 +16,9 @@ class EventListener extends BaseListener implements SubscriberInterface
 {
 	static public function getSubscribedEvents()
 	{
-		return array();
+		return array(
+			// 'commerce.order.tabs.or.something', // Order tabs
+		);
 	}
 
 	public function registerSomething(Event $event)
