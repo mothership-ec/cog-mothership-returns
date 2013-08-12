@@ -2,11 +2,16 @@
 
 namespace Message\Mothership\OrderReturn;
 
-use Message\Cog\DB;
 use ReflectionClass;
 use InvalidArgumentException;
-use Message\User\UserInterface;
+
+use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
+
+use Message\Mothership\Commerce\Order\Entity\Item\Item;
+use Message\Mothership\Commerce\Product\Unit\Unit;
+
+use Message\User\UserInterface;
 
 /**
  * Order return creator.
@@ -21,6 +26,7 @@ class Create implements DB\TransactionalInterface
 	protected $_reasons;
 	protected $_resolutions;
 
+	protected $_item;
 	protected $_reason;
 	protected $_resolution;
 	protected $_exchangeUnit;
@@ -33,6 +39,12 @@ class Create implements DB\TransactionalInterface
 		$this->_user   = $user;
 		$this->_reasons = $reasons;
 		$this->_resolutions = $resolutions;
+	}
+
+	public function setItem(Item $item)
+	{
+		$this->_item = $item;
+		return $this;
 	}
 
 	public function setReason($reason)
@@ -65,7 +77,8 @@ class Create implements DB\TransactionalInterface
 			);
 		}
 
-		$this->_query->add('
+		// Insert the return into the database
+		$result = $this->_query->add('
 			INSERT INTO
 				order_item_return
 			SET
@@ -77,20 +90,25 @@ class Create implements DB\TransactionalInterface
 				resolution       = :resolution?i,
 				exchange_unit_id = :exchange_unit_id?i
 		', array(
-			'orderID'          => $return->order->id,
-			'itemID'           => $return->item->id,
+			'orderID'          => $this->_item->order_id,
+			'itemID'           => $this->_item->id,
 			'createdAt'        => $return->authorship->createdAt(),
 			'createdBy'        => $return->authorship->createdBy(),
 			'reason'           => $this->_reason,
 			'resolution'       => $this->_resolution,
 			'exchange_unit_id' => $this->_exchangeUnit
 		));
+
+		// Get the return by the last insert id
+		$return = $this->_loader->getByID($result->id());
+
+		return $return;
 	}
 
 	protected function validate(OrderReturn $return)
 	{
 		// Ensure an item has been set for the return
-		if (! $return->item instanceof Order\Entity\Item\Item) {
+		if (! $this->_item instanceof Item) {
 			throw new InvalidArgumentException('Could not create order return: item is not set or invalid');
 		}
 
