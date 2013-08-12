@@ -5,7 +5,7 @@
 		<section class="repeatable-group">
 			{% if not returns is empty %}
 				{% for return in returns %}
-					{% include 'Message:Mothership:OrderReturn:order:detail:return:detail' %}
+					{% include 'Message:Mothership:OrderReturn::order:detail:return:detail' %}
 				{% endfor %}
 			{% else %}
 				<p>{{ 'ms.commerce.order.return.none'|trans }}</p>

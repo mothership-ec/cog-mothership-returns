@@ -68,25 +68,25 @@ class Loader
 
 			// Add created authorship
 			$entity->authorship->create(
-				new DateTimeImmutable(date('c', $entity->created_at)),
-				$entity->created_by
+				new DateTimeImmutable(date('c', $result[$key]->created_at)),
+				$result[$key]->created_by
 			);
 
 			// Add updated authorship
-			if ($entity->updated_at) {
+			if ($result[$key]->updated_at) {
 				$items[$key]->authorship->create(
-					new DateTimeImmutable(date('c', $entity->updated_at)),
-					$entity->updated_by
+					new DateTimeImmutable(date('c', $result[$key]->updated_at)),
+					$result[$key]->updated_by
 				);
 			}
 
-			$entity->order = $this->_orderLoader->getByID($entity->order_id);
-			$entity->item = $this->_itemLoader->getByID($entity->item_id);
+			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
+			$entity->item = $this->_itemLoader->getByID($result[$key]->item_id);
 
 			// Add the entity into the order
-			$entity->order->addEntity($entity);
+			// $entity->order->addEntity($entity);
 
-			$return[$row->id] = $entities[$key];
+			$return[$entity->id] = $entities[$key];
 		}
 
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
