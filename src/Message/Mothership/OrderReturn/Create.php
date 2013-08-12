@@ -31,7 +31,7 @@ class Create
 	protected $_resolution;
 	protected $_exchangeUnit;
 
-	public function __construct(DB\Transaction $query, Loader $loader, UserInterface $user, Reasons $reasons,
+	public function __construct(DB\Query $query, Loader $loader, UserInterface $user, Reasons $reasons,
 		Resolutions $resolutions)
 	{
 		$this->_query  = $query;
@@ -49,13 +49,13 @@ class Create
 
 	public function setReason($reason)
 	{
-		$this->_reason = $reason;
+		$this->_reason = $this->_reasons->get($reason);
 		return $this;
 	}
 
 	public function setResolution($resolution)
 	{
-		$this->_resolution = $resolution;
+		$this->_resolution = $this->_resolutions->get($resolution);
 		return $this;
 	}
 
@@ -113,14 +113,12 @@ class Create
 		}
 
 		// Check the reason has been set and is valid
-		$reasons = new ReflectionClass($this->_reasons);
-		if (! in_array($this->_reason, $reasons->getConstants())) {
+		if (! $this->_reasons->exists($this->_reason)) {
 			throw new InvalidArgumentException('Could not create order return: reason is not set or invalid');
 		}
 
 		// Check the resolution has been set and is valid
-		$resolutions = new ReflectionClass($this->_resolutions);
-		if (! in_array($this->_resolution, $resolutions->getConstants())) {
+		if (! $this->_resolutions->exists($this->_resolution)) {
 			throw new InvalidArgumentException('Could not create order return: resolution is not set or invalid');
 		}
 
