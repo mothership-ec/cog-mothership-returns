@@ -1,6 +1,6 @@
 # Mothership Returns
 
-_n.b. Namespaces and classes are called `OrderReturn` due to PHP having `return` as a reservered word._
+_n.b. Namespaces and classes are called `OrderReturn` due to PHP having `return` as a reserved word._
 
 ## Installation
 
