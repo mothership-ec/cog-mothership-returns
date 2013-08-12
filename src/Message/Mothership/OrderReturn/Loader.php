@@ -2,7 +2,9 @@
 
 namespace Message\Mothership\OrderReturn;
 
+use Message\Cog\DB;
 use Message\Mothership\Commerce\Order;
+use Message\Cog\ValueObject\DateTimeImmutable;
 
 class Loader
 {
@@ -22,7 +24,7 @@ class Loader
 		return $this->_load($id, false);
 	}
 
-	public function getByOrder()
+	public function getByOrder(Order\Order $order)
 	{
 		$result = $this->_query->run('
 			SELECT
@@ -31,7 +33,7 @@ class Loader
 				order_item_return
 			WHERE
 				order_id = ?i
-		', $item->id);
+		', $order->id);
 
 		return $this->_load($result->flatten(), true);
 	}
@@ -59,7 +61,7 @@ class Loader
 			return $alwaysReturnArray ? array() : false;
 		}
 
-		$entities = $result->bindTo('Message\\Mothership\\OrderReturn\\Entity\\Return');
+		$entities = $result->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
 		$return = array();
 
 		foreach ($entities as $key => $entity) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn;
+namespace Message\Mothership\Entity\OrderReturn;
 
 use Message\Cog\ValueObject\Authorship;
 use Message\Mothership\Commerce\Order\Entity\EntityInterface;
