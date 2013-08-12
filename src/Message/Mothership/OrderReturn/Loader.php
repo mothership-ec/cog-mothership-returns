@@ -11,12 +11,18 @@ class Loader
 	protected $_query;
 	protected $_orderLoader;
 	protected $_itemLoader;
+	protected $_reasons;
+	protected $_resolutions;
+	protected $_statuses;
 
-	public function __construct(DB\Query $query, $orderLoader, $itemLoader)
+	public function __construct(DB\Query $query, $orderLoader, $itemLoader, $reasons, $resolutions, $statuses)
 	{
-		$this->_query = $query;
+		$this->_query       = $query;
 		$this->_orderLoader = $orderLoader;
-		$this->_itemLoader = $itemLoader;
+		$this->_itemLoader  = $itemLoader;
+		$this->_reasons     = $reasons;
+		$this->_resolutions = $resolutions;
+		$this->_statuses    = $statuses;
 	}
 
 	public function getByID($id)
@@ -74,7 +80,7 @@ class Loader
 
 			// Add updated authorship
 			if ($result[$key]->updated_at) {
-				$items[$key]->authorship->create(
+				$entity->authorship->update(
 					new DateTimeImmutable(date('c', $result[$key]->updated_at)),
 					$result[$key]->updated_by
 				);
@@ -82,6 +88,11 @@ class Loader
 
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
 			$entity->item = $this->_itemLoader->getByID($result[$key]->item_id);
+
+			$entity->reason = $this->_reasons->get($result[$key]->reason);
+			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);
+
+			$entity->status = $this->_statuses->get($result[$key]->status_id);
 
 			// Add the entity into the order
 			// $entity->order->addEntity($entity);
