@@ -18,7 +18,7 @@ use Message\User\UserInterface;
  *
  * @author Laurence Roberts <laurence@message.co.uk>
  */
-class Create implements DB\TransactionalInterface
+class Create
 {
 	protected $_query;
 	protected $_loader;
