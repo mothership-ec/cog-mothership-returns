@@ -21,15 +21,25 @@ class ReturnDetail extends Controller
 	{
 		$return = $this->get('return.loader')->getByID($returnID);
 
+		$accepted_form = $this->acceptedForm($return);
 		$received_form = $this->receivedForm($return);
 		$refund_form   = $this->refundForm($return);
-		// $exchange_form = $this->exchangeForm();
+		$exchange_form = $this->exchangeForm($return);
 
 		return $this->render('Message:Mothership:OrderReturn::order:detail:return:detail', array(
 			'return'        => $return,
+			'accepted_form' => $accepted_form,
 			'received_form' => $received_form,
 			'refund_form'   => $refund_form,
+			'exchange_form' => $exchange_form,
 		));
+	}
+
+	public function acceptedForm($return)
+	{
+		$form = $this->get('form');
+
+		return $form->getForm()->createView();
 	}
 
 	public function receivedForm($return)
@@ -48,10 +58,16 @@ class ReturnDetail extends Controller
 	{
 		$form = $this->get('form');
 
-		$form->add('balance', 'text', 'Balance', array(
+		$form->add('refund_amount', 'text', ' ', array(
 			'data' => $return->balance
 		));
+		$form->add('refund_approve', 'checkbox', 'Approve amount');
 
 		return $form->getForm()->createView();
+	}
+
+	public function exchangeForm($return)
+	{
+		return '';
 	}
 }

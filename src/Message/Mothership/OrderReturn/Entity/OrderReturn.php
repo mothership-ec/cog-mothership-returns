@@ -5,6 +5,7 @@ namespace Message\Mothership\OrderReturn\Entity;
 use Message\Cog\ValueObject\Authorship;
 use Message\Mothership\Commerce\Order\Entity\EntityInterface;
 
+use Message\Mothership\OrderReturn\Statuses;
 use Message\Mothership\OrderReturn\Resolutions;
 
 class OrderReturn implements EntityInterface
@@ -20,6 +21,16 @@ class OrderReturn implements EntityInterface
 	public function __construct()
 	{
 		$this->authorship = new Authorship;
+	}
+
+	public function isAccepted()
+	{
+		return $this->item->status >= Statuses::RETURN_ACCEPTED;
+	}
+
+	public function isRejected()
+	{
+		return $this->item->status == Statuses::RETURN_REJECTED;
 	}
 
 	public function isRefund()
