@@ -14,7 +14,7 @@
 				<li><span>Updated by</span> {{ return.authorship.updatedBy }} <span>at</span> {{ return.authorship.updatedAt|date }}</li>
 			{% endif %}
 		</ul>
-		
+
 		<h2 class="title">Accept / Reject</h2>
 		{{ form_start(accepted_form) }}
 
@@ -24,6 +24,8 @@
 
 		<h2 class="title">Returned Package</h2>
 		{{ form_start(received_form) }}
+			{{ form_row(received_form.received) }}
+			{{ form_row(received_form.received_date) }}
 			
 		{{ form_end(received_form) }}
 
@@ -34,6 +36,9 @@
 		{% elseif return.isRefund %}
 			<h2 class="title">Refund</h2>
 			{{ form_start(refund_form) }}
+				{{ form_row(refund_form.refund_amount) }}
+				{{ form_row(refund_form.refund_approve) }}
+				{{ form_row(refund_form.stock_location) }}
 
 				<button type="submit">Process Refund</button>
 			{{ form_end(refund_form) }}

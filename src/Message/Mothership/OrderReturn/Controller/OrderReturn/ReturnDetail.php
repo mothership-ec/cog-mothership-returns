@@ -61,6 +61,7 @@ class ReturnDetail extends Controller
 		$form->add('refund_amount', 'text', ' ', array(
 			'data' => $return->balance
 		));
+		$form->add('refund_approve', 'checkbox', 'Approve amount');
 		$form->add('stock_location', 'choice', 'Destination', array(
 			'choices' => array(
 				1 => 'Stock',
@@ -69,9 +70,9 @@ class ReturnDetail extends Controller
 				4 => 'Repair A',
 				5 => 'Repair B',
 				6 => 'Back to customer',
-			)
+			),
+			'empty_value' => '-- Select stock destination --'
 		));
-		$form->add('refund_approve', 'checkbox', 'Approve amount');
 
 		return $form->getForm()->createView();
 	}
