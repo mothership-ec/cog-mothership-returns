@@ -10,7 +10,7 @@ class Detail extends Controller
 	 * Display the detail view of a return.
 	 * 
 	 * @param  int $returnID
-	 * @return [type]
+	 * @return Message\Cog\HTTP\Response
 	 */
 	public function view($returnID)
 	{
@@ -34,14 +34,14 @@ class Detail extends Controller
 	 * Process the accept / reject request.
 	 * 
 	 * @param  int $returnID
-	 * @return [type]
+	 * @return Message\Cog\HTTP\Response
 	 */
 	public function acceptOrReject($returnID)
 	{
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_acceptOrRejectForm($return);
 		$data = $form->getFilteredData();
-		
+
 		if ($data['accept_reject'] == 'accept') {
 			$this->get('return.edit')->accept($return);
 		}
@@ -50,22 +50,43 @@ class Detail extends Controller
 		}
 	}
 
-	public function received()
+	/**
+	 * Process the received request.
+	 *
+	 * @param  int $returnID
+	 * @return Message\Cog\HTTP\Response
+	 */
+	public function received($returnID)
 	{
-		$this->get('return.edit')->setAsReceived($return);
+		$return = $this->get('return.loader')->getByID($returnID);
+		$form = $this->_receivedForm($return);
+		$data = $form->getFilteredData();
+
+		if ($data['received'] == 1) {
+			$this->get('return.edit')->setAsReceived($return, $data['received_date']);
+		}
 	}
 
-	public function refund()
+	/**
+	 * Process the refund request.
+	 * 
+	 * @param  int $returnID
+	 * @return Message\Cog\HTTP\Response
+	 */
+	public function refund($returnID)
 	{
-		$request = $this->get('request');
-		if ($request->get('refund_approve')) {
+		$return = $this->get('return.loader')->getByID($returnID);
+		$form = $this->_refundForm($return);
+		$data = $form->getFilteredData();
 
-			if ($request->get('refund_method') == 'sagepay') {
-				// SagePay integration
+		if ($data['refund_approve']) {
+
+			if ($data['refund_method'] == 'automatic') {
+				// Provider gateway integration
 			}
 			else {
-				$this->get('return.edit')->refund($return, $request->get('refund_amount'));
-				$this->get('return.edit')->moveStock($return, $request->get('stock_location'));
+				$return = $this->get('return.edit')->refund($return, $data['refund_amount']);
+				$this->get('return.edit')->moveStock($return, $data['stock_location']);
 			}
 		}
 		else {
@@ -73,9 +94,35 @@ class Detail extends Controller
 		}
 	}
 
-	public function exchange()
+	/**
+	 * Process the exchange request.
+	 * 
+	 * @param  int $returnID
+	 * @return Message\Cog\HTTP\Response
+	 */
+	public function exchange($returnID)
 	{
+		$return = $this->get('return.loader')->getByID($returnID);
+		$form = $this->_exchangeForm($return);
+		$data = $form->getFilteredData();
 
+		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
+
+		if ($data['balance'] != 0 and $data['balance_approve'] !== true) {
+			$this->addFlash('error', 'You must approve the balance if it is not 0');
+			return $this->redirect($viewURL);
+		}
+
+		$return = $this->get('return.edit')->exchange($return, $data['balance']);
+
+		if ($return->balance > 0) {
+			// notify customer of remaining balance
+		}
+		elseif ($return->balance < 0) {
+			// notify admin of remaining balance
+		}
+
+		return $this->redirect($viewURL);
 	}
 
 	protected function _acceptOrRejectForm($return)
@@ -137,7 +184,7 @@ class Detail extends Controller
 		));
 		$form->add('refund_method', 'choice', 'Method', array(
 			'choices' => array(
-				'sagepay' => 'SagePay',
+				'automatic' => 'Automatic (through payment gateway)',
 				'manual' => 'Manual'
 			),
 			'expanded' => true,
@@ -152,6 +199,22 @@ class Detail extends Controller
 		$form = $this->get('form');
 
 		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.exchange', array('returnID' => $return->id)));
+
+		$form->add('balance', 'money', 'Balance Payment', array(
+			'currency' => 'GBP',
+			'required' => false
+		));
+		$form->add('balance_approve', 'checkbox', 'Approve amount', array(
+			'required' => false
+		));
+		$form->add('refund_method', 'choice', 'Method', array(
+			'choices' => array(
+				'automatic' => 'Automatic (through payment gateway)',
+				'manual' => 'Manual'
+			),
+			'expanded' => true,
+			'empty_value' => false
+		));
 
 		return $form;
 	}

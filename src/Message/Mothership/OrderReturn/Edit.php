@@ -37,9 +37,31 @@ class Edit
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_REJECTED);
 	}
 
-	public function setAsReceived(Entity\OrderReturn $return)
+	public function setAsReceived(Entity\OrderReturn $return, $date = null)
 	{
+		$date = ($date !== null) ?: date('Y-m-d H:i:s');
+		// notify customer
+
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ACCEPTED);
+	}
+
+	public function refund(Entity\OrderReturn $return, $amount = 0)
+	{
+		return $return;
+	}
+
+	public function exchange(Entity\OrderReturn $return, $balance = 0)
+	{
+		$this->setBalance($return, $balance);
+
+		// what should it do here...?
+
+		return $return;
+	}
+
+	public function moveStock(Entity\OrderReturn $return, $location)
+	{
+		return $return;
 	}
 
 	public function setAsAwaitingBalancePayment(Entity\OrderReturn $return)

@@ -38,15 +38,24 @@
 				{{ form_row(received_form.received) }}
 				{{ form_row(received_form.received_date) }}
 				
-				<button class="button submit">Notify customer</button>
+				<button class="button submit">Notify Customer</button>
 			{{ form_end(received_form) }}
 
 			{# Show either the exchange or refund form depending on the resolution type #}
 			{% if return.isExchangeResolution %}
 				<h2 class="title">Exchange</h2>
-				
-				<button class="button submit">Process Exchange</button>
-			{{ form_end(received_form) }}
+
+				<ul class="order-details">
+					<li><span>Replacement Item</span> {{ return.exchangeUnit.product.name }} <em>add unit name here</em></li>
+				</ul>
+
+				{{ form_start(exchange_form) }}
+					{{ form_row(exchange_form.balance) }}
+					{{ form_row(exchange_form.balance_approve) }}
+					{{ form_row(exchange_form.refund_method) }}
+					
+					<button class="button submit">Process Exchange</button>
+				{{ form_end(exchange_form) }}
 
 			{% elseif return.isRefundResolution %}
 				<h2 class="title">Refund</h2>
