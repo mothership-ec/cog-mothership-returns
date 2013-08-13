@@ -48,13 +48,16 @@ class Edit
 	public function refund(Entity\OrderReturn $return, $amount = 0)
 	{
 		// insert a row into order_refund
-		
+
 		return $return;
 	}
 
-	public function exchange(Entity\OrderReturn $return)
+	public function exchange(Entity\OrderReturn $return, $balance = 0)
 	{
-		// what should it do here...?
+		$this->setBalance($return, $balance);
+		$return->balance = $balance;
+
+		// exchange the item
 
 		return $return;
 	}

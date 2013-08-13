@@ -78,18 +78,23 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_refundForm($return);
 		$data = $form->getFilteredData();
+		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['refund_approve']) {
-			$return = $this->get('return.edit')->refund($return, $data['refund_amount']);
+			$refund = $this->get('return.edit')->refund($return, $data['refund_amount']);
 			$this->get('return.edit')->moveStock($return, $data['stock_location']);
 
 			if ($data['refund_method'] == 'automatic') {
-				// provider gateway integration
+				// @danny
+				// $result = $this->get('payment')->sendSomeDolla($return->order->user, $refund->amount);
+				// $this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
 			}
 		}
 		else {
-			// Feedback an error
+			$this->addFlash('error', 'You must approve the refund to enact it');
 		}
+
+		return $this->redirect($viewURL);
 	}
 
 	/**
@@ -103,7 +108,6 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_exchangeForm($return);
 		$data = $form->getFilteredData();
-
 		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['balance'] != 0 and $data['balance_approve'] != true) {
@@ -112,23 +116,23 @@ class Detail extends Controller
 		}
 
 		// Exchange the item
-		$return = $this->get('return.edit')->exchange($return);
+		$return = $this->get('return.edit')->exchange($return, $data['balance']);
 
-		// If the balance is in the customers favour, process the refund
-		if ($data['balance_approve'] == true and $data['balance'] < 0) {
-			$return = $this->get('return.edit')->refund($return, 0 - $data['balance']);
-
+		// The balance requires the customer to pay
+		if ($return->balance > 0) {
+			
+		}
+		// The balance requires the client to pay
+		elseif ($return->balance < 0) {
 			// If payment is to be made automatically
 			if ($data['refund_method'] == 'automatic') {
-				// provider gateway integration
+				// @danny
+				// $result = $this->get('payment')->sendSomeDolla($return->order->user, $data['refund_amount']);
+				// $this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
 			}
-		}
-
-		if ($return->balance > 0) {
-			// notify customer of remaining balance
-		}
-		elseif ($return->balance < 0) {
-			// notify admin of remaining balance
+			else {
+				$return = $this->get('return.edit')->setAwaitingManualPayment($return);
+			}
 		}
 
 		return $this->redirect($viewURL);
