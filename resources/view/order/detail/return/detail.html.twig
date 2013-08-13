@@ -36,11 +36,11 @@
 			{{ form_end(received_form) }}
 
 			{# Show either the exchange or refund form depending on the resolution type #}
-			{% if return.isExchange %}
+			{% if return.isExchangeResolution %}
 				<h2 class="title">Exchange</h2>
 				exchange form
 
-			{% elseif return.isRefund %}
+			{% elseif return.isRefundResolution %}
 				<h2 class="title">Refund</h2>
 				{{ form_start(refund_form) }}
 					{{ form_row(refund_form.refund_amount) }}
