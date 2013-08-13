@@ -61,6 +61,16 @@ class ReturnDetail extends Controller
 		$form->add('refund_amount', 'text', ' ', array(
 			'data' => $return->balance
 		));
+		$form->add('stock_location', 'choice', 'Destination', array(
+			'choices' => array(
+				1 => 'Stock',
+				2 => 'Seconds',
+				3 => 'Bin',
+				4 => 'Repair A',
+				5 => 'Repair B',
+				6 => 'Back to customer',
+			)
+		));
 		$form->add('refund_approve', 'checkbox', 'Approve amount');
 
 		return $form->getForm()->createView();
