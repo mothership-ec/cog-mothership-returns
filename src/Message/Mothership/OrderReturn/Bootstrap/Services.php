@@ -46,13 +46,13 @@ class Services implements ServicesInterface
 		};
 
 		$services['return.edit'] = function($c) {
-			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit'], $c['order.statuses'],
-				$c['order.item.statuses']);
+			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit']);
 		};
 
 		// Add basic item return statuses
 		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_RETURN, 'Awaiting Return'));
 		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_REJECTED, 'Return Rejected'));
+		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_ACCEPTED, 'Return Accepted'));
 		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_RECEIVED, 'Return Received'));
 
 		// Add item exchange return statuses

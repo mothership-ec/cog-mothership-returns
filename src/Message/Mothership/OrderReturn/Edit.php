@@ -20,32 +20,34 @@ class Edit
 	protected $_orderStatuses;
 	protected $_itemStatuses;
 
-	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit,
-		$orderStatuses, $itemStatuses)
+	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit)
 	{
 		$this->_query = $query;
 		$this->_user  = $user;
 		$this->_itemEdit = $itemEdit;
-		$this->__orderStatuses = $_orderStatuses;
-		$this->_itemStatuses = $itemStatuses;
 	}
 
-	public function reject(OrderReturn $return)
+	public function accept(Entity\OrderReturn $return)
 	{
-		$this->_itemEdit->updateStatus($return->item, $this->_itemStatuses->get(OrderStatuses::RETURN_REJECTED));
+		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ACCEPTED);
 	}
 
-	public function setAsReceived(OrderReturn $return)
+	public function reject(Entity\OrderReturn $return)
 	{
-		$this->_itemEdit->updateStatus($return->item, $this->_itemStatuses->get(OrderStatuses::RETURN_ACCEPTED));
+		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_REJECTED);
 	}
 
-	public function setAsAwaitingBalancePayment(OrderReturn $return)
+	public function setAsReceived(Entity\OrderReturn $return)
+	{
+		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ACCEPTED);
+	}
+
+	public function setAsAwaitingBalancePayment(Entity\OrderReturn $return)
 	{
 		
 	}
 
-	public function setBalance(OrderReturn $return, $balance)
+	public function setBalance(Entity\OrderReturn $return, $balance)
 	{
 		$this->_query->run('
 			UPDATE
@@ -60,7 +62,7 @@ class Edit
 		));
 	}
 
-	public function setReturnStockLocation(OrderReturn $return, $location)
+	public function setReturnStockLocation(Entity\OrderReturn $return, $location)
 	{
 
 	}

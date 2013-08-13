@@ -6,27 +6,83 @@ use Message\Cog\Controller\Controller;
 
 class Detail extends Controller
 {
+	/**
+	 * Display the detail view of a return.
+	 * 
+	 * @param  int $returnID
+	 * @return [type]
+	 */
 	public function view($returnID)
 	{
 		$return = $this->get('return.loader')->getByID($returnID);
 
-		$accepted_form = $this->_acceptedForm($return);
+		$accepted_form = $this->_acceptOrRejectForm($return);
 		$received_form = $this->_receivedForm($return);
 		$refund_form   = $this->_refundForm($return);
 		$exchange_form = $this->_exchangeForm($return);
 
 		return $this->render('Message:Mothership:OrderReturn::order:detail:return:detail', array(
 			'return'        => $return,
-			'accepted_form' => $accepted_form,
-			'received_form' => $received_form,
-			'refund_form'   => $refund_form,
-			'exchange_form' => $exchange_form,
+			'accepted_form' => $accepted_form->getForm()->createView(),
+			'received_form' => $received_form->getForm()->createView(),
+			'refund_form'   => $refund_form->getForm()->createView(),
+			'exchange_form' => $exchange_form->getForm()->createView(),
 		));
 	}
 
-	protected function _acceptedForm($return)
+	/**
+	 * Process the accept / reject request.
+	 * 
+	 * @param  int $returnID
+	 * @return [type]
+	 */
+	public function acceptOrReject($returnID)
+	{
+		$return = $this->get('return.loader')->getByID($returnID);
+		$form = $this->_acceptOrRejectForm($return);
+		$data = $form->getFilteredData();
+		
+		if ($data['accept_reject'] == 'accept') {
+			$this->get('return.edit')->accept($return);
+		}
+		else {
+			$this->get('return.edit')->reject($return);
+		}
+	}
+
+	public function received()
+	{
+		$this->get('return.edit')->setAsReceived($return);
+	}
+
+	public function refund()
+	{
+		$request = $this->get('request');
+		if ($request->get('refund_approve')) {
+
+			if ($request->get('refund_method') == 'sagepay') {
+				// SagePay integration
+			}
+			else {
+				$this->get('return.edit')->refund($return, $request->get('refund_amount'));
+				$this->get('return.edit')->moveStock($return, $request->get('stock_location'));
+			}
+		}
+		else {
+			// Feedback an error
+		}
+	}
+
+	public function exchange()
+	{
+
+	}
+
+	protected function _acceptOrRejectForm($return)
 	{
 		$form = $this->get('form');
+
+		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.accept-or-reject', array('returnID' => $return->id)));
 
 		$form->add('accept_reject', 'choice', ' ', array(
 			'choices' => array(
@@ -41,24 +97,28 @@ class Detail extends Controller
 			'required' => false
 		));
 
-		return $form->getForm()->createView();
+		return $form;
 	}
 
 	protected function _receivedForm($return)
 	{
 		$form = $this->get('form');
 
+		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.received', array('returnID' => $return->id)));
+
 		$form->add('received', 'checkbox', 'Received package?');
 		$form->add('received_date', 'date', 'Date received', array(
 			'widget' => 'single_text'
 		));
 
-		return $form->getForm()->createView();
+		return $form;
 	}
 
 	protected function _refundForm($return)
 	{
 		$form = $this->get('form');
+
+		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.refund', array('returnID' => $return->id)));
 
 		$form->add('refund_amount', 'text', ' ', array(
 			'data' => $return->balance
@@ -84,13 +144,15 @@ class Detail extends Controller
 			'empty_value' => false
 		));
 
-		return $form->getForm()->createView();
+		return $form;
 	}
 
 	protected function _exchangeForm($return)
 	{
 		$form = $this->get('form');
 
-		return $form->getForm()->createView();
+		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.exchange', array('returnID' => $return->id)));
+
+		return $form;
 	}
 }

@@ -44,7 +44,9 @@
 			{# Show either the exchange or refund form depending on the resolution type #}
 			{% if return.isExchangeResolution %}
 				<h2 class="title">Exchange</h2>
-				exchange form
+				
+				<button class="button submit">Process Exchange</button>
+			{{ form_end(received_form) }}
 
 			{% elseif return.isRefundResolution %}
 				<h2 class="title">Refund</h2>
