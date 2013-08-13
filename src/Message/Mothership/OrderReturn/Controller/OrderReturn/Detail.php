@@ -6,25 +6,14 @@ use Message\Cog\Controller\Controller;
 
 class Detail extends Controller
 {
-	public function returnListing($orderID)
-	{
-		$order = $this->get('order.loader')->getByID($orderID);
-		$returns = $this->get('return.loader')->getByOrder($order);
-
-		return $this->render('Message:Mothership:OrderReturn::order:detail:return:listing', array(
-			'order' => $order,
-			'returns' => $returns,
-		));
-	}
-
-	public function listedItem($returnID)
+	public function view($returnID)
 	{
 		$return = $this->get('return.loader')->getByID($returnID);
 
-		$accepted_form = $this->acceptedForm($return);
-		$received_form = $this->receivedForm($return);
-		$refund_form   = $this->refundForm($return);
-		$exchange_form = $this->exchangeForm($return);
+		$accepted_form = $this->_acceptedForm($return);
+		$received_form = $this->_receivedForm($return);
+		$refund_form   = $this->_refundForm($return);
+		$exchange_form = $this->_exchangeForm($return);
 
 		return $this->render('Message:Mothership:OrderReturn::order:detail:return:detail', array(
 			'return'        => $return,
@@ -35,9 +24,18 @@ class Detail extends Controller
 		));
 	}
 
-	public function acceptedForm($return)
+	protected function _acceptedForm($return)
 	{
 		$form = $this->get('form');
+
+		$form->add('accept_reject', 'choice', ' ', array(
+			'choices' => array(
+				'accept' => 'Accept',
+				'reject' => 'Reject'
+			),
+			'expanded' => true,
+			'empty_value' => false
+		));
 
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
 			'required' => false
@@ -46,7 +44,7 @@ class Detail extends Controller
 		return $form->getForm()->createView();
 	}
 
-	public function receivedForm($return)
+	protected function _receivedForm($return)
 	{
 		$form = $this->get('form');
 
@@ -58,7 +56,7 @@ class Detail extends Controller
 		return $form->getForm()->createView();
 	}
 
-	public function refundForm($return)
+	protected function _refundForm($return)
 	{
 		$form = $this->get('form');
 
@@ -89,7 +87,7 @@ class Detail extends Controller
 		return $form->getForm()->createView();
 	}
 
-	public function exchangeForm($return)
+	protected function _exchangeForm($return)
 	{
 		$form = $this->get('form');
 

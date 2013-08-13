@@ -24,10 +24,10 @@
 		{% if not return.isAccepted and not return.isRejected %}
 			<h2 class="title">Accept / Reject</h2>
 			{{ form_start(accepted_form) }}
+				{{ form_row(accepted_form.accept_reject) }}
 				{{ form_row(accepted_form.message) }}
 
-				<button>Accept</button>
-				<button>Reject</button>
+				<button class="button submit">Update</button>
 			{{ form_end(accepted_form) }}
 		{% endif %}
 
@@ -38,6 +38,7 @@
 				{{ form_row(received_form.received) }}
 				{{ form_row(received_form.received_date) }}
 				
+				<button class="button submit">Notify customer</button>
 			{{ form_end(received_form) }}
 
 			{# Show either the exchange or refund form depending on the resolution type #}
