@@ -80,13 +80,11 @@ class Detail extends Controller
 		$data = $form->getFilteredData();
 
 		if ($data['refund_approve']) {
+			$return = $this->get('return.edit')->refund($return, $data['refund_amount']);
+			$this->get('return.edit')->moveStock($return, $data['stock_location']);
 
 			if ($data['refund_method'] == 'automatic') {
-				// Provider gateway integration
-			}
-			else {
-				$return = $this->get('return.edit')->refund($return, $data['refund_amount']);
-				$this->get('return.edit')->moveStock($return, $data['stock_location']);
+				// provider gateway integration
 			}
 		}
 		else {
@@ -108,12 +106,23 @@ class Detail extends Controller
 
 		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
-		if ($data['balance'] != 0 and $data['balance_approve'] !== true) {
+		if ($data['balance'] != 0 and $data['balance_approve'] != true) {
 			$this->addFlash('error', 'You must approve the balance if it is not 0');
 			return $this->redirect($viewURL);
 		}
 
-		$return = $this->get('return.edit')->exchange($return, $data['balance']);
+		// Exchange the item
+		$return = $this->get('return.edit')->exchange($return);
+
+		// If the balance is in the customers favour, process the refund
+		if ($data['balance_approve'] == true and $data['balance'] < 0) {
+			$return = $this->get('return.edit')->refund($return, 0 - $data['balance']);
+
+			// If payment is to be made automatically
+			if ($data['refund_method'] == 'automatic') {
+				// provider gateway integration
+			}
+		}
 
 		if ($return->balance > 0) {
 			// notify customer of remaining balance
