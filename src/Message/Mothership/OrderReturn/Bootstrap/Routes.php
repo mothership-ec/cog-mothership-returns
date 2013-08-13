@@ -8,7 +8,7 @@ class Routes implements RoutesInterface
 {
 	public function registerRoutes($router)
 	{
-		$router['ms.order']->add('ms.commerce.order.view.returns', 'view/{orderID}/return', '::Controller:OrderReturn:ReturnDetail#returnListing')
+		$router['ms.order']->add('ms.commerce.order.view.returns', 'view/{orderID}/return', '::Controller:OrderReturn:Detail#returnListing')
 			->setRequirement('orderID', '\d+');
 	}
 }

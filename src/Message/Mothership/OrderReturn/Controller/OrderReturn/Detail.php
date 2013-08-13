@@ -4,7 +4,7 @@ namespace Message\Mothership\OrderReturn\Controller\OrderReturn;
 
 use Message\Cog\Controller\Controller;
 
-class ReturnDetail extends Controller
+class Detail extends Controller
 {
 	public function returnListing($orderID)
 	{

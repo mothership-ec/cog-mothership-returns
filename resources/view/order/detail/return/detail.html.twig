@@ -58,5 +58,10 @@
 			{% endif %}
 		{% endif %}
 
+		{# Show a message if the return has been rejected #}
+		{% if return.isRejected %}
+			<p>This return was rejected.</p>
+		{% endif %}
+
 	</section>
 </div>
