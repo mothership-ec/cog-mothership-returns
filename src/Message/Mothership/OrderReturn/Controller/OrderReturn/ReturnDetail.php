@@ -91,6 +91,8 @@ class ReturnDetail extends Controller
 
 	public function exchangeForm($return)
 	{
-		return '';
+		$form = $this->get('form');
+
+		return $form->getForm()->createView();
 	}
 }

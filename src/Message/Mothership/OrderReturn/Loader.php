@@ -11,15 +11,17 @@ class Loader
 	protected $_query;
 	protected $_orderLoader;
 	protected $_itemLoader;
+	protected $_unitLoader;
 	protected $_reasons;
 	protected $_resolutions;
 	protected $_statuses;
 
-	public function __construct(DB\Query $query, $orderLoader, $itemLoader, $reasons, $resolutions, $statuses)
+	public function __construct(DB\Query $query, $orderLoader, $itemLoader, $unitLoader, $reasons, $resolutions, $statuses)
 	{
 		$this->_query       = $query;
 		$this->_orderLoader = $orderLoader;
 		$this->_itemLoader  = $itemLoader;
+		$this->_unitLoader  = $unitLoader;
 		$this->_reasons     = $reasons;
 		$this->_resolutions = $resolutions;
 		$this->_statuses    = $statuses;
@@ -90,6 +92,8 @@ class Loader
 
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
 			$entity->item = $this->_itemLoader->getByID($result[$key]->item_id);
+
+			$entity->exchangeUnit = $this->_unitLoader->includeOutOfStock(true)->getByID($result[$key]->exchange_unit_id);
 
 			$entity->reason = $this->_reasons->get($result[$key]->reason);
 			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);

@@ -1,13 +1,18 @@
 <div class="container" id="return{{ return.id }}">
 	<section class="group">
 		<h1 class="title">
-			{<a href="{ url('ms.commerce.product.edit', {productID: return.item.productID}) }}" data-live>{{ return.item.productName }}</a> }
+			{<a href="{ url('ms.commerce.product.edit', {productID: return.item.productID}) }" data-live>{{ return.item.productName }}</a> }
 			{{ return.item.brand }} {{ return.item.productName }}
 		</h1>
 
 		<ul class="order-details">
 			<li><span>Reason </span>{{ return.reason }}</li>
-			<li><span>Resolution </span>{{ return.resolution }}</li>
+			<li>
+				<span>Resolution </span>{{ return.resolution }}
+				{% if return.isExchangeResolution %}
+					for <a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeUnit.product.id}) }}" data-live>{{ return.exchangeUnit.sku }}</a>
+				{% endif %}
+			</li>
 			<li><span>Status </span>{{ return.status }}</li>
 			<li><span>Created by</span> {{ return.authorship.createdBy }} <span>at</span> {{ return.authorship.createdAt|date }}</li>
 			{% if not return.authorship.updatedAt is empty and not return.authorship.updatedBy is empty %}

@@ -20,7 +20,7 @@ class Services implements ServicesInterface
 
 		$services['return.loader'] = function($c) {
 			return new OrderReturn\Loader($c['db.query'], $c['order.loader'], $c['order.item.loader'],
-				$c['return.reasons'], $c['return.resolutions'], $c['order.item.statuses']);
+				$c['product.unit.loader'], $c['return.reasons'], $c['return.resolutions'], $c['order.item.statuses']);
 		};
 
 		// Register reasons collection
