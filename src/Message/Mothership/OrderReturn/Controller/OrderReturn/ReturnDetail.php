@@ -39,6 +39,10 @@ class ReturnDetail extends Controller
 	{
 		$form = $this->get('form');
 
+		$form->add('message', 'textarea', 'Message to customer (optional)', array(
+			'required' => false
+		));
+
 		return $form->getForm()->createView();
 	}
 
@@ -72,6 +76,14 @@ class ReturnDetail extends Controller
 				6 => 'Back to customer',
 			),
 			'empty_value' => '-- Select stock destination --'
+		));
+		$form->add('refund_method', 'choice', 'Method', array(
+			'choices' => array(
+				'sagepay' => 'SagePay',
+				'manual' => 'Manual'
+			),
+			'expanded' => true,
+			'empty_value' => false
 		));
 
 		return $form->getForm()->createView();

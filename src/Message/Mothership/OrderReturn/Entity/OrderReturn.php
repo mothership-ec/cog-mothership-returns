@@ -25,12 +25,12 @@ class OrderReturn implements EntityInterface
 
 	public function isAccepted()
 	{
-		return $this->item->status >= Statuses::RETURN_ACCEPTED;
+		return $this->item->status->code >= Statuses::RETURN_ACCEPTED;
 	}
 
 	public function isRejected()
 	{
-		return $this->item->status == Statuses::RETURN_REJECTED;
+		return $this->item->status->code == Statuses::RETURN_REJECTED;
 	}
 
 	public function isRefund()

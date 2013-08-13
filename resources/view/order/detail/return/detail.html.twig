@@ -15,33 +15,42 @@
 			{% endif %}
 		</ul>
 
-		<h2 class="title">Accept / Reject</h2>
-		{{ form_start(accepted_form) }}
+		{# Show the accept / reject option if neither action has yet been taken #}
+		{% if not return.isAccepted and not return.isRejected %}
+			<h2 class="title">Accept / Reject</h2>
+			{{ form_start(accepted_form) }}
+				{{ form_row(accepted_form.message) }}
 
-			<button>Accept &amp; await return</button>
-			<button>Reject &amp; notify customer</button>
-		{{ form_end(accepted_form) }}
+				<button>Accept</button>
+				<button>Reject</button>
+			{{ form_end(accepted_form) }}
+		{% endif %}
 
-		<h2 class="title">Returned Package</h2>
-		{{ form_start(received_form) }}
-			{{ form_row(received_form.received) }}
-			{{ form_row(received_form.received_date) }}
-			
-		{{ form_end(received_form) }}
+		{# Show refund / exchange forms if the return has been accepted #}
+		{% if return.isAccepted %}
+			<h2 class="title">Returned Package</h2>
+			{{ form_start(received_form) }}
+				{{ form_row(received_form.received) }}
+				{{ form_row(received_form.received_date) }}
+				
+			{{ form_end(received_form) }}
 
-		{% if return.isExchange %}
-			<h2 class="title">Exchange</h2>
-			exchange form
+			{# Show either the exchange or refund form depending on the resolution type #}
+			{% if return.isExchange %}
+				<h2 class="title">Exchange</h2>
+				exchange form
 
-		{% elseif return.isRefund %}
-			<h2 class="title">Refund</h2>
-			{{ form_start(refund_form) }}
-				{{ form_row(refund_form.refund_amount) }}
-				{{ form_row(refund_form.refund_approve) }}
-				{{ form_row(refund_form.stock_location) }}
+			{% elseif return.isRefund %}
+				<h2 class="title">Refund</h2>
+				{{ form_start(refund_form) }}
+					{{ form_row(refund_form.refund_amount) }}
+					{{ form_row(refund_form.refund_approve) }}
+					{{ form_row(refund_form.stock_location) }}
+					{{ form_row(refund_form.refund_method) }}
 
-				<button type="submit">Process Refund</button>
-			{{ form_end(refund_form) }}
+					<button type="submit">Process Refund</button>
+				{{ form_end(refund_form) }}
+			{% endif %}
 		{% endif %}
 
 	</section>
