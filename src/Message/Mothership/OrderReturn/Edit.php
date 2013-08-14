@@ -87,29 +87,4 @@ class Edit
 		return $return;
 	}
 
-	public function setAsAwaitingBalancePayment(Entity\OrderReturn $return)
-	{
-		
-	}
-
-	public function setBalance(Entity\OrderReturn $return, $balance)
-	{
-		$this->_query->run('
-			UPDATE
-				order_item_return
-			SET
-				balance = :balance?d
-			WHERE
-				return_id = :returnID?i
-		', array(
-			'balance' => $balance,
-			'returnID' => $return->id
-		));
-	}
-
-	public function setReturnStockLocation(Entity\OrderReturn $return, $location)
-	{
-
-	}
-
 }
