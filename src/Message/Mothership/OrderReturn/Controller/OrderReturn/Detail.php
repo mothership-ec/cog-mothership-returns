@@ -87,6 +87,7 @@ class Detail extends Controller
 			if ($data['refund_method'] == 'automatic') {
 				// @danny
 				// $result = $this->get('payment')->sendSomeDolla($return->order->user, $refund->amount);
+				// $refund = $this->get('refund.edit')->setAsPaid($refund);
 				// $this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
 			}
 		}
@@ -124,10 +125,13 @@ class Detail extends Controller
 		}
 		// The balance requires the client to pay
 		elseif ($return->balance < 0) {
+			$refund = $this->get('return.edit')->refund($return, $data['refund_amount']);
+
 			// If payment is to be made automatically
 			if ($data['refund_method'] == 'automatic') {
 				// @danny
 				// $result = $this->get('payment')->sendSomeDolla($return->order->user, $data['refund_amount']);
+				// $refund = $this->get('refund.edit')->setAsPaid($refund);
 				// $this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
 			}
 			else {

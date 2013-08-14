@@ -45,9 +45,29 @@ class Edit
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ACCEPTED);
 	}
 
-	public function refund(Entity\OrderReturn $return, $amount = 0)
+	public function refund(Entity\OrderReturn $return, $amount)
 	{
-		// insert a row into order_refund
+		// Create the refund
+		$refund = new Refund;
+		$refund->amount = $amount;
+		$refund->reason = 'Returned Item: ' . $return->reason;
+		$refund->order = $return->order;
+		$refund = $this->_refundCreate->create($refund);
+
+		$return->balance -= $refund->amount;
+
+		// Update the return with the new balance
+		$this->_query->run('
+			UPDATE
+				order_return_item
+			SET
+				balance = :balance?f
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'balance' => $return->balance,
+			'returnID' => $return->id
+		));
 
 		return $return;
 	}
@@ -58,6 +78,7 @@ class Edit
 		$return->balance = $balance;
 
 		// exchange the item
+		
 
 		return $return;
 	}
