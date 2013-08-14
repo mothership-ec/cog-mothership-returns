@@ -10,7 +10,7 @@
 			<li>
 				<span>Resolution </span>{{ return.resolution }}
 				{% if return.isExchangeResolution %}
-					for <a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeUnit.product.id}) }}" data-live>{{ return.exchangeUnit.sku }}</a>
+					for <a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
 				{% endif %}
 			</li>
 			<li><span>Status </span>{{ return.status }}</li>
@@ -46,7 +46,7 @@
 				<h2 class="title">Exchange</h2>
 
 				<ul class="order-details">
-					<li><span>Replacement Item</span> {{ return.exchangeUnit.product.name }} <em>add unit name here</em></li>
+					<li><span>Replacement Item</span> {{ return.exchangeItem.product.name }} <em>add unit name here</em></li>
 				</ul>
 
 				{{ form_start(exchange_form) }}

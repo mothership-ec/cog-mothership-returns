@@ -111,7 +111,7 @@ class Detail extends Controller
 		$data = $form->getFilteredData();
 		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
-		if ($data['balance'] != 0 and $data['balance_approve'] != true) {
+		if ($data['balance'] != 0 and $data['balance_approve'] != true) { // should move this validation somewhere else
 			$this->addFlash('error', 'You must approve the balance if it is not 0');
 			return $this->redirect($viewURL);
 		}
@@ -119,11 +119,11 @@ class Detail extends Controller
 		// Exchange the item
 		$return = $this->get('return.edit')->exchange($return, $data['balance']);
 
-		// The balance requires the customer to pay
+		// If the balance requires the customer to pay
 		if ($return->balance > 0) {
 			
 		}
-		// The balance requires the client to pay
+		// If the balance requires the client to pay
 		elseif ($return->balance < 0) {
 			$refund = $this->get('return.edit')->refund($return, $data['refund_amount']);
 
