@@ -186,6 +186,11 @@ class Detail extends Controller
 
 	protected function _refundForm($return)
 	{
+		$locations = array();
+		foreach ($this->get('stock.locations') as $l) {
+			$locations[$l->name] = $l->displayName;
+		}
+
 		$form = $this->get('form');
 
 		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.refund', array('returnID' => $return->id)));
@@ -197,12 +202,7 @@ class Detail extends Controller
 		$form->add('refund_approve', 'checkbox', 'Approve amount');
 		$form->add('stock_location', 'choice', 'Destination', array(
 			'choices' => array(
-				1 => 'Stock',
-				2 => 'Seconds',
-				3 => 'Bin',
-				4 => 'Repair A',
-				5 => 'Repair B',
-				6 => 'Back to customer',
+				$locations
 			),
 			'empty_value' => '-- Select stock destination --'
 		));
