@@ -24,4 +24,7 @@ You will need to add Message's private package server to the `repositories` key 
 
 ## Todo
 
-- everything
+- Email notifications
+- Payment integration
+- Order view tab
+- Front end
