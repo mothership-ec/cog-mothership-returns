@@ -41,6 +41,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_acceptOrRejectForm($return);
 		$data = $form->getFilteredData();
+		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['accept_reject'] == 'accept') {
 			$this->get('return.edit')->accept($return);
@@ -48,6 +49,8 @@ class Detail extends Controller
 		else {
 			$this->get('return.edit')->reject($return);
 		}
+
+		return $this->redirect($viewURL);
 	}
 
 	/**
@@ -61,10 +64,13 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_receivedForm($return);
 		$data = $form->getFilteredData();
+		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['received'] == 1) {
 			$this->get('return.edit')->setAsReceived($return, $data['received_date']);
 		}
+
+		return $this->redirect($viewURL);
 	}
 
 	/**

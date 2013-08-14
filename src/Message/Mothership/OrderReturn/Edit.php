@@ -42,7 +42,7 @@ class Edit
 		$date = ($date !== null) ?: date('Y-m-d H:i:s');
 		// notify customer
 
-		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ACCEPTED);
+		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
 	}
 
 	public function refund(Entity\OrderReturn $return, $amount)

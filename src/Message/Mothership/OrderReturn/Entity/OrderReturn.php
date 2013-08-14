@@ -33,6 +33,11 @@ class OrderReturn implements EntityInterface
 		return $this->item->status->code == Statuses::RETURN_REJECTED;
 	}
 
+	public function isReceived()
+	{
+		return $this->item->status->code >= Statuses::RETURN_RECEIVED;
+	}
+
 	public function isRefundResolution()
 	{
 		return $this->resolution->code == Resolutions::REFUND;
