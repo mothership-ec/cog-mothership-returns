@@ -11,18 +11,20 @@ class Loader
 	protected $_query;
 	protected $_orderLoader;
 	protected $_itemLoader;
+	protected $_refundLoader;
 	protected $_reasons;
 	protected $_resolutions;
 	protected $_statuses;
 
-	public function __construct(DB\Query $query, $orderLoader, $itemLoader, $reasons, $resolutions, $statuses)
+	public function __construct(DB\Query $query, $orderLoader, $itemLoader, $refundLoader, $reasons, $resolutions, $statuses)
 	{
-		$this->_query       = $query;
-		$this->_orderLoader = $orderLoader;
-		$this->_itemLoader  = $itemLoader;
-		$this->_reasons     = $reasons;
-		$this->_resolutions = $resolutions;
-		$this->_statuses    = $statuses;
+		$this->_query        = $query;
+		$this->_orderLoader  = $orderLoader;
+		$this->_itemLoader   = $itemLoader;
+		$this->_refundLoader = $refundLoader;
+		$this->_reasons      = $reasons;
+		$this->_resolutions  = $resolutions;
+		$this->_statuses     = $statuses;
 	}
 
 	public function getByID($id)
@@ -96,7 +98,7 @@ class Loader
 			$entity->reason = $this->_reasons->get($result[$key]->reason);
 			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);
 
-			$entity->status = $this->_statuses->get($result[$key]->status_id);
+			$entity->refunds = $this->_refundLoader->getByOrder($entity->order);
 
 			// Add the entity into the order
 			// $entity->order->addEntity($entity);

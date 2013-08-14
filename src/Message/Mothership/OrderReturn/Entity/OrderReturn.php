@@ -15,6 +15,7 @@ class OrderReturn implements EntityInterface
 
 	public $item;
 	public $order;
+	public $refund;
 
 	public $authorship;
 
@@ -43,8 +44,18 @@ class OrderReturn implements EntityInterface
 		return $this->resolution->code == Resolutions::REFUND;
 	}
 
+	public function isRefunded()
+	{
+		return $this->item->status->code >= Statuses::REFUNDED;
+	}
+
 	public function isExchangeResolution()
 	{
 		return $this->resolution->code == Resolutions::EXCHANGE;
+	}
+
+	public function isExchanged()
+	{
+		return $this->item->status->code >= Statuses::RETURN_ITEM_EXCHANGED;
 	}
 }

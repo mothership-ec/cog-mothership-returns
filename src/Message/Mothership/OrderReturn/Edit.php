@@ -3,8 +3,8 @@
 namespace Message\Mothership\OrderReturn;
 
 use Message\Cog\DB;
-use Message\User\UserInterface;
 use Message\Cog\ValueObject\DateTimeImmutable;
+use Message\User\UserInterface;
 use Message\Mothership\Commerce\Order;
 
 /**
@@ -17,14 +17,14 @@ class Edit
 	protected $_query;
 	protected $_user;
 	protected $_itemEdit;
-	protected $_orderStatuses;
-	protected $_itemStatuses;
+	protected $_refundCreate;
 
-	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit)
+	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit, Order\Entity\Refund\Create $refundCreate)
 	{
 		$this->_query = $query;
 		$this->_user  = $user;
 		$this->_itemEdit = $itemEdit;
+		$this->_refundCreate = $refundCreate;
 	}
 
 	public function accept(Entity\OrderReturn $return)
@@ -45,29 +45,31 @@ class Edit
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
 	}
 
-	public function refund(Entity\OrderReturn $return, $amount)
+	public function refund(Entity\OrderReturn $return, $method, $amount)
 	{
 		// Create the refund
-		$refund = new Refund;
+		$refund = new Order\Entity\Refund\Refund;
+		$refund->method = $method;
 		$refund->amount = $amount;
 		$refund->reason = 'Returned Item: ' . $return->reason;
 		$refund->order = $return->order;
 		$refund = $this->_refundCreate->create($refund);
 
-		$return->balance -= $refund->amount;
-
 		// Update the return with the new balance
 		$this->_query->run('
 			UPDATE
-				order_return_item
+				order_item_return
 			SET
 				balance = :balance?f
 			WHERE
 				return_id = :returnID?i
 		', array(
-			'balance' => $return->balance,
+			'balance' => 0,
 			'returnID' => $return->id
 		));
+
+		// Update item status
+		$return->item = $this->_itemEdit->updateStatus($return->item, Statuses::REFUNDED);
 
 		return $return;
 	}
@@ -83,7 +85,7 @@ class Edit
 
 	public function moveStock(Entity\OrderReturn $return, $location)
 	{
-		$return->item = $this->_itemEdit->moveStock($return->item, $location);
+		// $return->item = $this->_itemEdit->moveStock($return->item, $location);
 		return $return;
 	}
 

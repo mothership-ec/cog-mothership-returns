@@ -87,7 +87,7 @@ class Detail extends Controller
 		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['refund_approve']) {
-			$refund = $this->get('return.edit')->refund($return, $data['refund_amount']);
+			$refund = $this->get('return.edit')->refund($return, $data['refund_method'], $data['refund_amount']);
 			$this->get('return.edit')->moveStock($return, $data['stock_location']);
 
 			if ($data['refund_method'] == 'automatic') {
@@ -190,8 +190,9 @@ class Detail extends Controller
 
 		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.refund', array('returnID' => $return->id)));
 
-		$form->add('refund_amount', 'text', ' ', array(
-			'data' => $return->balance
+		$form->add('refund_amount', 'money', ' ', array(
+			'currency' => 'GBP',
+			'data' => $return->item->gross
 		));
 		$form->add('refund_approve', 'checkbox', 'Approve amount');
 		$form->add('stock_location', 'choice', 'Destination', array(
@@ -225,7 +226,8 @@ class Detail extends Controller
 
 		$form->add('balance', 'money', 'Balance Payment', array(
 			'currency' => 'GBP',
-			'required' => false
+			'required' => false,
+			'data' => $return->balance
 		));
 		$form->add('balance_approve', 'checkbox', 'Approve amount', array(
 			'required' => false

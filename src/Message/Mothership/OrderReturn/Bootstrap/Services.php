@@ -20,7 +20,7 @@ class Services implements ServicesInterface
 
 		$services['return.loader'] = function($c) {
 			return new OrderReturn\Loader($c['db.query'], $c['order.loader'], $c['order.item.loader'],
-				$c['return.reasons'], $c['return.resolutions'], $c['order.item.statuses']);
+				$c['order.refund.loader'], $c['return.reasons'], $c['return.resolutions'], $c['order.item.statuses']);
 		};
 
 		// Register reasons collection
@@ -46,7 +46,7 @@ class Services implements ServicesInterface
 		};
 
 		$services['return.edit'] = function($c) {
-			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit']);
+			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit'], $c['order.refund.create']);
 		};
 
 		// Add basic item return statuses
@@ -59,6 +59,7 @@ class Services implements ServicesInterface
 		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_RETURN_BALANCE_PAYMENT, 'Awaiting Return Balance Payment'));
 		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_BALANCE_REFUNDED, 'Return Balance Refunded'));
 		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_EXCHANGE_DISPATCH, 'Awaiting Exchange Dispatch'));
+		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_ITEM_EXCHANGED, 'Return Item Exchanged'));
 		$services['order.item.statuses']->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::EXCHANGE_DISPATCHED, 'Exchange Dispatched'));
 
 		// Add item refund return statuses
