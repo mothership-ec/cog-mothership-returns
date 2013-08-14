@@ -74,11 +74,17 @@ class Edit
 		return $return;
 	}
 
-	public function exchange(Entity\OrderReturn $return)
+	public function exchange(Entity\OrderReturn $return, $balance = 0)
 	{
 		// Exchange the items
 		$return->item = $this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ITEM_EXCHANGED);
-		$return->exchangeItem = $this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_EXCHANGE_DISPATCH);
+
+		if ($balance > 0) {
+			$return->exchangeItem = $this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT);
+		}
+		else {
+			$return->exchangeItem = $this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_DISPATCH);
+		}
 
 		return $return;
 	}

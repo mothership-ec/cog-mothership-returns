@@ -46,7 +46,7 @@ class OrderReturn implements EntityInterface
 
 	public function isRefunded()
 	{
-		return $this->item->status->code >= Statuses::REFUNDED;
+		return $this->item->status->code >= Statuses::REFUND_PAID;
 	}
 
 	public function isExchangeResolution()

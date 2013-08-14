@@ -57,14 +57,13 @@ class Services implements ServicesInterface
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_RECEIVED, 'Return Received'));
 
 			// Add item exchange return statuses
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_RETURN_BALANCE_PAYMENT, 'Awaiting Return Balance Payment'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_BALANCE_REFUNDED, 'Return Balance Refunded'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_EXCHANGE_DISPATCH, 'Awaiting Exchange Dispatch'));
+			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT, 'Awaiting Exchange Balance Payment'));
+			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::EXCHANGE_BALANCE_PAID, 'Exchange Balance Paid'));
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_ITEM_EXCHANGED, 'Return Item Exchanged'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::EXCHANGE_DISPATCHED, 'Exchange Dispatched'));
 
 			// Add item refund return statuses
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::REFUNDED, 'Refunded'));
+			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_REFUND, 'Awaiting Refund'));
+			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::REFUND_PAID, 'Refund Paid'));
 
 			// Add order return statuses
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::FULLY_RETURNED, 'Fully Returned'));
