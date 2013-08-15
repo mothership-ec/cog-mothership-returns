@@ -18,10 +18,13 @@ class EventListener extends BaseListener implements SubscriberInterface
 	{
 		return array(
 			// 'commerce.order.tabs.or.something', // Order tabs
+			'user.account.build-menu' => array(
+				array('buildUserAccountMenu')
+			),
 		);
 	}
 
-	public function registerSomething(Event $event)
+	public function buildUserAccountMenu(Event $event)
 	{
 		
 	}
