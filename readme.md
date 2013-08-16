@@ -24,8 +24,8 @@ You will need to add Message's private package server to the `repositories` key 
 
 ## Todo
 
-- Exchange integration with dispatches
+- ~~Exchange integration with dispatches~~ (changed to use default item dispatch status)
 - Email notifications
 - Payment integration
 - Order view tab
-- Front end
+- ~~Front end~~
