@@ -1,0 +1,28 @@
+<article class="return">
+	<header>
+		<h1>Return - {{ return.item.productName }}</h1>
+		<p>{{ return.authorship.createdAt()|date }}</p>
+	</header>
+
+	<dl>
+		<dt>Reason</dt>
+		<dd>{{ return.reason }}</dd>
+
+		<dt>Resolution</dt>
+		<dd>{{ return.resolution }}</dd>
+
+		<dt>Status</dt>
+		<dd>{{ return.item.status }}</dd>
+
+		{% if return.isExchangeResolution %}
+			<dt>Exchange Item</dt>
+			<dd>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</dd>
+
+			<dt>Exchange Item Status</dt>
+			<dd>{{ return.exchangeItem.status }}</dd>
+		{% endif %}
+
+		<dt>Balance</dt>
+		<dd>{{ return.balance|price }}</dd>
+	</dl>
+</article>

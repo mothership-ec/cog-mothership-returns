@@ -69,7 +69,7 @@ class Edit
 		));
 
 		// Update item status
-		$return->item = $this->_itemEdit->updateStatus($return->item, Statuses::REFUNDED);
+		$this->_itemEdit->updateStatus($return->item, Statuses::REFUNDED);
 
 		return $return;
 	}

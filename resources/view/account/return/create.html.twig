@@ -1,0 +1,16 @@
+<h1>Create Return</h1>
+
+<dl>
+	<dt>Return Item</dt>
+	<dd>{{ item.productName }} - {{ item.options }}</dd>
+</dl>
+
+{{ form_start(form) }}
+	{{ form_row(form.reason) }}
+	{{ form_row(form.resolution) }}
+
+	{# show / hide this with js #}
+	{{ form_row(form.exchangeUnit) }}
+
+	<button class="button submit">Submit</button>
+{{ form_end(form) }}

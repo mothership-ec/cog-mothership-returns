@@ -2,6 +2,7 @@
 
 namespace Message\Mothership\OrderReturn;
 
+use Message\User;
 use Message\Cog\DB;
 use Message\Mothership\Commerce\Order;
 use Message\Cog\ValueObject\DateTimeImmutable;
@@ -42,6 +43,22 @@ class Loader
 			WHERE
 				order_id = ?i
 		', $order->id);
+
+		return $this->_load($result->flatten(), true);
+	}
+
+	public function getByUser(User\User $user)
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id
+			FROM
+				order_item_return oir
+			LEFT JOIN
+				order_summary os ON oir.order_id = os.order_id
+			WHERE
+				os.user_id = ?i
+		', $user->id);
 
 		return $this->_load($result->flatten(), true);
 	}

@@ -16,6 +16,7 @@ class OrderReturn implements EntityInterface
 	public $item;
 	public $order;
 	public $refund;
+	public $exchangeItem;
 
 	public $authorship;
 

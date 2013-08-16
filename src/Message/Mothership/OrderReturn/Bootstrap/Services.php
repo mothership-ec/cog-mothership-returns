@@ -41,8 +41,8 @@ class Services implements ServicesInterface
 
 		// Register decorators
 		$services['return.create'] = function($c) {
-			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['return.loader'], $c['return.reasons'],
-				$c['return.resolutions']);
+			return new OrderReturn\Create($c['db.query'], $c['user'], $c['return.loader'], $c['order.item.edit'],
+				$c['return.reasons'], $c['return.resolutions']);
 		};
 
 		$services['return.edit'] = function($c) {

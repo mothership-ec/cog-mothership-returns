@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
+use Message\Mothership\Commerce\Order\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
 use Message\Mothership\Commerce\Product\Unit\Unit;
 
@@ -21,51 +22,24 @@ use Message\User\UserInterface;
 class Create
 {
 	protected $_query;
-	protected $_loader;
 	protected $_user;
+	protected $_loader;
+	protected $_itemEdit;
 	protected $_reasons;
 	protected $_resolutions;
 
-	protected $_item;
-	protected $_reason;
-	protected $_resolution;
-	protected $_exchangeUnit;
-
-	public function __construct(DB\Query $query, Loader $loader, UserInterface $user, Reasons $reasons,
-		Resolutions $resolutions)
+	public function __construct(DB\Query $query, UserInterface $user, Loader $loader, $itemEdit, Collection\Collection $reasons,
+		Collection\Collection $resolutions)
 	{
 		$this->_query  = $query;
-		$this->_loader = $loader;
 		$this->_user   = $user;
+		$this->_loader = $loader;
+		$this->_itemEdit = $itemEdit;
 		$this->_reasons = $reasons;
 		$this->_resolutions = $resolutions;
 	}
 
-	public function setItem(Item $item)
-	{
-		$this->_item = $item;
-		return $this;
-	}
-
-	public function setReason($reason)
-	{
-		$this->_reason = $this->_reasons->get($reason);
-		return $this;
-	}
-
-	public function setResolution($resolution)
-	{
-		$this->_resolution = $this->_resolutions->get($resolution);
-		return $this;
-	}
-
-	public function setExchangeProduct(Unit $unit)
-	{
-		$this->_exchangeUnit = $unit;
-		return $this;
-	}
-
-	public function create(OrderReturn $return)
+	public function create(Entity\OrderReturn $return)
 	{
 		$this->_validate($return);
 
@@ -78,7 +52,7 @@ class Create
 		}
 
 		// Insert the return into the database
-		$result = $this->_query->add('
+		$result = $this->_query->run('
 			INSERT INTO
 				order_item_return
 			SET
@@ -88,44 +62,52 @@ class Create
 				created_by       = :createdBy?i,
 				reason           = :reason?i,
 				resolution       = :resolution?i,
-				exchange_unit_id = :exchange_unit_id?i
+				exchange_item_id = :exchangeItemID?i,
+				balance          = :balance?f
 		', array(
-			'orderID'          => $this->_item->order_id,
-			'itemID'           => $this->_item->id,
-			'createdAt'        => $return->authorship->createdAt(),
-			'createdBy'        => $return->authorship->createdBy(),
-			'reason'           => $this->_reason,
-			'resolution'       => $this->_resolution,
-			'exchange_unit_id' => ($this->_exchangeUnit) ? $this->_exchangeUnit->unit_id : 0
+			'orderID'        => $return->order->id,
+			'itemID'         => $return->item->id,
+			'createdAt'      => $return->authorship->createdAt(),
+			'createdBy'      => $return->authorship->createdBy(),
+			'reason'         => $return->reason,
+			'resolution'     => $return->resolution,
+			'exchangeItemID' => ($return->exchangeItem) ? $return->exchangeItem->id : 0,
+			'balance'        => $return->balance
 		));
 
 		// Get the return by the last insert id
 		$return = $this->_loader->getByID($result->id());
 
+		// Update item statuses
+		$this->_itemEdit->updateStatus(array($return->item, $return->exchangeItem), Statuses::AWAITING_RETURN);
+
 		return $return;
 	}
 
-	protected function validate(OrderReturn $return)
+	protected function _validate(Entity\OrderReturn $return)
 	{
 		// Ensure an item has been set for the return
-		if (! $this->_item instanceof Item) {
+		if (! $return->item instanceof Item) {
 			throw new InvalidArgumentException('Could not create order return: item is not set or invalid');
 		}
 
+		if (! $return->order instanceof Order) {
+			throw new InvalidArgumentException('Could not create order return: order is not set or invalid');
+		}
+
 		// Check the reason has been set and is valid
-		if (! $this->_reasons->exists($this->_reason)) {
+		if (! $this->_reasons->exists($return->reason)) {
 			throw new InvalidArgumentException('Could not create order return: reason is not set or invalid');
 		}
 
 		// Check the resolution has been set and is valid
-		if (! $this->_resolutions->exists($this->_resolution)) {
+		if (! $this->_resolutions->exists($return->resolution)) {
 			throw new InvalidArgumentException('Could not create order return: resolution is not set or invalid');
 		}
 
 		// If this is an exchange, check an exchange unit has been set
-		$resolutions = $this->_resolutions;
-		if ($this->_resolution == $resolutions::EXCHANGE and ! $this->_exchangeUnit) {
-			throw new InvalidArgumentException('Could not create order return: exchange unit required');
+		if ($return->resolution == Resolutions::EXCHANGE and ! $return->exchangeItem) {
+			throw new InvalidArgumentException('Could not create order return: exchange item required');
 		}
 
 		// ... any more?
