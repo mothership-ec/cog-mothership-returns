@@ -8,7 +8,7 @@
 					{{ render(controller('Message:Mothership:OrderReturn::Controller:OrderReturn:Order:Detail#view', { 'returnID' : return.id } )) }}
 				{% endfor %}
 			{% else %}
-				<p>{{ 'ms.commerce.order.return.none'|trans }}</p>
+				<p>{{ 'ms.commerce.return.none'|trans }}</p>
 			{% endif %}
 		</section>
 	</section>

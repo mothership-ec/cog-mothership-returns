@@ -1,11 +1,11 @@
 <?php
 
-namespace Message\Mothership\OrderReturn;
+namespace Message\Mothership\OrderReturn\Bootstrap;
 
 use Message\Cog\Event\SubscriberInterface;
 use Message\Cog\Event\Event;
 use Message\Cog\Event\EventListener as BaseListener;
-use Message\Cog\Service\ContainerInterface;
+use Message\Mothership\ControlPanel\Event\BuildMenuEvent;
 
 /**
  * Event listener for the OrderReturn component.
@@ -17,15 +17,14 @@ class EventListener extends BaseListener implements SubscriberInterface
 	static public function getSubscribedEvents()
 	{
 		return array(
-			// 'commerce.order.tabs.or.something', // Order tabs
-			'user.account.build-menu' => array(
-				array('buildUserAccountMenu')
+			BuildMenuEvent::BUILD_MAIN_MENU => array(
+				'registerMainMenuItems'
 			),
 		);
 	}
 
-	public function buildUserAccountMenu(Event $event)
+	public function registerMainMenuItems(BuildMenuEvent $event)
 	{
-		
+		$event->addItem('ms.commerce.return.dashboard', 'Returns', array('ms.returns'));
 	}
 }

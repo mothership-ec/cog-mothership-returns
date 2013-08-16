@@ -40,4 +40,9 @@ class Listing extends Controller
 			'returns' => $returns,
 		));
 	}
+
+	public function dashboard()
+	{
+		return $this->render('Message:Mothership:OrderReturn::return:listing:dashboard');
+	}
 }
