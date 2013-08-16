@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Controller\OrderReturn;
+namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Order;
 
 use Message\Cog\Controller\Controller;
 
@@ -21,7 +21,7 @@ class Detail extends Controller
 		$refund_form   = $this->_refundForm($return);
 		$exchange_form = $this->_exchangeForm($return);
 
-		return $this->render('Message:Mothership:OrderReturn::order:detail:return:detail', array(
+		return $this->render('Message:Mothership:OrderReturn::return:order:detail', array(
 			'return'        => $return,
 			'accepted_form' => $accepted_form->getForm()->createView(),
 			'received_form' => $received_form->getForm()->createView(),

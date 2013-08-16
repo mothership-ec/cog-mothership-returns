@@ -11,7 +11,7 @@ class Listing extends Controller
 		$user = $this->get('user.current');
 		$returns = $this->get('return.loader')->getByUser($user);
 
-		return $this->render('Message:Mothership:OrderReturn::account:return:listing', array(
+		return $this->render('Message:Mothership:OrderReturn::return:account:listing', array(
 			'user'    => $user,
 			'returns' => $returns
 		));

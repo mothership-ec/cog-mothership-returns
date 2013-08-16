@@ -11,7 +11,7 @@ class Detail extends Controller
 		$user = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
 
-		return $this->render('Message:Mothership:OrderReturn::account:return:detail', array(
+		return $this->render('Message:Mothership:OrderReturn::return:account:detail', array(
 			'user'    => $user,
 			'return'  => $return
 		));

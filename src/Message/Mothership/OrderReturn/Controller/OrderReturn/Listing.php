@@ -6,13 +6,11 @@ use Message\Cog\Controller\Controller;
 
 class Listing extends Controller
 {
-	public function view($orderID)
+	public function all()
 	{
-		$order = $this->get('order.loader')->getByID($orderID);
-		$returns = $this->get('return.loader')->getByOrder($order);
+		$returns = $this->get('return.loader')->getAll();
 
-		return $this->render('Message:Mothership:OrderReturn::order:detail:return:listing', array(
-			'order' => $order,
+		return $this->render('Message:Mothership:OrderReturn:return:listing:return-listing', array(
 			'returns' => $returns,
 		));
 	}
