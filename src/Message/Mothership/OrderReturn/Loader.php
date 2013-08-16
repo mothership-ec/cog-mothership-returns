@@ -33,6 +33,18 @@ class Loader
 		return $this->_load($id, false);
 	}
 
+	public function getAll()
+	{
+		$result = $this->_query->run('
+			SELECT
+				*
+			FROM
+				order_item_return
+		');
+
+		return $this->_load($result->flatten(), true);
+	}
+
 	public function getByOrder(Order\Order $order)
 	{
 		$result = $this->_query->run('

@@ -9,38 +9,32 @@
 		<h1>Returns</h1>
 	</hgroup>
 
-	<section class="container-content">
-		<section class="repeatable-group">
-			{% if not returns is empty %}
+	{% if not returns is empty %}
+		<table class="return-listing">
+			<thead>
+			<tr>
+				<th><span>Item</span></th>
+				<th><span>Created at</span></th>
+				<th><span>User</span></th>
+				<th><span>Resolution</span></th>
+				<th><span>Status</span></th>
+				<th><span>Balance</span></th>
+			</tr>
+			</thead>
+			<tbody>
 				{% for return in returns %}
-					<section class="group">
-						
-
-						
-					<h1 class="title">
-						{<a href="{ url('ms.commerce.product.edit', {productID: return.item.productID}) }" data-live>{{ return.item.productName }}</a> }
-						{{ return.item.brand }} {{ return.item.productName }}
-					</h1>
-
-					<ul class="order-details">
-						<li><span>Reason </span>{{ return.reason }}</li>
-						<li>
-							<span>Resolution </span>{{ return.resolution }}
-							{% if return.isExchangeResolution %}
-								for <a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
-							{% endif %}
-						</li>
-						<li><span>Balance </span>{{ return.balance|price }}</li>
-						<li><span>Status </span>{{ return.item.status }}</li>
-						<li><span>Created by</span> {{ return.authorship.createdBy }} <span>at</span> {{ return.authorship.createdAt|date }}</li>
-						{% if not return.authorship.updatedAt is empty and not return.authorship.updatedBy is empty %}
-							<li><span>Updated by</span> {{ return.authorship.updatedBy }} <span>at</span> {{ return.authorship.updatedAt|date }}</li>
-						{% endif %}
-					</ul>
+					<tr>
+						<td><a href="{{ url('ms.commerce.order.view.returns', {orderID: return.order.id}) }}">{{ return.item.productName }}</a></td>
+						<td>{{ return.authorship.createdAt|date }}</td>
+						<td><a href="">{{ return.authorship.createdBy }}</a></td>
+						<td>{{ return.resolution }}</td>
+						<td>{{ return.item.status }}</td>
+						<td>{{ return.balance|price }}</td>
+					</tr>
 				{% endfor %}
-			{% else %}
-				<p>{{ 'ms.commerce.return.none'|trans }}</p>
-			{% endif %}
-		</section>
-	</section>
+			</tbody>
+		</table>
+	{% else %}
+		<p>{{ 'ms.commerce.return.none'|trans }}</p>
+	{% endif %}
 {% endblock %}

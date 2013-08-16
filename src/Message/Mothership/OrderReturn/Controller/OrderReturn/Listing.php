@@ -10,7 +10,7 @@ class Listing extends Controller
 	{
 		$returns = $this->get('return.loader')->getAll();
 
-		return $this->render('Message:Mothership:OrderReturn:return:listing:return-listing', array(
+		return $this->render('Message:Mothership:OrderReturn::return:listing:return-listing', array(
 			'returns' => $returns,
 		));
 	}

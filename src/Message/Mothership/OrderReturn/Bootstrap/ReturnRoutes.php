@@ -8,6 +8,7 @@ class ReturnRoutes implements RoutesInterface
 {
 	public function registerRoutes($router)
 	{
-		$router['ms.return']->add('ms.commerce.return.listing', 'return/view', '::Controller:OrderReturn:Listing#view');
+		$router['ms.return']->setParent('ms.cp')->setPrefix('/return');
+		$router['ms.return']->add('ms.commerce.return.listing', '/view', '::Controller:OrderReturn:Listing#all');
 	}
 }
