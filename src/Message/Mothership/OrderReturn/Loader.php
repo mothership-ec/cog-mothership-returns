@@ -47,38 +47,6 @@ class Loader
 
 	public function getByStatus($statuses)
 	{
-		/*$ignoreStatuses = array();
-		foreach ($this->_statuses as $status) {
-			if (! in_array($status->code, $selectStatuses)) {
-				$ignoreStatuses[] = $status->code;
-			}
-		}
-
-		$result = $this->_query->run('
-			SELECT
-				return_id
-			FROM
-				order_item_return oir,
-				(
-					SELECT
-						item_id,
-						status_code
-					FROM
-						order_item_status
-					ORDER BY
-						created_at DESC
-				) AS ois
-			WHERE
-				ois.item_id = oir.item_id AND
-				ois.status_code IN (?ij) AND
-				ois.status_code NOT IN (?ij)
-			GROUP BY
-				oir.item_id
-		', array(
-			$selectStatuses,
-			$ignoreStatuses
-		));*/
-
 		$all = $this->getAll();
 		$returns = array();
 		foreach ($all as $return) {

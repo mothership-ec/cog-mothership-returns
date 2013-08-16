@@ -1,8 +1,13 @@
 {% extends 'Message:Mothership:ControlPanel::_templates/left_sidebar' %}
 
-{#% block sidebar %}
-
-{% endblock %#}
+{% block sidebar %}
+	<ol class="menu">
+		<li><a href="{{ url('ms.commerce.return.listing') }}">All Returns</a></li>
+		<li><a href="{{ url('ms.commerce.return.listing.status', {'status': 'open'}) }}">Open Returns</a></li>
+		<li><a href="{{ url('ms.commerce.return.listing.status', {'status': 'completed'}) }}">Completed Returns</a></li>
+		<li><a href="{{ url('ms.commerce.return.listing.status', {'status': 'rejected'}) }}">Rejected Returns</a></li>
+	</ol>
+{% endblock %}
 
 {% block main %}
 	<hgroup class="title">
