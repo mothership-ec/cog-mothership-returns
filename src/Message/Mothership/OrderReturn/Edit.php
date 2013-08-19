@@ -65,11 +65,16 @@ class Edit
 				return_id = :returnID?i
 		', array(
 			'balance' => 0,
+			'method' => $refund->method,
+			'amount' => $refund->amount,
+			'reason' => $refund->reason,
 			'returnID' => $return->id
 		));
 
 		// Update item status
-		$this->_itemEdit->updateStatus($return->item, Statuses::REFUNDED);
+		$this->_itemEdit->updateStatus($return->item, Statuses::REFUND_PAID);
+
+		$return->refund = $refund;
 
 		return $return;
 	}
@@ -77,13 +82,13 @@ class Edit
 	public function exchange(Entity\OrderReturn $return, $balance = 0)
 	{
 		// Exchange the items
-		$return->item = $this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ITEM_EXCHANGED);
+		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ITEM_EXCHANGED);
 
-		if ($balance > 0) {
-			$return->exchangeItem = $this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT);
+		if ($balance != 0) {
+			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT);
 		}
 		else {
-			$return->exchangeItem = $this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_DISPATCH);
+			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_DISPATCH);
 		}
 
 		return $return;

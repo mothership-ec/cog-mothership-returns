@@ -4,6 +4,8 @@ namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Order;
 
 use Message\Cog\Controller\Controller;
 
+use Message\Mothership\Commerce\Order;
+
 class Detail extends Controller
 {
 	/**
@@ -87,14 +89,32 @@ class Detail extends Controller
 		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['refund_approve']) {
-			$refund = $this->get('return.edit')->refund($return, $data['refund_method'], $data['refund_amount']);
+			$return = $this->get('return.edit')->refund($return, $data['refund_method'], $data['refund_amount']);
 			$this->get('return.edit')->moveStock($return, $data['stock_location']);
 
 			if ($data['refund_method'] == 'automatic') {
-				// @danny
-				// $result = $this->get('payment')->sendSomeDolla($return->order->user, $refund->amount);
-				// $refund = $this->get('refund.edit')->setAsPaid($refund);
-				// $this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
+				// Create a refund payment
+				$payment = new Payment;
+				$payment->order = $return->order;
+				$payment->return = $return;
+				$payment->amount = $return->refund->amount;
+				$payment->reference = 'jelly';
+				$payment = $this->get('order.payment.create')->create($payment);
+
+				try {
+					// Send the refund payment
+					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
+
+					// Update the refund with the payment
+					$refund = $this->get('refund.edit')->setPayment($refund, $payment);
+
+					// Inform the user the payment was sent successfully
+					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
+				}
+				catch (Exception $e) {
+					// If the payment failed, inform the user
+					$this->addFlash('error', $e->getMessage());
+				}
 			}
 		}
 		else {
@@ -127,21 +147,53 @@ class Detail extends Controller
 
 		// If the balance requires the customer to pay
 		if ($return->balance > 0) {
-			
+			// notify the customer with a link to the simple checkout payment page
+
 		}
 		// If the balance requires the client to pay
 		elseif ($return->balance < 0) {
-			$refund = $this->get('return.edit')->refund($return, $data['refund_amount']);
-
-			// If payment is to be made automatically
-			if ($data['refund_method'] == 'automatic') {
-				// @danny
-				// $result = $this->get('payment')->sendSomeDolla($return->order->user, $data['refund_amount']);
-				// $refund = $this->get('refund.edit')->setAsPaid($refund);
-				// $this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
+			if ($data['refund_method'] == 'manual') {
+				$method = $this->get('order.payment.methods')->get('manual');
 			}
 			else {
-				$return = $this->get('return.edit')->setAwaitingManualPayment($return);
+				$method = $this->get('order.payment.methods')->get('card');
+			}
+
+			$return = $this->get('return.edit')->refund($return, $method, 0 - $data['balance']);
+
+			// Create a refund payment
+			$payment = new Order\Entity\Payment\Payment;
+			$payment->order = $return->order;
+			$payment->return = $return;
+			$payment->amount = $return->refund->amount;
+			$payment->reference = 'jelly';
+			$payment->method = $method;
+
+			$payment = $this->get('order.payment.create')->create($payment);
+
+			// If payment is to be made automatically
+			if ($payment->method == 'card') {
+				try {
+					// Send the refund payment
+					$result = $this->get('commerce.gateway.refund')->refund($payment, $payment->amount);
+
+					// Update the refund with the payment
+					$refund = $this->get('refund.edit')->setPayment($refund, $payment);
+
+					// Inform the user the payment was sent successfully
+					$this->addFlash('success', sprintf('%f was sent to %s', $refund->amount, $return->order->user->getName()));
+				}
+				catch (Exception $e) {
+					// If the payment failed, inform the user
+					$this->addFlash('error', $e->getMessage());
+				}
+			}
+			else {
+				// Update the refund with the payment
+				$refund = $this->get('refund.edit')->setPayment($refund, $payment);
+
+				// Inform the user the payment is pending
+				$this->addFlash('success', sprintf('You should now manually transfer %f to %s', $refund->amount, $return->order->user->getName()));
 			}
 		}
 
