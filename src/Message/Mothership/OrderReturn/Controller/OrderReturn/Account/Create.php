@@ -14,7 +14,7 @@ class Create extends Controller
 	public function view($itemID)
 	{
 		$user = $this->get('user.current');
-		$item = $this->get('order.item.loader')->getByID($itemID);
+		$item = $this->get('order.item.loader')->getByID($itemID); // need to check item belongs to an order that belongs to the user
 		$form = $this->_createForm($item);
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
@@ -57,7 +57,7 @@ class Create extends Controller
 		}
 		elseif ($resolution->code == Resolutions::REFUND) {
 			// Set the balance as the list price of the returned item
-			$return->balance = $item->listPrice;
+			$return->balance = 0 - $item->listPrice;
 		}
 
 		$return = $this->get('return.create')->create($return);
