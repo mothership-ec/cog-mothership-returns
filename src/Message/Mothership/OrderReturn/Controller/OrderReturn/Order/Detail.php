@@ -89,24 +89,30 @@ class Detail extends Controller
 		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['refund_approve']) {
-			$return = $this->get('return.edit')->refund($return, $data['refund_method'], $data['refund_amount']);
+			$amount = 0 - $data['refund_amount'];
+
+			if ($data['refund_method'] == 'manual') {
+				$method = $this->get('order.payment.methods')->get('manual');
+			}
+			else {
+				$method = $this->get('order.payment.methods')->get('card');
+			}
+
+			$return = $this->get('return.edit')->refund($return, $method, $amount);
 			$this->get('return.edit')->moveStock($return, $data['stock_location']);
 
 			if ($data['refund_method'] == 'automatic') {
-				// Create a refund payment
-				$payment = new Payment;
-				$payment->order = $return->order;
-				$payment->return = $return;
-				$payment->amount = $return->refund->amount;
-				$payment->reference = 'jelly';
-				$payment = $this->get('order.payment.create')->create($payment);
+				// Get the payment against the order
+				foreach ($return->order->payments as $p) {
+					$payment = $p;
+				}
 
 				try {
 					// Send the refund payment
 					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
 
 					// Update the refund with the payment
-					$refund = $this->get('refund.edit')->setPayment($refund, $payment);
+					$this->get('order.refund.edit')->setPayment($return->refund, $payment);
 
 					// Inform the user the payment was sent successfully
 					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
@@ -152,6 +158,8 @@ class Detail extends Controller
 		}
 		// If the balance requires the client to pay
 		elseif ($return->balance < 0) {
+			$amount = 0 - $return->balance;
+
 			if ($data['refund_method'] == 'manual') {
 				$method = $this->get('order.payment.methods')->get('manual');
 			}
@@ -159,22 +167,24 @@ class Detail extends Controller
 				$method = $this->get('order.payment.methods')->get('card');
 			}
 
-			$return = $this->get('return.edit')->refund($return, $method, 0 - $data['balance']);
+			$return = $this->get('return.edit')->refund($return, $method, $amount);
 
 			// Get the payment against the order
-			$payment = $return->order->payments[count($return->order->payments) - 1];
+			foreach ($return->order->payments as $p) {
+				$payment = $p;
+			}
 
 			// If payment is to be made automatically
 			if ($payment->method == $this->get('order.payment.methods')->get('card')) {
 				try {
 					// Send the refund payment
-					$result = $this->get('commerce.gateway.refund')->refund($payment, $payment->amount);
+					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
 
 					// Update the refund with the payment
 					$refund = $this->get('order.refund.edit')->setPayment($refund, $payment);
 
 					// Inform the user the payment was sent successfully
-					$this->addFlash('success', sprintf('%f was sent to %s', $refund->amount, $return->order->user->getName()));
+					$this->addFlash('success', sprintf('%f was sent to %s', $amount, $return->order->user->getName()));
 				}
 				catch (Exception $e) {
 					// If the payment failed, inform the user
@@ -186,7 +196,7 @@ class Detail extends Controller
 				$refund = $this->get('order.refund.edit')->setPayment($refund, $payment);
 
 				// Inform the user the payment is pending
-				$this->addFlash('success', sprintf('You should now manually transfer %d to %s', $refund->amount, $return->order->user->getName()));
+				$this->addFlash('success', sprintf('You should now manually transfer %d to %s', $amount, $return->order->user->getName()));
 			}
 		}
 
@@ -242,7 +252,7 @@ class Detail extends Controller
 
 		$form->add('refund_amount', 'money', ' ', array(
 			'currency' => 'GBP',
-			'data' => $return->item->gross
+			'data' => $return->balance
 		));
 		$form->add('refund_approve', 'checkbox', 'Approve amount');
 		$form->add('stock_location', 'choice', 'Destination', array(

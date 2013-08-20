@@ -79,7 +79,10 @@ class Create
 		$return = $this->_loader->getByID($result->id());
 
 		// Update item statuses
-		$this->_itemEdit->updateStatus(array($return->item, $return->exchangeItem), Statuses::AWAITING_RETURN);
+		$this->_itemEdit->updateStatus($return->item, Statuses::AWAITING_RETURN);
+		if ($return->exchangeItem) {
+			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_RETURN);
+		}
 
 		return $return;
 	}
