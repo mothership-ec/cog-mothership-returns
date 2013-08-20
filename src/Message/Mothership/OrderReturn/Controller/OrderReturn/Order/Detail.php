@@ -166,19 +166,19 @@ class Detail extends Controller
 			$payment->order = $return->order;
 			$payment->return = $return;
 			$payment->amount = $return->refund->amount;
-			$payment->reference = 'jelly';
+			$payment->reference = 'refund item';
 			$payment->method = $method;
 
 			$payment = $this->get('order.payment.create')->create($payment);
 
 			// If payment is to be made automatically
-			if ($payment->method == 'card') {
+			if ($payment->method == $this->get('order.payment.methods')->get('card')) {
 				try {
 					// Send the refund payment
 					$result = $this->get('commerce.gateway.refund')->refund($payment, $payment->amount);
 
 					// Update the refund with the payment
-					$refund = $this->get('refund.edit')->setPayment($refund, $payment);
+					$refund = $this->get('order.refund.edit')->setPayment($refund, $payment);
 
 					// Inform the user the payment was sent successfully
 					$this->addFlash('success', sprintf('%f was sent to %s', $refund->amount, $return->order->user->getName()));
@@ -190,10 +190,10 @@ class Detail extends Controller
 			}
 			else {
 				// Update the refund with the payment
-				$refund = $this->get('refund.edit')->setPayment($refund, $payment);
+				$refund = $this->get('order.refund.edit')->setPayment($refund, $payment);
 
 				// Inform the user the payment is pending
-				$this->addFlash('success', sprintf('You should now manually transfer %f to %s', $refund->amount, $return->order->user->getName()));
+				$this->addFlash('success', sprintf('You should now manually transfer %d to %s', $refund->amount, $return->order->user->getName()));
 			}
 		}
 
