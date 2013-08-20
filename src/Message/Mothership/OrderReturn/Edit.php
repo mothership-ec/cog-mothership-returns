@@ -45,6 +45,27 @@ class Edit
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
 	}
 
+	public function setBalance(Entity\OrderReturn $return, $balance)
+	{
+		$return->balance = $balance;
+
+		$this->_validate($return);
+
+		$this->_query->run('
+			UPDATE
+				order_item_return
+			SET
+				balance = :balance?f
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'balance' => $balance,
+			'returnID' => $return->id
+		));
+
+		return $return;
+	}
+
 	public function refund(Entity\OrderReturn $return, $method, $amount)
 	{
 		// Create the refund
@@ -112,6 +133,11 @@ class Edit
 	{
 		// $return->item = $this->_itemEdit->moveStock($return->item, $location);
 		return $return;
+	}
+
+	protected function _validate(Entity\OrderReturn $return)
+	{
+		// 
 	}
 
 }

@@ -87,6 +87,8 @@ class Payment extends Controller
 			'hash' => $this->get('checkout.hash')->encrypt($order->id, $salt)
 		));
 
+		$this->get('return.edit')->setBalance($return, 0);
+
 		return $this->redirect($url);
 	}
 
