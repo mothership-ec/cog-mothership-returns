@@ -161,15 +161,8 @@ class Detail extends Controller
 
 			$return = $this->get('return.edit')->refund($return, $method, 0 - $data['balance']);
 
-			// Create a refund payment
-			$payment = new Order\Entity\Payment\Payment;
-			$payment->order = $return->order;
-			$payment->return = $return;
-			$payment->amount = $return->refund->amount;
-			$payment->reference = 'refund item';
-			$payment->method = $method;
-
-			$payment = $this->get('order.payment.create')->create($payment);
+			// Get the payment against the order
+			$payment = $return->order->payments[count($return->order->payments) - 1];
 
 			// If payment is to be made automatically
 			if ($payment->method == $this->get('order.payment.methods')->get('card')) {
