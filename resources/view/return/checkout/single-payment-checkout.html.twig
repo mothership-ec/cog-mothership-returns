@@ -1,0 +1,25 @@
+<h1>Checkout</h1>
+
+{% if amount %}
+	{% for return in returns %}
+		<dl>
+			<dt>Item</dt>
+			<dd>{{ return.item.productName }} - {{ return.item.options }}</dd>
+
+			<dt>Amount</dt>
+			<dd>{{ return.balance|price }}</dd>
+		</dl>
+	{% endfor %}
+
+	<div class="totals">
+		<p>Total: {{ amount|price }}</p>
+	</div>
+
+	{{ form_start(form) }}
+
+		<button class="button submit">Continue</button>
+	{{ form_end(form) }}
+
+{% else %}
+	<p>Nothing to pay.</p>
+{% endif %}

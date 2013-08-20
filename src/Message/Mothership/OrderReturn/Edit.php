@@ -91,6 +91,20 @@ class Edit
 			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_DISPATCH);
 		}
 
+		$return->balance = $balance;
+
+		$this->_query->run('
+			UPDATE
+				order_item_return
+			SET
+				balance = :balance?f
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'balance' => $return->balance,
+			'returnID' => $return->id,
+		));
+
 		return $return;
 	}
 
