@@ -15,6 +15,12 @@ class Create extends Controller
 	{
 		$user = $this->get('user.current');
 		$item = $this->get('order.item.loader')->getByID($itemID); // need to check item belongs to an order that belongs to the user
+
+		if ($item->order->user->id != $user->id) {
+			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
+				view this page.');
+		}
+
 		$form = $this->_createForm($item);
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
@@ -28,6 +34,12 @@ class Create extends Controller
 	{
 		$user = $this->get('user.current');
 		$item = $this->get('order.item.loader')->getByID($itemID);
+
+		if ($item->order->user->id != $user->id) {
+			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
+				view this page.');
+		}
+		
 		$form = $this->_createForm($item);
 		$data = $form->getFilteredData();
 
