@@ -15,7 +15,14 @@ class Payment extends Controller
 
 	public function store($orderID)
 	{
+		$user = $this->get('user.current');
 		$order = $this->get('order.loader')->getByID($orderID);
+
+		if ($order->user->id != $user->id) {
+			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
+				view this page.');
+		}
+
 		$returns = $this->get('return.loader')->getByOrder($order);
 
 		$balance = $this->getPaymentAmount($returns);

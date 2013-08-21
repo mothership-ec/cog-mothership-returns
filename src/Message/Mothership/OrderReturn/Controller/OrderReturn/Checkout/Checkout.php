@@ -11,7 +11,14 @@ class Checkout extends Controller
 {
 	public function view($orderID)
 	{
+		$user = $this->get('user.current');
 		$order = $this->get('order.loader')->getByID($orderID);
+
+		if ($order->user->id != $user->id) {
+			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
+				view this page.');
+		}
+
 		$returns = $this->get('return.loader')->getByOrder($order);
 
 		foreach ($returns as $key => $return) {
