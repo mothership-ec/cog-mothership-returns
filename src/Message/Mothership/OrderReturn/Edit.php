@@ -99,10 +99,10 @@ class Edit
 		return $return;
 	}
 
-	public function moveStock(Entity\OrderReturn $return, Product\Stock\Location\Location $location, Product\Stock\Movement\Reason\Reason $reason)
+	public function moveUnitStock(Order\Entity\Product\Unit\Unit $unit, Product\Stock\Location\Location $location, Product\Stock\Movement\Reason\Reason $reason)
 	{
 		$this->_stockManager->increment(
-			$return->item->unit,
+			$unit,
 			$location,
 			$reason
 		);

@@ -75,6 +75,9 @@ class Services implements ServicesInterface
 		// Extend stock movement reasons
 		$services['stock.movement.reasons'] = $services->share($services->extend('stock.movement.reasons', function($reasons) {
 			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('returned', 'Returned'));
+			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('exchange_return', 'Exchange Return'));
+			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('exchange_item', 'Exchange Item'));
+			return $reasons;
 		}));
 	}
 

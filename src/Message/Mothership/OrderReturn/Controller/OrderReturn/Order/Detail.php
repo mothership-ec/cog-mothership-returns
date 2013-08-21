@@ -89,7 +89,7 @@ class Detail extends Controller
 		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
 
 		if ($data['refund_approve']) {
-			$amount = 0 - $data['refund_amount'];
+			$amount = $data['refund_amount']; // Since the balance was inverted to display as positive, keep it as positive here
 
 			if ($data['refund_method'] == 'manual') {
 				$method = $this->get('order.payment.methods')->get('manual');
@@ -102,9 +102,10 @@ class Detail extends Controller
 			$return = $this->get('return.edit')->refund($return, $method, $amount);
 
 			// Move the item to the new stock location
+			$unit = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->unitID);
 			$location = $this->get('stock.locations')->get($data['stock_location']);
 			$reason = $this->get('stock.movement.reasons')->get('returned');
-			$this->get('return.edit')->moveStock($return, $location, $reason);
+			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
 
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order
@@ -172,7 +173,20 @@ class Detail extends Controller
 				$method = $this->get('order.payment.methods')->get('card');
 			}
 
+			// Refund the return
 			$return = $this->get('return.edit')->refund($return, $method, $amount);
+
+			// Move the item to the new stock location
+			$unit = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->unitID);
+			$location = $this->get('stock.locations')->get($data['stock_location']);
+			$reason = $this->get('stock.movement.reasons')->get('returned');
+			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
+
+			// Move the exchange item to the order
+			$unit = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID);
+			$location = $this->get('stock.locations')->get($data['stock_location']);
+			$reason = $this->get('stock.movement.reasons')->get('returned');
+			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
 
 			// Get the payment against the order
 			foreach ($return->order->payments as $p) {
@@ -257,7 +271,7 @@ class Detail extends Controller
 
 		$form->add('refund_amount', 'money', ' ', array(
 			'currency' => 'GBP',
-			'data' => $return->balance
+			'data' => 0 - $return->balance // display the price as positive
 		));
 		$form->add('refund_approve', 'checkbox', 'Approve amount');
 		$form->add('stock_location', 'choice', 'Destination', array(

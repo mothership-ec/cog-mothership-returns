@@ -47,7 +47,7 @@ class Create extends Controller
 			// Add this unit to the order
 			$exchangeItem = new Item;
 			$exchangeItem->populate($unit);
-			$exchangeItem->stockLocation = $this->get('stock.locations')->get('web');
+			$exchangeItem->stockLocation = $this->get('stock.locations')->get('web'); // is this the correct location?
 			$exchangeItem->order = $item->order;
 			$item->order->items->append($exchangeItem);
 			$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
@@ -61,6 +61,14 @@ class Create extends Controller
 		}
 
 		$return = $this->get('return.create')->create($return);
+
+		if ($resolution->code == Resolutions::EXCHANGE) {
+			// Move the exchange item to the order
+			$unit = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID);
+			$location = $this->get('stock.locations')->get($exchangeItem->stockLocation);
+			$reason = $this->get('stock.movement.reasons')->get('exchange_item');
+			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
+		}
 
 		return $this->redirect($this->generateUrl('ms.user.return.detail', array('returnID' => $return->id)));
 	}
