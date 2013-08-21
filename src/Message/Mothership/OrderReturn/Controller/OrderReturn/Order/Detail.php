@@ -98,8 +98,13 @@ class Detail extends Controller
 				$method = $this->get('order.payment.methods')->get('card');
 			}
 
+			// Refund the return
 			$return = $this->get('return.edit')->refund($return, $method, $amount);
-			$this->get('return.edit')->moveStock($return, $data['stock_location']);
+
+			// Move the item to the new stock location
+			$location = $this->get('stock.locations')->get($data['stock_location']);
+			$reason = $this->get('stock.movement.reasons')->get('returned');
+			$this->get('return.edit')->moveStock($return, $location, $reason);
 
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order

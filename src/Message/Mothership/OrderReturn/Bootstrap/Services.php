@@ -46,7 +46,8 @@ class Services implements ServicesInterface
 		};
 
 		$services['return.edit'] = function($c) {
-			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit'], $c['order.refund.create']);
+			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit'], $c['order.refund.create'],
+				$c['stock.manager']);
 		};
 
 		$services['order.item.statuses'] = $services->share($services->extend('order.item.statuses', function($statuses) {
@@ -69,6 +70,11 @@ class Services implements ServicesInterface
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::FULLY_RETURNED, 'Fully Returned'));
 
 			return $statuses;
+		}));
+		
+		// Extend stock movement reasons
+		$services['stock.movement.reasons'] = $services->share($services->extend('stock.movement.reasons', function($reasons) {
+			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('returned', 'Returned'));
 		}));
 	}
 

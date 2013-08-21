@@ -5,7 +5,9 @@ namespace Message\Mothership\OrderReturn;
 use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
 use Message\User\UserInterface;
+
 use Message\Mothership\Commerce\Order;
+use Message\Mothership\Commerce\Product;
 
 /**
  * Order return editor.
@@ -18,13 +20,16 @@ class Edit
 	protected $_user;
 	protected $_itemEdit;
 	protected $_refundCreate;
+	protected $_stockManager;
 
-	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit, Order\Entity\Refund\Create $refundCreate)
+	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit,
+		Order\Entity\Refund\Create $refundCreate, $stockManager)
 	{
 		$this->_query = $query;
 		$this->_user  = $user;
 		$this->_itemEdit = $itemEdit;
 		$this->_refundCreate = $refundCreate;
+		$this->_stockManager = $stockManager;
 	}
 
 	public function accept(Entity\OrderReturn $return)
@@ -94,10 +99,18 @@ class Edit
 		return $return;
 	}
 
-	public function moveStock(Entity\OrderReturn $return, $location)
+	public function moveStock(Entity\OrderReturn $return, Product\Stock\Location\Location $location, Product\Stock\Movement\Reason\Reason $reason)
 	{
-		// $return->item = $this->_itemEdit->moveStock($return->item, $location);
-		return $return;
+		$this->_stockManager->increment(
+			$return->item->unit,
+			$location,
+			$reason
+		);
+
+		$this->_stockManager->setReason($reason);
+		$this->_stockManager->setAutomated(false);
+
+		return $this->_stockManager->commit();
 	}
 
 }
