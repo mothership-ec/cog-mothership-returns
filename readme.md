@@ -26,6 +26,7 @@ You will need to add Message's private package server to the `repositories` key 
 
 - ~~Exchange integration with dispatches~~ (changed to use default item dispatch status)
 - Email notifications
-- Payment integration
+- Payment integration (requires testing)
 - Order view tab
 - ~~Front end~~
+- ~~Stock integration~~
