@@ -50,6 +50,27 @@ class Edit
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
 	}
 
+	public function setBalance(Entity\OrderReturn $return, $balance)
+	{
+		$return->balance = $balance;
+
+		$this->_validate($return);
+
+		$this->_query->run('
+			UPDATE
+				order_item_return
+			SET
+				balance = :balance?f
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'balance' => $balance,
+			'returnID' => $return->id
+		));
+
+		return $return;
+	}
+
 	public function refund(Entity\OrderReturn $return, $method, $amount)
 	{
 		// Create the refund
@@ -96,6 +117,20 @@ class Edit
 			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_DISPATCH);
 		}
 
+		$return->balance = $balance;
+
+		$this->_query->run('
+			UPDATE
+				order_item_return
+			SET
+				balance = :balance?f
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'balance' => $return->balance,
+			'returnID' => $return->id,
+		));
+
 		return $return;
 	}
 
@@ -111,6 +146,11 @@ class Edit
 		$this->_stockManager->setAutomated(false);
 
 		return $this->_stockManager->commit();
+	}
+
+	protected function _validate(Entity\OrderReturn $return)
+	{
+		// 
 	}
 
 }
