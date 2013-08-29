@@ -43,7 +43,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_acceptOrRejectForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.order.view.return', array('orderID' => $return->order->id));
 
 		if ($data['accept_reject'] == 'accept') {
 			$this->get('return.edit')->accept($return);
@@ -66,7 +66,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_receivedForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.order.view.return', array('orderID' => $return->order->id));
 
 		if ($data['received'] == 1) {
 			$this->get('return.edit')->setAsReceived($return, $data['received_date']);
@@ -86,7 +86,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_refundForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.order.view.return', array('orderID' => $return->order->id));
 
 		if ($data['refund_approve']) {
 			$amount = $data['refund_amount']; // Since the balance was inverted to display as positive, keep it as positive here
@@ -147,7 +147,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_exchangeForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.order.view.returns', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.order.view.return', array('orderID' => $return->order->id));
 
 		if ($data['balance'] != 0 and $data['balance_approve'] != true) { // should move this validation somewhere else
 			$this->addFlash('error', 'You must approve the balance if it is not 0');
@@ -226,7 +226,7 @@ class Detail extends Controller
 	{
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.accept-or-reject', array('returnID' => $return->id)));
+		$form->setAction($this->generateUrl('ms.commerce.order.return.edit.accept-or-reject', array('returnID' => $return->id)));
 
 		$form->add('accept_reject', 'choice', ' ', array(
 			'choices' => array(
@@ -248,7 +248,7 @@ class Detail extends Controller
 	{
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.received', array('returnID' => $return->id)));
+		$form->setAction($this->generateUrl('ms.commerce.order.return.edit.received', array('returnID' => $return->id)));
 
 		$form->add('received', 'checkbox', 'Received package?');
 		$form->add('received_date', 'date', 'Date received', array(
@@ -267,7 +267,7 @@ class Detail extends Controller
 
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.refund', array('returnID' => $return->id)));
+		$form->setAction($this->generateUrl('ms.commerce.order.return.edit.refund', array('returnID' => $return->id)));
 
 		$form->add('refund_amount', 'money', ' ', array(
 			'currency' => 'GBP',
@@ -296,7 +296,7 @@ class Detail extends Controller
 	{
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.commerce.order.returns.edit.exchange', array('returnID' => $return->id)));
+		$form->setAction($this->generateUrl('ms.commerce.order.return.edit.exchange', array('returnID' => $return->id)));
 
 		$form->add('balance', 'money', 'Balance Payment', array(
 			'currency' => 'GBP',

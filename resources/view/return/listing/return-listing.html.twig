@@ -21,7 +21,7 @@
 			<tbody>
 				{% for return in returns %}
 					<tr>
-						<td><a href="{{ url('ms.commerce.order.view.returns', {orderID: return.order.id}) }}">{{ return.item.productName }}</a></td>
+						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: return.order.id}) }}">{{ return.item.productName }}</a></td>
 						<td>{{ return.authorship.createdAt|date }}</td>
 						<td><a href="">{{ return.authorship.createdBy }}</a></td>
 						<td>{{ return.resolution }}</td>
