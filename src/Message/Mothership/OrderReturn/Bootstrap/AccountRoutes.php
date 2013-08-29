@@ -8,7 +8,6 @@ class AccountRoutes implements RoutesInterface
 {
 	public function registerRoutes($router)
 	{
-		$router['ms.user.account']->add('ms.user.return.listing', '/returns', '::Controller:OrderReturn:Account:Listing#view');
 		$router['ms.user.account']->add('ms.user.return.detail', '/returns/view/{returnID}', '::Controller:OrderReturn:Account:Detail#view')
 			->setRequirement('returnID', '\d+');
 
