@@ -79,7 +79,7 @@ class Create extends Controller
 		if ($resolution->code == Resolutions::EXCHANGE) {
 			// Move the exchange item to the order
 			$unit = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID);
-			$location = $this->get('stock.locations')->get($exchangeItem->stockLocation);
+			$location = $this->get('stock.locations')->get($exchangeItem->stockLocation->name);
 			$reason = $this->get('stock.movement.reasons')->get('exchange_item');
 			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
 		}

@@ -136,14 +136,13 @@ class Edit
 
 	public function moveUnitStock(Order\Entity\Product\Unit\Unit $unit, Product\Stock\Location\Location $location, Product\Stock\Movement\Reason\Reason $reason)
 	{
-		$this->_stockManager->increment(
-			$unit,
-			$location,
-			$reason
-		);
-
 		$this->_stockManager->setReason($reason);
 		$this->_stockManager->setAutomated(false);
+		
+		$this->_stockManager->increment(
+			$unit,
+			$location
+		);
 
 		return $this->_stockManager->commit();
 	}
