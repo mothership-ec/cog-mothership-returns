@@ -42,7 +42,7 @@ class OrderReturn implements EntityInterface
 
 	public function isRefundResolution()
 	{
-		return $this->resolution->code == Resolutions::REFUND;
+		return $this->resolution->code == 'refund';
 	}
 
 	public function isRefunded()
@@ -52,7 +52,7 @@ class OrderReturn implements EntityInterface
 
 	public function isExchangeResolution()
 	{
-		return $this->resolution->code == Resolutions::EXCHANGE;
+		return $this->resolution->code == 'exchange';
 	}
 
 	public function isExchanged()

@@ -54,7 +54,7 @@ class Create extends Controller
 		$return->reason = $reason->code;
 		$return->resolution = $resolution->code;
 
-		if ($resolution->code == Resolutions::EXCHANGE) {
+		if ($resolution->code == 'exchange') {
 			// Get the exchanged unit
 			$unit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
 
@@ -69,14 +69,14 @@ class Create extends Controller
 			// Set the balance as the difference in price between the exchanged and returned items
 			$return->balance = $return->exchangeItem->listPrice - $item->listPrice;
 		}
-		elseif ($resolution->code == Resolutions::REFUND) {
+		elseif ($resolution->code == 'refund') {
 			// Set the balance as the list price of the returned item
 			$return->balance = 0 - $item->listPrice;
 		}
 
 		$return = $this->get('return.create')->create($return);
 
-		if ($resolution->code == Resolutions::EXCHANGE) {
+		if ($resolution->code == 'exchange') {
 			// Move the exchange item to the order
 			$unit = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID);
 			$location = $this->get('stock.locations')->get($exchangeItem->stockLocation->name);

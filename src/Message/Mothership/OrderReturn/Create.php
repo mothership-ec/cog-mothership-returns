@@ -109,7 +109,7 @@ class Create
 		}
 
 		// If this is an exchange, check an exchange unit has been set
-		if ($return->resolution == Resolutions::EXCHANGE and ! $return->exchangeItem) {
+		if ($return->resolution == 'exchange' and ! $return->exchangeItem) {
 			throw new InvalidArgumentException('Could not create order return: exchange item required');
 		}
 
