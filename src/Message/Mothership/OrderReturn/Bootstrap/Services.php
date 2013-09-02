@@ -23,20 +23,14 @@ class Services implements ServicesInterface
 				$c['order.refund.loader'], $c['return.reasons'], $c['return.resolutions'], $c['order.item.statuses']);
 		};
 
-		// Register reasons collection
+		// Register empty reasons collection
 		$services['return.reasons'] = $services->share(function($c) {
-			return new Collection\Collection(array(
-				new Collection\Item(OrderReturn\Reasons::WRONG_ITEM, 'Wrong item'),
-				new Collection\Item(OrderReturn\Reasons::FAULTY_ITEM, 'Faulty item'),
-			));
+			return new Collection\Collection(array());
 		});
 
-		// Register resolutions collection
+		// Register empty resolutions collection
 		$services['return.resolutions'] = $services->share(function($c) {
-			return new Collection\Collection(array(
-				new Collection\Item(OrderReturn\Resolutions::REFUND, 'Refund'),
-				new Collection\Item(OrderReturn\Resolutions::EXCHANGE, 'Exchange'),
-			));
+			return new Collection\Collection(array());
 		});
 
 		// Register decorators

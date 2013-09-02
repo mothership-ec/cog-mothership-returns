@@ -16,12 +16,12 @@ class Item
 	/**
 	 * Constructor
 	 *
-	 * @param int    $code Item code
+	 * @param string $code Item code
 	 * @param string $name Item name
 	 */
 	public function __construct($code, $name)
 	{
-		$this->code = (int) $code;
+		$this->code = $code;
 		$this->name = $name;
 	}
 
@@ -32,6 +32,6 @@ class Item
 	 */
 	public function __toString()
 	{
-		return sprintf('(%d) %s', $this->code, $this->name);
+		return sprintf('(%s) %s', $this->code, $this->name);
 	}
 }

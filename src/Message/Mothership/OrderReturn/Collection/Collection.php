@@ -40,13 +40,13 @@ class Collection implements \IteratorAggregate, \Countable
 	 */
 	public function add(Item $item)
 	{
-		if (!$item->code && 0 !== $item->code) {
+		if (!$item->code or empty($item->code)) {
 			throw new \InvalidArgumentException(sprintf('Item `%s` has no code', $item->name));
 		}
 
 		if ($this->exists($item->code)) {
 			throw new \InvalidArgumentException(sprintf(
-				'Item code `%i` is already defined as `%s`',
+				'Item code `%s` is already defined as `%s`',
 				$item->code,
 				$this->_items[$item->code]->name
 			));
