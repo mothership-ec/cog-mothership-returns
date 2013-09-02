@@ -7,6 +7,7 @@ use Message\Cog\Controller\Controller;
 use Message\Mothership\OrderReturn\Reasons;
 use Message\Mothership\OrderReturn\Resolutions;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
+use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
 
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
@@ -64,6 +65,7 @@ class Create extends Controller
 			$exchangeItem->populate($unit);
 			$exchangeItem->stockLocation = $this->get('stock.locations')->get('web'); // is this the correct location?
 			$item->order->items->append($exchangeItem);
+			$this->get('event.dispatcher')->dispatch(Order\Events::ASSEMBLER_UPDATE, new Order\Event\Event($item->order));
 			$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
 
 			// Set the balance as the difference in price between the exchanged and returned items
