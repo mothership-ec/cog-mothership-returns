@@ -10,7 +10,11 @@
 			<li>
 				<span>Resolution </span>{{ return.resolution }}
 				{% if return.isExchangeResolution %}
-					for <a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
+					{% if return.exchangeItem %}
+						for <a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
+					{% else %}
+						{ERROR}
+					{% endif %}
 				{% endif %}
 			</li>
 			<li><span>Balance </span>{{ return.balance|price }}</li>
