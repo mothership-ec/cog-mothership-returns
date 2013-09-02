@@ -21,6 +21,23 @@
 			{% endif %}
 		</ul>
 
+
+		{# Show the received form if not yet set #}
+		{% if not return.isReceived %}
+			<h2 class="title">Returned Package</h2>
+			{{ form_start(received_form) }}
+				{{ form_row(received_form.received) }}
+				{{ form_row(received_form.received_date) }}
+				
+				<button class="button submit">Notify Customer</button>
+			{{ form_end(received_form) }}
+		{% else %}
+			<ul class="order-details">
+				<li><span>Received </span>The customer has been notified that the package was received</li>
+			</ul>
+		{% endif %}
+
+
 		{# Show the accept / reject option if neither action has yet been taken #}
 		{% if not return.isAccepted and not return.isRejected %}
 			<h2 class="title">Accept / Reject</h2>
@@ -32,25 +49,11 @@
 			{{ form_end(accepted_form) }}
 		{% endif %}
 
+
 		{# Show refund / exchange forms if the return has been accepted #}
 		{% if return.isAccepted %}
 
-			{# Show the received form if not yet set #}
-			{% if not return.isReceived %}
-				<h2 class="title">Returned Package</h2>
-				{{ form_start(received_form) }}
-					{{ form_row(received_form.received) }}
-					{{ form_row(received_form.received_date) }}
-					
-					<button class="button submit">Notify Customer</button>
-				{{ form_end(received_form) }}
-			{% else %}
-				<ul class="order-details">
-					<li><span>Received </span>The customer has been notified that the package was received</li>
-				</ul>
-			{% endif %}
-
-			{# Show either the exchange or refund form depending on the resolution type #}
+			{# Show the exchange resolution options #}
 			{% if return.isExchangeResolution %}
 				<h2 class="title">Exchange</h2>
 				
@@ -77,6 +80,7 @@
 					</ul>
 				{% endif %}
 
+			{# Show the refund resolution options #}
 			{% elseif return.isRefundResolution %}
 				<h2 class="title">Refund</h2>
 
