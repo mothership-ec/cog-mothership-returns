@@ -251,8 +251,10 @@ class Detail extends Controller
 		$form->setAction($this->generateUrl('ms.commerce.order.return.edit.received', array('returnID' => $return->id)));
 
 		$form->add('received', 'checkbox', 'Received package?');
-		$form->add('received_date', 'date', 'Date received', array(
-			'widget' => 'single_text'
+		$form->add('received_date', 'datetime', 'Date received', array(
+			'date_widget' => 'single_text',
+			'time_widget' => 'single_text',
+			'data' => new \DateTime()
 		));
 
 		return $form;
