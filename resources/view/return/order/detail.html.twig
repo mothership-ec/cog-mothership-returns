@@ -19,7 +19,7 @@
 			</li>
 			<li><span>Balance </span>{{ return.balance|price }}</li>
 			<li><span>Status </span>{{ return.item.status }}</li>
-			<li><span>Created by</span> {{ return.authorship.createdBy }} <span>at</span> {{ return.authorship.createdAt|date }}</li>
+			<li><span>Created by</span>{{ return.order.user.name }} on {{ return.authorship.createdAt|date }}</li>
 			{% if not return.authorship.updatedAt is empty and not return.authorship.updatedBy is empty %}
 				<li><span>Updated by</span> {{ return.authorship.updatedBy }} <span>at</span> {{ return.authorship.updatedAt|date }}</li>
 			{% endif %}
