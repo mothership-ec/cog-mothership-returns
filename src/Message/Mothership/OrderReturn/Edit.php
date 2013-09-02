@@ -114,7 +114,7 @@ class Edit
 			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT);
 		}
 		else {
-			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_DISPATCH);
+			$this->_itemEdit->updateStatus($return->exchangeItem, Order\Statuses::AWAITING_DISPATCH);
 		}
 
 		$return->balance = $balance;
@@ -134,7 +134,7 @@ class Edit
 		return $return;
 	}
 
-	public function moveUnitStock(Order\Entity\Product\Unit\Unit $unit, Product\Stock\Location\Location $location, Product\Stock\Movement\Reason\Reason $reason)
+	public function moveUnitStock(Product\Unit\Unit $unit, Product\Stock\Location\Location $location, Product\Stock\Movement\Reason\Reason $reason)
 	{
 		$this->_stockManager->setReason($reason);
 		$this->_stockManager->setAutomated(false);

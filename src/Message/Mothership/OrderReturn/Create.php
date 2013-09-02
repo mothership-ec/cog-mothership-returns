@@ -60,8 +60,8 @@ class Create
 				item_id          = :itemID?i,
 				created_at       = :createdAt?i,
 				created_by       = :createdBy?i,
-				reason           = :reason?i,
-				resolution       = :resolution?i,
+				reason           = :reason?s,
+				resolution       = :resolution?s,
 				exchange_item_id = :exchangeItemID?i,
 				balance          = :balance?f
 		', array(

@@ -60,9 +60,9 @@ class Create extends Controller
 
 			// Add this unit to the order
 			$exchangeItem = new Item;
+			$exchangeItem->order = $item->order;
 			$exchangeItem->populate($unit);
 			$exchangeItem->stockLocation = $this->get('stock.locations')->get('web'); // is this the correct location?
-			$exchangeItem->order = $item->order;
 			$item->order->items->append($exchangeItem);
 			$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
 

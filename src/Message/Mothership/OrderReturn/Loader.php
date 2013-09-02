@@ -134,7 +134,7 @@ class Loader
 
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
 			$entity->item = $this->_itemLoader->getByID($result[$key]->item_id);
-
+			
 			$entity->exchangeItem = $this->_itemLoader->getByID($result[$key]->exchange_item_id);
 
 			$entity->reason = $this->_reasons->get($result[$key]->reason);
