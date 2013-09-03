@@ -27,16 +27,18 @@ class Create
 	protected $_itemEdit;
 	protected $_reasons;
 	protected $_resolutions;
+	protected $_returnSlip;
 
 	public function __construct(DB\Query $query, UserInterface $user, Loader $loader, $itemEdit, Collection\Collection $reasons,
-		Collection\Collection $resolutions)
+		Collection\Collection $resolutions, $returnSlip)
 	{
-		$this->_query  = $query;
-		$this->_user   = $user;
-		$this->_loader = $loader;
-		$this->_itemEdit = $itemEdit;
-		$this->_reasons = $reasons;
+		$this->_query       = $query;
+		$this->_user        = $user;
+		$this->_loader      = $loader;
+		$this->_itemEdit    = $itemEdit;
+		$this->_reasons     = $reasons;
 		$this->_resolutions = $resolutions;
+		$this->_returnSlip  = $returnSlip;
 	}
 
 	public function create(Entity\OrderReturn $return)
@@ -77,6 +79,18 @@ class Create
 
 		// Get the return by the last insert id
 		$return = $this->_loader->getByID($result->id());
+
+		// Create the return slip
+		$document = $this->_returnSlip->save($return);
+
+		$this->_query->run('
+			UPDATE
+				order_item_return
+			SET
+				document_id = :documentID?i
+		', array(
+			'documentID' => $document->id
+		));
 
 		// Update item statuses
 		$this->_itemEdit->updateStatus($return->item, Statuses::AWAITING_RETURN);

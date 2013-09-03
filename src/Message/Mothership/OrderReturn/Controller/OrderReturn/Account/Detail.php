@@ -23,4 +23,19 @@ class Detail extends Controller
 			'return'  => $return
 		));
 	}
+
+	public function document($returnID)
+	{
+		$user = $this->get('user.current');
+		$return = $this->get('return.loader')->getByID($returnID);
+
+		if ($return->order->user->id != $user->id) {
+			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
+				view this page.');
+		}
+
+		return $this->render('Message:Mothership:OrderReturn::return:account:blank', array(
+			'content'  => file_get_contents($return->document->file)
+		));
+	}
 }

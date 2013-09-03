@@ -4,6 +4,8 @@
 		<p>{{ return.authorship.createdAt()|date }}</p>
 	</header>
 
+	<p><a href="{{ url('ms.user.return.document', {'returnID': return.id}) }}">Print</a></p>
+
 	<dl>
 		<dt>Reason</dt>
 		<dd>{{ return.reason }}</dd>

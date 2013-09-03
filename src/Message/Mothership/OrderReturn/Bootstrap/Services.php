@@ -20,7 +20,8 @@ class Services implements ServicesInterface
 
 		$services['return.loader'] = function($c) {
 			return new OrderReturn\Loader($c['db.query'], $c['order.loader'], $c['order.item.loader'],
-				$c['order.refund.loader'], $c['return.reasons'], $c['return.resolutions'], $c['order.item.statuses']);
+				$c['order.refund.loader'], $c['order.document.loader'], $c['return.reasons'], $c['return.resolutions'],
+				$c['order.item.statuses']);
 		};
 
 		// Register empty reasons collection
@@ -36,12 +37,17 @@ class Services implements ServicesInterface
 		// Register decorators
 		$services['return.create'] = function($c) {
 			return new OrderReturn\Create($c['db.query'], $c['user'], $c['return.loader'], $c['order.item.edit'],
-				$c['return.reasons'], $c['return.resolutions']);
+				$c['return.reasons'], $c['return.resolutions'], $c['file.return_slip']);
 		};
 
 		$services['return.edit'] = function($c) {
 			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit'], $c['order.refund.create'],
 				$c['stock.manager']);
+		};
+
+		// Register files
+		$services['file.return_slip'] = function($c) {
+			return new OrderReturn\File\ReturnSlip($c);
 		};
 
 		$services['order.item.statuses'] = $services->share($services->extend('order.item.statuses', function($statuses) {
