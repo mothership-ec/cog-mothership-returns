@@ -34,8 +34,8 @@ class Detail extends Controller
 				view this page.');
 		}
 
-		return $this->render('Message:Mothership:OrderReturn::return:account:blank', array(
-			'content'  => file_get_contents($return->document->file)
+		return $this->render('Message:Mothership:OrderReturn::return:blank', array(
+			'content' => file_get_contents($return->document->file)
 		));
 	}
 }

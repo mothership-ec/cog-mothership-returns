@@ -1,0 +1,89 @@
+<article class="return print">
+	<header>
+		<p class="brand">Uniform Wares</p>
+		<h1>Customer - Returns</h1>
+	</header>
+
+	<section class="customer">
+		<header>
+			<h2>Customer details</h2>
+			<h2>RFR Number</h2>
+			<h2>RFR Date</h2>
+		</header>
+		
+		<div class="details">
+			{# Customer Details #}
+			<dl>
+				<dt>Name</dt>
+				<dd>{{ return.order.user.name }}</dd>
+
+				<dt>Billing address</dt>
+				<dd>{{ return.order.getAddress('billing').getString('<br>')|raw }}</dd>
+					
+				<dt>Phone</dt>
+				<dd>{{ return.order.getAddress('billing').telephone }}</dd>
+					
+				<dt>Email</dt>
+				<dd>{{ return.order.user.email }}</dd>
+			</dl>
+			
+			{# RFR Number #}
+			<p>R{{ return.order.id }}</p>
+			
+			{# RFR Date #}
+			<p>{{ '' }}</p>
+		</div>
+
+		<div class="notes">
+			<span>Notes</span>
+			{% for note in return.order.notes %}
+				<p>{{ note.note }}</p>
+			{% endfor %}
+		</div>
+	</section>
+	
+	<section class="breakdown">
+		<header>
+			<h2>Returned item</h2>
+			<h2>Reason</h2>
+			<h2>Replacement</h2>
+			<h2>Balance</h2>
+		</header>
+
+		<div class="item">
+			{# Returned Item #}
+			<p>{{ return.item.productName }}</p>
+
+			{# Reason #}
+			<p>{{ return.reason }}</p>
+
+			{# Replacement #}
+			<p>{{ return.exchangeItem.productName }}</p>
+
+			{# Balance #}
+			<p>{{ (return.exchangeItem.gross - return.item.gross)|price }}</p>
+		</div>
+
+		<div class="total">
+			<p><strong>Total</strong></p>
+			<p><strong>{{ return.balance|price }}</strong></p>
+		</div>
+	</section>
+	
+	<section class="return-delivery">
+		<header>
+			<h2>Return Delivery Details</h2>
+		</header>
+		
+		<dl>
+			<dt>Name</dt>
+			<dd>{{ return.order.user.name }}</dd>
+
+			<dt>Delivery address</dt>
+			<dd>{{ return.order.getAddress('delivery').getString('<br>')|raw }}</dd>
+				
+			<dt>Phone</dt>
+			<dd>{{ return.order.getAddress('billing').telephone }}</dd>
+		</dl>
+	</section>
+</article>
