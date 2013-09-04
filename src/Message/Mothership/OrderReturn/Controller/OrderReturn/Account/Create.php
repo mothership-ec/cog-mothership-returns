@@ -85,7 +85,8 @@ class Create extends Controller
 			));
 		}
 
-		// then flash $data to session
+		// Flash $data to session
+		$this->get('http.session')->getFlashBag()->set('return.data', $data);
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:confirm', array(
 			'user' => $user,
@@ -112,8 +113,7 @@ class Create extends Controller
 				view this page.');
 		}
 		
-		$form = $this->_createForm($item);
-		$data = $form->getFilteredData();
+		$data = $this->get('http.session')->getFlashBag()->get('return.data');
 
 		$reason = $this->get('return.reasons')->get($data['reason']);
 		$resolution = $this->get('return.resolutions')->get($data['resolution']);
