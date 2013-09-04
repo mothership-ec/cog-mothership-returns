@@ -52,13 +52,13 @@
 
 		<div class="item">
 			{# Returned Item #}
-			<p>{{ return.item.productName }}</p>
+			<p>{{ return.item.getDescription }}</p>
 
 			{# Reason #}
 			<p>{{ return.reason }}</p>
 
 			{# Replacement #}
-			<p>{{ return.exchangeItem.productName }}</p>
+			<p>{{ return.exchangeItem.getDescription }}</p>
 
 			{# Balance #}
 			<p>{{ (return.exchangeItem.gross - return.item.gross)|price }}</p>
