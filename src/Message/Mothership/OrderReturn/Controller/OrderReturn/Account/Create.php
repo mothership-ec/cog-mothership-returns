@@ -155,7 +155,24 @@ class Create extends Controller
 			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
 		}
 
-		return $this->redirect($this->generateUrl('ms.user.return.detail', array('returnID' => $return->id)));
+		return $this->redirect($this->generateUrl('ms.user.return.complete', array('returnID' => $return->id)));
+	}
+
+	/**
+	 * View the return completed page.
+	 * 
+	 * @param  int $returnID
+	 * @return [type]
+	 */
+	public function complete($returnID)
+	{
+		$user = $this->get('user.current');
+		$return = $this->get('return.loader')->getByID($returnID);
+
+		return $this->render('Message:Mothership:OrderReturn::return:account:complete', array(
+			'user' => $user,
+			'return' => $return
+		));
 	}
 
 	/**

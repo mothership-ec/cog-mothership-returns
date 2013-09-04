@@ -22,6 +22,9 @@ class AccountRoutes implements RoutesInterface
 		$router['ms.user.account']->add('ms.user.return.store', '/return/store/{itemID}', '::Controller:OrderReturn:Account:Create#store')
 			->setRequirement('itemID', '\d+');
 
+		$router['ms.user.account']->add('ms.user.return.complete', '/return/complete/{returnID}', '::Controller:OrderReturn:Account:Create#complete')
+			->setRequirement('itemID', '\d+');
+
 		$router['ms.user.account']->add('ms.user.return.document', '/return/document/{returnID}', '::Controller:OrderReturn:Account:Detail#document')
 			->setRequirement('returnID', '\d+');
 	}
