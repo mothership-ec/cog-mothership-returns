@@ -33,6 +33,57 @@ class Create extends Controller
 		));
 	}
 
+	public function confirm($itemID)
+	{
+		$user = $this->get('user.current');
+		$item = $this->get('order.item.loader')->getByID($itemID);
+
+		$form = $this->_createForm($item);
+
+		$data = $form->getFilteredData();
+
+		$balance = 0;
+
+		// Get translated messages for exchanges and refunds
+		if ($data['resolution'] == 'exchange') {
+			$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
+			$resolutionMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.resolution.exchange', array(
+				'%item%' => $exchangeUnit->product->name
+			));
+			$balance = $exchangeUnit->getPrice('retail', $item->order->currencyID) - $item->listPrice;
+		}
+		else {
+			$resolutionMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.resolution.refund');
+		}
+
+		if ($balance > 0) {
+			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.pay', array(
+				'%balance%' => $balance
+			));
+		}
+		elseif ($balance < 0) {
+			$balance = -$balance;
+			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.refund', array(
+				'%balance%' => $balance
+			));
+		}
+		else {
+			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.none', array(
+				'%balance%' => $balance
+			));
+		}
+
+		// then flash $data to session
+
+		return $this->render('Message:Mothership:OrderReturn::return:account:confirm', array(
+			'user' => $user,
+			'item' => $item,
+			'data' => $data,
+			'resolutionMessage' => $resolutionMessage,
+			'balanceMessage' => $balanceMessage,
+		));
+	}
+
 	public function store($itemID)
 	{
 		$user = $this->get('user.current');
@@ -112,19 +163,19 @@ class Create extends Controller
 
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.user.return.store', array('itemID' => $item->id)));
+		$form->setAction($this->generateUrl('ms.user.return.confirm', array('itemID' => $item->id)));
 
 		$form->add('reason', 'choice', 'Why are you returning the item?', array(
 			'choices' => $reasons,
 			'empty_value' => '-- Please select a reason --'
 		));
 
-		$form->add('resolution', 'choice', 'What resolution would you like us to take?', array(
+		$form->add('resolution', 'choice', 'Do you require an exchange or refund?', array(
 			'choices' => $resolutions,
 			'empty_value' => '-- Please select a resolution --'
 		));
 
-		$form->add('exchangeUnit', 'choice', 'Choose a product in exchange', array(
+		$form->add('exchangeUnit', 'choice', 'Choose a replacement item', array(
 			'choices' => $units
 		));
 

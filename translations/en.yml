@@ -3,3 +3,11 @@ ms.commerce:
     none: There are no returns on this order.
     status:
       none: There are no returns with this status.
+    confirmation:
+      resolution:
+        refund: You have requested a refund on this item.
+        exchange: You have chosen to replace this item with: %item%.
+      balance:
+        pay: You will need to pay an additional %balance%.
+        refund: You will receive a refund of %balance%.
+        none: Your balance is %balance%.
