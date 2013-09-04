@@ -1,0 +1,9 @@
+<h1>Return an item</h1>
+
+<p>Item to be returned: {{ item.getDescription }}</p>
+
+<p>{{ resolutionMessage }}</p>
+
+<p>{{ balanceMessage }}</p>
+
+<a href="#">Back</a> or <a class="button submit" href="{{ url('ms.user.return.store', {itemID: item.id}) }}">Proceed</a>
