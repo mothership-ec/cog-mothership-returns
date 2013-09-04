@@ -32,6 +32,7 @@
 			{{ form_start(received_form) }}
 				{{ form_row(received_form.received) }}
 				{{ form_row(received_form.received_date) }}
+				{{ form_row(received_form.message) }}
 				
 				<button class="button submit">Notify Customer</button>
 			{{ form_end(received_form) }}
@@ -47,7 +48,6 @@
 			<h2 class="title">Accept / Reject</h2>
 			{{ form_start(accepted_form) }}
 				{{ form_row(accepted_form.accept_reject) }}
-				{{ form_row(accepted_form.message) }}
 
 				<button class="button submit">Update</button>
 			{{ form_end(accepted_form) }}

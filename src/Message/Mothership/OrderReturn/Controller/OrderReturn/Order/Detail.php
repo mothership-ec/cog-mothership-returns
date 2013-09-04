@@ -68,7 +68,7 @@ class Detail extends Controller
 		$data = $form->getFilteredData();
 		$viewURL = $this->generateUrl('ms.commerce.order.view.return', array('orderID' => $return->order->id));
 
-		if ($data['received'] == 1) {
+		if ($data['received']) {
 			$this->get('return.edit')->setAsReceived($return, $data['received_date']);
 		}
 
@@ -237,10 +237,6 @@ class Detail extends Controller
 			'empty_value' => false
 		));
 
-		$form->add('message', 'textarea', 'Message to customer (optional)', array(
-			'required' => false
-		));
-
 		return $form;
 	}
 
@@ -255,6 +251,15 @@ class Detail extends Controller
 			'date_widget' => 'single_text',
 			'time_widget' => 'single_text',
 			'data' => new \DateTime()
+		));
+		$form->add('message', 'textarea', 'Message to customer (optional)', array(
+			'required' => false,
+			'data' => $this->get('translator')->trans('ms.commerce.return.process.received', array(
+				'%name%' => $return->order->user->forename,
+				'%returnNumber%' => 'R' . $return->id,
+				'%email%' => 'info@uniformwares.com',
+				'%brand%' => 'Uniform Wares'
+			))
 		));
 
 		return $form;
