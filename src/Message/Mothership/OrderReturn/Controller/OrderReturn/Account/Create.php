@@ -14,10 +14,16 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class Create extends Controller
 {
+	/**
+	 * View the create return form.
+	 * 
+	 * @param  int $itemID
+	 * @return [type]
+	 */
 	public function view($itemID)
 	{
 		$user = $this->get('user.current');
-		$item = $this->get('order.item.loader')->getByID($itemID); // need to check item belongs to an order that belongs to the user
+		$item = $this->get('order.item.loader')->getByID($itemID);
 
 		if ($item->order->user->id != $user->id) {
 			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
@@ -33,6 +39,12 @@ class Create extends Controller
 		));
 	}
 
+	/**
+	 * View the confirm return page.
+	 * 
+	 * @param  int $itemID
+	 * @return [type]
+	 */
 	public function confirm($itemID)
 	{
 		$user = $this->get('user.current');
@@ -84,6 +96,12 @@ class Create extends Controller
 		));
 	}
 
+	/**
+	 * Store the return.
+	 * 
+	 * @param  int $itemID
+	 * @return [type]
+	 */
 	public function store($itemID)
 	{
 		$user = $this->get('user.current');
@@ -140,6 +158,12 @@ class Create extends Controller
 		return $this->redirect($this->generateUrl('ms.user.return.detail', array('returnID' => $return->id)));
 	}
 
+	/**
+	 * Get the create return form.
+	 * 
+	 * @param  Item $item
+	 * @return [type]
+	 */
 	protected function _createForm($item)
 	{
 		$reasons = $resolutions = $units = array();
