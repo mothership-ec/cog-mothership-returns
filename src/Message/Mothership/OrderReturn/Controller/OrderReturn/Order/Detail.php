@@ -159,10 +159,12 @@ class Detail extends Controller
 		$data = $form->getFilteredData();
 		$viewURL = $this->generateUrl('ms.commerce.order.view.return', array('orderID' => $return->order->id));
 
+		$locations = $this->get('stock.locations');
+
 		// Move the exchange item to the order
 		$this->get('return.edit')->moveUnitStock(
 			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID), // unit
-			$this->get('stock.locations')->getRoleLocation('sell'), // location
+			$locations->getRoleLocation($locations::SELL_ROLE), // location
 			$this->get('stock.movement.reasons')->get('returned') // reason
 		);
 
