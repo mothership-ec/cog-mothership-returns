@@ -32,6 +32,6 @@ class Item
 	 */
 	public function __toString()
 	{
-		return sprintf('(%s) %s', $this->code, $this->name);
+		return sprintf('%s', $this->name);
 	}
 }

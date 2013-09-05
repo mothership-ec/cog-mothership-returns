@@ -17,7 +17,21 @@
 					{% endif %}
 				{% endif %}
 			</li>
-			<li><span>Balance </span>{{ return.balance|price }}</li>
+			<li>
+				{% if not return.hasBalance %}
+					{% if return.calculatedBalance > 0 %}
+						<span>Customer Balance</span>{{ return.calculatedBalance|price }}
+					{% else %}
+						<span>Your Balance</span>{{ (0 - return.calculatedBalance)|price }}
+					{% endif %}
+				{% else %}
+					{% if return.payeeIsClient %}
+						<span>Customer Balance</span>{{ return.balance|price }}
+					{% else %}
+						<span>Your Balance</span>{{ (0 - return.balance)|price }}
+					{% endif %}
+				{% endif %}
+			</li>
 			<li><span>Status </span>{{ return.item.status }}</li>
 			<li><span>Created by</span>{{ return.order.user.name }} on {{ return.authorship.createdAt|date }}</li>
 			{% if not return.authorship.updatedAt is empty and not return.authorship.updatedBy is empty %}
@@ -36,88 +50,114 @@
 				
 				<button class="button submit">Notify Customer</button>
 			{{ form_end(received_form) }}
+			
 		{% else %}
 			<ul class="order-details">
 				<li><span>Received </span>The customer has been notified that the package was received</li>
 			</ul>
-		{% endif %}
 
 
-		{# Show the accept / reject option if neither action has yet been taken #}
-		{% if not return.isAccepted and not return.isRejected %}
-			<h2 class="title">Accept / Reject</h2>
-			{{ form_start(accepted_form) }}
-				{{ form_row(accepted_form.accept_reject) }}
+			{# Show the accept / reject option if neither action has yet been taken #}
+			{% if not return.isAccepted and not return.isRejected %}
+				<h2 class="title">Accept / Reject</h2>
+				{{ form_start(accepted_form) }}
+					{{ form_row(accepted_form.accept_reject) }}
 
-				<button class="button submit">Update</button>
-			{{ form_end(accepted_form) }}
-		{% endif %}
+					<button class="button submit">Update</button>
+				{{ form_end(accepted_form) }}
+			{% endif %}
 
 
-		{# Show refund / exchange forms if the return has been accepted #}
-		{% if return.isAccepted %}
+			{# Show refund / exchange forms if the return has been accepted #}
+			{% if return.isAccepted %}
 
-			{# Show the exchange resolution options #}
-			{% if return.isExchangeResolution %}
-				<h2 class="title">Exchange</h2>
-				
-				<ul class="order-details">
-					<li><span>Replacement Item</span>
-						<a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
-					</li>
-				</ul>
+				{# Show the balance form if not yet enacted #}
+				{% if not return.hasBalance %}
+					<h2 class="title">Outstanding Balance</h2>
+					{{ form_start(balance_form) }}
+						{{ form_row(balance_form.payee) }}
+						{{ form_row(balance_form.balance_amount) }}
+						{{ form_row(balance_form.refund_approve) }}
+						{{ form_row(balance_form.refund_method) }}
 
-				{# Show the exchanged form if not yet enacted #}
-				{% if not return.isExchanged %}
-					{{ form_start(exchange_form) }}
-						{{ form_row(exchange_form.balance) }}
-						{{ form_row(exchange_form.balance_approve) }}
-						{{ form_row(exchange_form.refund_method) }}
-						
-						<button class="button submit">Process Exchange</button>
-					{{ form_end(exchange_form) }}
-
-				{# else notify that the exchange has been made #}
-				{% else %}
-					<ul class="order-details">
-						<li><span>Status </span>{{ return.exchangeItem.status }}</li>
-					</ul>
-				{% endif %}
-
-			{# Show the refund resolution options #}
-			{% elseif return.isRefundResolution %}
-				<h2 class="title">Refund</h2>
-
-				{# Show the refund form if not yet enacted #}
-				{% if not return.isRefunded %}
-					{{ form_start(refund_form) }}
-						{{ form_row(refund_form.refund_amount) }}
-						{{ form_row(refund_form.refund_approve) }}
-						{{ form_row(refund_form.stock_location) }}
-						{{ form_row(refund_form.refund_method) }}
-
-						<button class="button submit">Process Refund</button>
-					{{ form_end(refund_form) }}
+						<button class="button submit">Process Balance</button>
+					{{ form_end(balance_form) }}
 
 				{# else show the refund payments made #}
 				{% else %}
+					<h2 class="title">Balance Payment</h2>
 					{% for refund in return.refunds %}
 						<ul class="order-details">
+							<li>
+								{% if return.balance > 0 %}
+									<span>Payee</span>The customer paid
+								{% else %}
+									<span>Payee</span>You refunded the customer
+								{% endif %}
+							</li>
 							<li><span>Amount </span>{{ refund.amount|price }}</li>
 							<li><span>Method </span>{{ refund.method.getDisplayName() }}</li>
 							<li><span>Date </span>{{ refund.authorship.createdAt()|date }}</li>
 						</ul>
+					{% else %}
+						<ul class="order-details">
+							{% if return.balance == 0 %}
+								<li>No outstanding balance or payments</li>
+							{% elseif return.payeeIsClient %}
+								<li>Awaiting customer's payment of {{ return.balance|price }}</li>
+							{% endif %}
+						</ul>
 					{% endfor %}
 				{% endif %}
 
-			{% endif %}
-		{% endif %}
 
-		{# Show a message if the return has been rejected #}
-		{% if return.isRejected %}
-			<ul class="order-details">
-				<li><span>Status </span>This return was <strong>rejected</strong></li>
-			</ul>
+				{# Show the exchange resolution options #}
+				{% if return.isExchangeResolution %}
+					<h2 class="title">Exchange</h2>
+					
+					<ul class="order-details">
+						<li><span>Replacement Item</span>
+							<a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
+						</li>
+					</ul>
+
+					{# Show the exchanged form if not yet enacted #}
+					{% if not return.isExchanged %}
+						{{ form_start(exchange_form) }}
+							<button class="button submit">Set Replacement Ready For Dispatch</button>
+						{{ form_end(exchange_form) }}
+
+					{# else notify that the exchange has been made #}
+					{% else %}
+						<ul class="order-details">
+							<li><span>Status</span>{{ return.exchangeItem.status }}</li>
+						</ul>
+					{% endif %}
+				{% endif %}
+
+
+				{# Show the returned item form #}
+				<h2 class="title">Returned Item</h2>
+
+				{% if not return.returnedItemProcessed %}
+					{{ form_start(returned_item_form) }}
+						{{ form_row(returned_item_form.stock_location) }}
+
+						<button class="button submit">Process Returned Item</button>
+					{{ form_end(returned_item_form) }}
+				{% else %}
+					<ul class="order-details">
+						<li><span>Status</span>{{ return.item.status }}</li>
+				{% endif %}
+
+
+			{# Show a message if the return has been rejected #}
+			{% elseif return.isRejected %}
+				<ul class="order-details">
+					<li><span>Status </span>This return was <strong>rejected</strong></li>
+				</ul>
+			{% endif %}
+
 		{% endif %}
 
 	</section>

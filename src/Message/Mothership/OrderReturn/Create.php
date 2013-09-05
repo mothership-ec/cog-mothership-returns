@@ -11,6 +11,7 @@ use Message\Cog\ValueObject\DateTimeImmutable;
 use Message\Mothership\Commerce\Order\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
 use Message\Mothership\Commerce\Product\Unit\Unit;
+use Message\Mothership\Ecommerce\OrderItemStatuses;
 
 use Message\User\UserInterface;
 
@@ -58,14 +59,14 @@ class Create
 			INSERT INTO
 				order_item_return
 			SET
-				order_id         = :orderID?i,
-				item_id          = :itemID?i,
-				created_at       = :createdAt?i,
-				created_by       = :createdBy?i,
-				reason           = :reason?s,
-				resolution       = :resolution?s,
-				exchange_item_id = :exchangeItemID?i,
-				balance          = :balance?f
+				order_id           = :orderID?i,
+				item_id            = :itemID?i,
+				created_at         = :createdAt?i,
+				created_by         = :createdBy?i,
+				reason             = :reason?s,
+				resolution         = :resolution?s,
+				exchange_item_id   = :exchangeItemID?i,
+				calculated_balance = :balance?f
 		', array(
 			'orderID'        => $return->order->id,
 			'itemID'         => $return->item->id,
@@ -95,7 +96,7 @@ class Create
 		// Update item statuses
 		$this->_itemEdit->updateStatus($return->item, Statuses::AWAITING_RETURN);
 		if ($return->exchangeItem) {
-			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_RETURN);
+			$this->_itemEdit->updateStatus($return->exchangeItem, OrderItemStatuses::HOLD);
 		}
 
 		return $return;

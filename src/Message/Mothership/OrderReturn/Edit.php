@@ -32,22 +32,50 @@ class Edit
 		$this->_stockManager = $stockManager;
 	}
 
+	public function setAsReceived(Entity\OrderReturn $return, $date = null)
+	{
+		$date = ($date !== null) ?: date('Y-m-d H:i:s');
+		// notify customer?
+
+		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
+	}
+
 	public function accept(Entity\OrderReturn $return)
 	{
-		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ACCEPTED);
+		$return->accepted = true;
+
+		$this->_query->run('
+			UPDATE
+				order_item_return
+			SET
+				accepted = :accepted
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'accepted' => $return->accepted,
+			'returnID' => $return->id
+		));
+
+		return $return;
 	}
 
 	public function reject(Entity\OrderReturn $return)
 	{
-		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_REJECTED);
-	}
+		$return->accepted = false;
 
-	public function setAsReceived(Entity\OrderReturn $return, $date = null)
-	{
-		$date = ($date !== null) ?: date('Y-m-d H:i:s');
-		// notify customer
+		$this->_query->run('
+			UPDATE
+				order_item_return
+			SET
+				accepted = :accepted
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'accepted' => $return->accepted,
+			'returnID' => $return->id
+		));
 
-		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
+		return $return;
 	}
 
 	public function setBalance(Entity\OrderReturn $return, $balance)
@@ -71,6 +99,11 @@ class Edit
 		return $return;
 	}
 
+	public function clearBalance(Entity\OrderReturn $return)
+	{
+		return $this->setBalance($return, 0);
+	}
+
 	public function refund(Entity\OrderReturn $return, $method, $amount)
 	{
 		// Create the refund
@@ -81,55 +114,7 @@ class Edit
 		$refund->order = $return->order;
 		$refund = $this->_refundCreate->create($refund);
 
-		// Update the return with the new balance
-		$this->_query->run('
-			UPDATE
-				order_item_return
-			SET
-				balance = :balance?f
-			WHERE
-				return_id = :returnID?i
-		', array(
-			'balance' => 0,
-			'method' => $refund->method,
-			'amount' => $refund->amount,
-			'reason' => $refund->reason,
-			'returnID' => $return->id
-		));
-
-		// Update item status
-		$this->_itemEdit->updateStatus($return->item, Statuses::REFUND_PAID);
-
 		$return->refund = $refund;
-
-		return $return;
-	}
-
-	public function exchange(Entity\OrderReturn $return, $balance = 0)
-	{
-		// Exchange the items
-		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_ITEM_EXCHANGED);
-
-		if ($balance != 0) {
-			$this->_itemEdit->updateStatus($return->exchangeItem, Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT);
-		}
-		else {
-			$this->_itemEdit->updateStatus($return->exchangeItem, Order\Statuses::AWAITING_DISPATCH);
-		}
-
-		$return->balance = $balance;
-
-		$this->_query->run('
-			UPDATE
-				order_item_return
-			SET
-				balance = :balance?f
-			WHERE
-				return_id = :returnID?i
-		', array(
-			'balance' => $return->balance,
-			'returnID' => $return->id,
-		));
 
 		return $return;
 	}

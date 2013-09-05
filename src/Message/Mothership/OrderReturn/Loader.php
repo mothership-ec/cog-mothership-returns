@@ -134,6 +134,8 @@ class Loader
 				);
 			}
 
+			$entity->calculatedBalance = $result[$key]->calculated_balance;
+
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
 			$entity->item = $this->_itemLoader->getByID($result[$key]->item_id);
 			

@@ -53,21 +53,7 @@ class Services implements ServicesInterface
 		$services['order.item.statuses'] = $services->share($services->extend('order.item.statuses', function($statuses) {
 			// Add basic item return statuses
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_RETURN, 'Awaiting Return'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_REJECTED, 'Return Rejected'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_ACCEPTED, 'Return Accepted'));
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_RECEIVED, 'Return Received'));
-
-			// Add item exchange return statuses
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT, 'Awaiting Exchange Balance Payment'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::EXCHANGE_BALANCE_PAID, 'Exchange Balance Paid'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_ITEM_EXCHANGED, 'Return Item Exchanged'));
-
-			// Add item refund return statuses
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_REFUND, 'Awaiting Refund'));
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::REFUND_PAID, 'Refund Paid'));
-
-			// Add order return statuses
-			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::FULLY_RETURNED, 'Fully Returned'));
 
 			return $statuses;
 		}));
