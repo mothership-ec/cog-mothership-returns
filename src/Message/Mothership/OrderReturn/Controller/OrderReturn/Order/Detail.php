@@ -283,6 +283,16 @@ class Detail extends Controller
 			'required' => false,
 		));
 
+		$form->add('message', 'textarea', 'Message to customer (optional)', array(
+			'required' => false,
+			'data' => $this->get('translator')->trans('ms.commerce.return.process.balance', array(
+				'%name%' => $return->order->user->forename,
+				'%returnNumber%' => 'R' . $return->id,
+				'%email%' => 'info@uniformwares.com',
+				'%brand%' => 'Uniform Wares'
+			))
+		));
+
 		return $form;
 	}
 

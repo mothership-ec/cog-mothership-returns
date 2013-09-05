@@ -13,12 +13,11 @@ ms.commerce:
         none: Your balance is %balance%.
     process:
       received: |
-        Dear %name%,
-
+        Dear %name%
         We have received your returned item and are now processing the return.
-        
         Return Number: %returnNumber%
-
         If you have any queries about your return please email: %email%
-
         Thank You - %brand%
+      balance: |
+        Dear %name%,
+        You need to pay some money.
