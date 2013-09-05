@@ -229,11 +229,10 @@ class Detail extends Controller
 		));
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
 			'required' => false,
-			'data' => $this->get('translator')->trans('ms.commerce.return.process.received', array(
-				'%name%' => $return->order->user->forename,
-				'%returnNumber%' => 'R' . $return->id,
-				'%email%' => 'info@uniformwares.com',
-				'%brand%' => 'Uniform Wares'
+			'data' => $this->_getHtml('Message:Mothership:OrderReturn::order:email:received', array(
+				'return' => $return,
+				'companyName' => $this->get('cfg')->merchant->{'company-name'},
+				'email' => $this->get('cfg')->merchant->email,
 			))
 		));
 
@@ -285,11 +284,10 @@ class Detail extends Controller
 
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
 			'required' => false,
-			'data' => $this->get('translator')->trans('ms.commerce.return.process.balance', array(
-				'%name%' => $return->order->user->forename,
-				'%returnNumber%' => 'R' . $return->id,
-				'%email%' => 'info@uniformwares.com',
-				'%brand%' => 'Uniform Wares'
+			'data' => $this->_getHtml('Message:Mothership:OrderReturn::order:email:balance', array(
+				'return' => $return,
+				'companyName' => $this->get('cfg')->merchant->{'company-name'},
+				'email' => $this->get('cfg')->merchant->email,
 			))
 		));
 
@@ -324,5 +322,13 @@ class Detail extends Controller
 		));
 
 		return $form;
+	}
+
+	protected function _getHtml($reference, $params)
+	{
+		return $this->get('response_builder')
+			->setRequest($this->get('request'))
+			->render($reference, $params)
+			->getContent();
 	}
 }
