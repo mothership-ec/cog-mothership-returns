@@ -7,24 +7,16 @@ use Message\Cog\DB;
 use Message\Mothership\Commerce\Order;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
-class Loader
+class Loader extends Order\Entity\BaseLoader
 {
 	protected $_query;
-	protected $_orderLoader;
-	protected $_itemLoader;
-	protected $_refundLoader;
 	protected $_reasons;
 	protected $_resolutions;
 	protected $_statuses;
 
-	public function __construct(DB\Query $query, $orderLoader, $itemLoader, $refundLoader, $documentLoader, $reasons,
-		$resolutions, $statuses)
+	public function __construct(DB\Query $query, $reasons, $resolutions, $statuses)
 	{
 		$this->_query          = $query;
-		$this->_orderLoader    = $orderLoader;
-		$this->_itemLoader     = $itemLoader;
-		$this->_refundLoader   = $refundLoader;
-		$this->_documentLoader = $documentLoader;
 		$this->_reasons        = $reasons;
 		$this->_resolutions    = $resolutions;
 		$this->_statuses       = $statuses;
@@ -180,16 +172,16 @@ class Loader
 			$entity->calculatedBalance = $result[$key]->calculated_balance;
 
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
-			$entity->item = $this->_itemLoader->getByID($result[$key]->item_id);
+			$entity->item = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->item_id);
 			
-			$entity->exchangeItem = $this->_itemLoader->getByID($result[$key]->exchange_item_id);
+			$entity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->exchange_item_id);
 
 			$entity->reason = $this->_reasons->get($result[$key]->reason);
 			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);
 
-			$entity->refunds = $this->_refundLoader->getByOrder($entity->order);
+			$entity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($entity->order);
 
-			$entity->document = $this->_documentLoader->getByID($result[$key]->document_id);
+			$entity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($result[$key]->document_id);
 
 			// Add the entity into the order
 			// $entity->order->addEntity($entity);

@@ -18,10 +18,17 @@ class Services implements ServicesInterface
 			return new OrderReturn\OrderReturn();
 		};
 
+		$services['order.entities'] = $services->share($services->extend('order.entities', function($entities, $c) {
+			$entities['returns'] = new Commerce\Order\Entity\CollectionOrderLoader(
+				new Commerce\Order\Entity\Collection,
+				new OrderReturn\Loader($c['db.query'], $c['return.reasons'], $c['return.resolutions'],
+					$c['order.item.statuses'])
+			);
+			return $entities;
+		}));
+
 		$services['return.loader'] = function($c) {
-			return new OrderReturn\Loader($c['db.query'], $c['order.loader'], $c['order.item.loader'],
-				$c['order.refund.loader'], $c['order.document.loader'], $c['return.reasons'], $c['return.resolutions'],
-				$c['order.item.statuses']);
+			return $c['order.loader']->getEntityLoader('returns');
 		};
 
 		// Register empty reasons collection
