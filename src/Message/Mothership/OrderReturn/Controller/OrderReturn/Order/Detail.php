@@ -231,9 +231,9 @@ class Detail extends Controller
 		));
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
 			'required' => false,
-			'data' => $this->_getHtml('Message:Mothership:OrderReturn::order:email:received', array(
+			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:email:received', array(
 				'return' => $return,
-				'companyName' => $this->get('cfg')->merchant->{'company-name'},
+				'companyName' => $this->get('cfg')->merchant->companyName,
 				'email' => $this->get('cfg')->merchant->email,
 			))
 		));
@@ -286,9 +286,9 @@ class Detail extends Controller
 
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
 			'required' => false,
-			'data' => $this->_getHtml('Message:Mothership:OrderReturn::order:email:balance', array(
+			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:email:balance', array(
 				'return' => $return,
-				'companyName' => $this->get('cfg')->merchant->{'company-name'},
+				'companyName' => $this->get('cfg')->merchant->companyName,
 				'email' => $this->get('cfg')->merchant->email,
 			))
 		));

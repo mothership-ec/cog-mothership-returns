@@ -11,25 +11,13 @@ class Listing extends Controller
 	{
 		switch ($status) {
 			case 'open':
-				$returns = $this->get('return.loader')->getByStatus(array(
-					Statuses::AWAITING_RETURN,
-					Statuses::RETURN_ACCEPTED,
-					Statuses::RETURN_RECEIVED,
-					Statuses::AWAITING_EXCHANGE_BALANCE_PAYMENT,
-					Statuses::AWAITING_REFUND,
-				));
+				$returns = $this->get('return.loader')->getOpen();
 				break;
 			case 'completed':
-				$returns = $this->get('return.loader')->getByStatus(array(
-					Statuses::EXCHANGE_BALANCE_PAID,
-					Statuses::RETURN_ITEM_EXCHANGED,
-					Statuses::REFUND_PAID,
-				));
+				$returns = $this->get('return.loader')->getCompleted();
 				break;
 			case 'rejected':
-				$returns = $this->get('return.loader')->getByStatus(array(
-					Statuses::RETURN_REJECTED,
-				));
+				$returns = $this->get('return.loader')->getRejected();
 				break;
 			default:
 				$returns = $this->get('return.loader')->getAll();

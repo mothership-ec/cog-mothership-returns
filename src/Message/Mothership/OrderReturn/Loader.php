@@ -60,6 +60,49 @@ class Loader
 		return $returns;
 	}
 
+	public function getOpen()
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id
+			FROM
+				order_item_return
+			WHERE
+				accepted != 0 AND
+				balance != 0
+		');
+
+		return $this->_load($result->flatten(), true);
+	}
+
+	public function getCompleted()
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id
+			FROM
+				order_item_return
+			WHERE
+				balance = 0
+		');
+
+		return $this->_load($result->flatten(), true);
+	}
+
+	public function getRejected()
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id
+			FROM
+				order_item_return
+			WHERE
+				accepted = 0
+		');
+
+		return $this->_load($result->flatten(), true);
+	}
+
 	public function getByOrder(Order\Order $order)
 	{
 		$result = $this->_query->run('
