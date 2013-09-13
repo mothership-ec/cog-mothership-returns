@@ -10,7 +10,7 @@ class Detail extends Controller
 {
 	/**
 	 * Display the detail view of a return.
-	 * 
+	 *
 	 * @param  int $returnID
 	 * @return Message\Cog\HTTP\Response
 	 */
@@ -30,7 +30,7 @@ class Detail extends Controller
 
 	/**
 	 * Process the accept / reject request.
-	 * 
+	 *
 	 * @param  int $returnID
 	 * @return Message\Cog\HTTP\Response
 	 */
@@ -68,12 +68,25 @@ class Detail extends Controller
 			$this->get('return.edit')->setAsReceived($return, $data['received_date']);
 		}
 
+		if ($data['message']) {
+			$message = $this->get('mail.message');
+			$message->setTo('laurence@message.co.uk');
+			$message->setFrom('laurence@message.co.uk');
+			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
+				'message' => nl2br($data['message'])
+			));
+
+			$dispatcher = $this->get('mail.dispatcher');
+
+			$result = $dispatcher->send($message);
+		}
+
 		return $this->redirect($viewURL);
 	}
 
 	/**
 	 * Process the balance request.
-	 * 
+	 *
 	 * @param  int $returnID
 	 * @return Message\Cog\HTTP\Response
 	 */
@@ -143,12 +156,26 @@ class Detail extends Controller
 			$this->get('return.edit')->setBalance($return, $data['balance_amount']);
 		}
 
+		// Send the message
+		if ($data['message']) {
+			$message = $this->get('mail.message');
+			$message->setTo('laurence@message.co.uk');
+			$message->setFrom('laurence@message.co.uk');
+			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
+				'message' => nl2br($data['message'])
+			));
+
+			$dispatcher = $this->get('mail.dispatcher');
+
+			$result = $dispatcher->send($message);
+		}
+
 		return $this->redirect($viewURL);
 	}
 
 	/**
 	 * Process the exchange request.
-	 * 
+	 *
 	 * @param  int $returnID
 	 * @return Message\Cog\HTTP\Response
 	 */
@@ -175,7 +202,7 @@ class Detail extends Controller
 
 	/**
 	 * Process the returned item.
-	 * 
+	 *
 	 * @param  int $returnID
 	 * @return Message\Cog\HTTP\Response
 	 */
@@ -231,7 +258,7 @@ class Detail extends Controller
 		));
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
 			'required' => false,
-			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:email:received', array(
+			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:received', array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->merchant->companyName,
 				'email' => $this->get('cfg')->merchant->email,
@@ -286,7 +313,7 @@ class Detail extends Controller
 
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
 			'required' => false,
-			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:email:balance', array(
+			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:balance', array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->merchant->companyName,
 				'email' => $this->get('cfg')->merchant->email,
