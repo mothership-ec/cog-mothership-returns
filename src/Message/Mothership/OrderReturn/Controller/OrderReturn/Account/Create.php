@@ -16,7 +16,7 @@ class Create extends Controller
 {
 	/**
 	 * View the create return form.
-	 * 
+	 *
 	 * @param  int $itemID
 	 * @return [type]
 	 */
@@ -41,7 +41,7 @@ class Create extends Controller
 
 	/**
 	 * View the confirm return page.
-	 * 
+	 *
 	 * @param  int $itemID
 	 * @return [type]
 	 */
@@ -104,7 +104,7 @@ class Create extends Controller
 
 	/**
 	 * Store the return.
-	 * 
+	 *
 	 * @param  int $itemID
 	 * @return [type]
 	 */
@@ -117,7 +117,7 @@ class Create extends Controller
 			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
 				view this page.');
 		}
-		
+
 		$data = $this->get('http.session')->getFlashBag()->get('return.data');
 
 		$reason = $this->get('return.reasons')->get($data['reason']);
@@ -159,12 +159,23 @@ class Create extends Controller
 			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
 		}
 
+		if (isset($data['note']) and ! empty($data['note'])) {
+			// Add the note to order
+			$note = new Note;
+			$note->order_id = $return->order->id;
+			$note->note = $data['note'];
+			$note->raisedFrom = 'return';
+			$note->customerNotified = 0;
+
+			$this->get('order.note.create')->create($note);
+		}
+
 		return $this->redirect($this->generateUrl('ms.user.return.complete', array('returnID' => $return->id)));
 	}
 
 	/**
 	 * View the return completed page.
-	 * 
+	 *
 	 * @param  int $returnID
 	 * @return [type]
 	 */
@@ -181,7 +192,7 @@ class Create extends Controller
 
 	/**
 	 * Get the create return form.
-	 * 
+	 *
 	 * @param  Item $item
 	 * @return [type]
 	 */
@@ -223,6 +234,8 @@ class Create extends Controller
 		$form->add('exchangeUnit', 'choice', 'Choose a replacement item', array(
 			'choices' => $units
 		));
+
+		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
 
 		return $form;
 	}
