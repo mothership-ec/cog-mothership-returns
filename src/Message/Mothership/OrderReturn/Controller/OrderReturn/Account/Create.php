@@ -9,6 +9,7 @@ use Message\Mothership\OrderReturn\Resolutions;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
+use Message\Mothership\Commerce\Order\Entity\Note\Note;
 
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
@@ -162,7 +163,7 @@ class Create extends Controller
 		if (isset($data['note']) and ! empty($data['note'])) {
 			// Add the note to order
 			$note = new Note;
-			$note->order_id = $return->order->id;
+			$note->order = $return->order;
 			$note->note = $data['note'];
 			$note->raisedFrom = 'return';
 			$note->customerNotified = 0;
