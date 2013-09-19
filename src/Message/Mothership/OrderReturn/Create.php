@@ -66,7 +66,8 @@ class Create
 				reason             = :reason?s,
 				resolution         = :resolution?s,
 				exchange_item_id   = :exchangeItemID?i,
-				calculated_balance = :balance?f
+				calculated_balance = :balance?f,
+				note_id            = :noteID?i
 		', array(
 			'orderID'        => $return->order->id,
 			'itemID'         => $return->item->id,
@@ -75,7 +76,8 @@ class Create
 			'reason'         => $return->reason,
 			'resolution'     => $return->resolution,
 			'exchangeItemID' => ($return->exchangeItem) ? $return->exchangeItem->id : 0,
-			'balance'        => $return->balance
+			'balance'        => $return->balance,
+			'noteID'         => ($return->note) ? $return->note->id : 0,
 		));
 
 		// Get the return by the last insert id

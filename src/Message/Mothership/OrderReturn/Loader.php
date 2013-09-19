@@ -60,8 +60,13 @@ class Loader extends Order\Entity\BaseLoader
 			FROM
 				order_item_return
 			WHERE
-				accepted != 0 AND
-				balance != 0
+				(
+					accepted != 0 AND
+					balance != 0
+				) OR (
+					accepted IS NULL AND
+					balance IS NULL
+				)
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -173,7 +178,7 @@ class Loader extends Order\Entity\BaseLoader
 
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
 			$entity->item = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->item_id);
-			
+
 			$entity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->exchange_item_id);
 
 			$entity->reason = $this->_reasons->get($result[$key]->reason);
@@ -182,6 +187,8 @@ class Loader extends Order\Entity\BaseLoader
 			$entity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($entity->order);
 
 			$entity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($result[$key]->document_id);
+
+			$entity->note = $this->_orderLoader->getEntityLoader('notes')->getByID($result[$key]->note_id);
 
 			// Add the entity into the order
 			// $entity->order->addEntity($entity);

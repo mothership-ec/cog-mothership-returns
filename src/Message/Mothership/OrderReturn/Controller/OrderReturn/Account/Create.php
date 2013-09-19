@@ -121,6 +121,17 @@ class Create extends Controller
 
 		$data = $this->get('http.session')->getFlashBag()->get('return.data');
 
+		if (isset($data['note']) and ! empty($data['note'])) {
+			// Add the note to order
+			$note = new Note;
+			$note->order = $item->order;
+			$note->note = $data['note'];
+			$note->raisedFrom = 'return';
+			$note->customerNotified = 0;
+
+			$note = $this->get('order.note.create')->create($note);
+		}
+
 		$reason = $this->get('return.reasons')->get($data['reason']);
 		$resolution = $this->get('return.resolutions')->get($data['resolution']);
 
@@ -129,6 +140,7 @@ class Create extends Controller
 		$return->order = $item->order;
 		$return->reason = $reason->code;
 		$return->resolution = $resolution->code;
+		$return->note = $note;
 
 		if ($resolution->code == 'exchange') {
 			// Get the exchanged unit
@@ -158,17 +170,6 @@ class Create extends Controller
 			$location = $this->get('stock.locations')->get($exchangeItem->stockLocation->name);
 			$reason = $this->get('stock.movement.reasons')->get('exchange_item');
 			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
-		}
-
-		if (isset($data['note']) and ! empty($data['note'])) {
-			// Add the note to order
-			$note = new Note;
-			$note->order = $return->order;
-			$note->note = $data['note'];
-			$note->raisedFrom = 'return';
-			$note->customerNotified = 0;
-
-			$this->get('order.note.create')->create($note);
 		}
 
 		return $this->redirect($this->generateUrl('ms.user.return.complete', array('returnID' => $return->id)));
@@ -234,7 +235,7 @@ class Create extends Controller
 
 		$form->add('exchangeUnit', 'choice', 'Choose a replacement item', array(
 			'choices' => $units
-		));
+		))->val()->optional();
 
 		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
 
