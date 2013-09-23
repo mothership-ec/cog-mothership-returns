@@ -11,6 +11,4 @@ class Statuses
 {
 	const AWAITING_RETURN = 2000;
 	const RETURN_RECEIVED = 2100;
-	const EXCHANGE_COMPLETED = 2600;
-	const REFUND_COMPLETE = 2800;
 }
