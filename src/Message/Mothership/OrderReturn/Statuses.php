@@ -9,6 +9,7 @@ namespace Message\Mothership\OrderReturn;
  */
 class Statuses
 {
-	const AWAITING_RETURN = 2000;
-	const RETURN_RECEIVED = 2100;
+	const AWAITING_RETURN  = 2000;
+	const RETURN_RECEIVED  = 2100;
+	const RETURN_COMPLETED = 2200;
 }
