@@ -74,20 +74,14 @@ class Create extends Controller
 		}
 
 		if ($balance > 0) {
-			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.pay', array(
-				'%balance%' => $balance
-			));
+			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.pay');
 		}
 		elseif ($balance < 0) {
 			$balance = -$balance;
-			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.refund', array(
-				'%balance%' => $balance
-			));
+			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.refund');
 		}
 		else {
-			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.none', array(
-				'%balance%' => $balance
-			));
+			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.none');
 		}
 
 		// Flash $data to session
@@ -97,6 +91,7 @@ class Create extends Controller
 			'user' => $user,
 			'item' => $item,
 			'data' => $data,
+			'balance' => $balance,
 			'resolutionMessage' => $resolutionMessage,
 			'balanceMessage' => $balanceMessage,
 		));
