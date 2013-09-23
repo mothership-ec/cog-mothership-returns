@@ -29,6 +29,7 @@ class ReturnSlip implements ContainerAwareInterface
 		$this->_container['filesystem']->mkdir($this->_getDirs());
 
 		$html = $this->_getHtml('Message:Mothership:OrderReturn::return:return-slip', array(
+			'merchant' => $this->_container->get('cfg')->merchant,
 			'return' => $return
 		));
 
@@ -58,10 +59,10 @@ class ReturnSlip implements ContainerAwareInterface
 
 	/**
 	 * [_getHtml description]
-	 * 
+	 *
 	 * @param  string $reference
 	 * @param  string $params
-	 * 
+	 *
 	 * @return string
 	 */
 	protected function _getHtml($reference, $params)
@@ -77,9 +78,9 @@ class ReturnSlip implements ContainerAwareInterface
 	 *
 	 * @param string $name
 	 * @param string $contents
-	 * 
+	 *
 	 * @throws \LogicException
-	 * 
+	 *
 	 * @return bool
 	 */
 	protected function _createFile($name, $contents)

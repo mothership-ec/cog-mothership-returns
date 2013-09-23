@@ -1,6 +1,6 @@
 <article class="return print">
 	<header>
-		<p class="brand">Uniform Wares</p>
+		<p class="brand">{{ merchant.company-name }}</p>
 		<h1>Customer - Returns</h1>
 	</header>
 
@@ -10,7 +10,7 @@
 			<h2>RFR Number</h2>
 			<h2>RFR Date</h2>
 		</header>
-		
+
 		<div class="details">
 			{# Customer Details #}
 			<dl>
@@ -19,17 +19,17 @@
 
 				<dt>Billing address</dt>
 				<dd>{{ return.order.getAddress('billing').getString('<br>')|raw }}</dd>
-					
+
 				<dt>Phone</dt>
 				<dd>{{ return.order.getAddress('billing').telephone }}</dd>
-					
+
 				<dt>Email</dt>
 				<dd>{{ return.order.user.email }}</dd>
 			</dl>
-			
+
 			{# RFR Number #}
 			<p>R{{ return.order.id }}</p>
-			
+
 			{# RFR Date #}
 			<p>{{ '' }}</p>
 		</div>
@@ -41,7 +41,7 @@
 			{% endfor %}
 		</div>
 	</section>
-	
+
 	<section class="breakdown">
 		<header>
 			<h2>Returned item</h2>
@@ -69,19 +69,19 @@
 			<p><strong>{{ return.balance|price }}</strong></p>
 		</div>
 	</section>
-	
+
 	<section class="return-delivery">
 		<header>
 			<h2>Return Delivery Details</h2>
 		</header>
-		
+
 		<dl>
 			<dt>Name</dt>
 			<dd>{{ return.order.user.name }}</dd>
 
 			<dt>Delivery address</dt>
 			<dd>{{ return.order.getAddress('delivery').getString('<br>')|raw }}</dd>
-				
+
 			<dt>Phone</dt>
 			<dd>{{ return.order.getAddress('billing').telephone }}</dd>
 		</dl>
