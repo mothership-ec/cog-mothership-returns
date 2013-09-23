@@ -114,6 +114,20 @@ class Loader extends Order\Entity\BaseLoader
 		return $this->_load($result->flatten(), true);
 	}
 
+	public function getByItem(Order\Entity\Item\Item $item)
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id
+			FROM
+				order_item_return
+			WHERE
+				item_id = ?i
+		', $item->id);
+
+		return $this->_load($result->flatten(), true);
+	}
+
 	public function getByUser(User\User $user)
 	{
 		$result = $this->_query->run('

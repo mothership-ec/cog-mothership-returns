@@ -30,6 +30,12 @@ class Create extends Controller
 			throw $this->createNotFoundException();
 		}
 
+		if ($exists = $this->get('return.loader')->getByItem($item)) {
+			return $this->redirectToRoute('ms.user.return.detail', array(
+				'returnID' => $exists[key($exists)]->id
+			));
+		}
+
 		$form = $this->_createForm($item);
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
