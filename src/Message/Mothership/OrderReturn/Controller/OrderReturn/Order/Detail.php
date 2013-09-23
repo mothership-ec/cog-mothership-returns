@@ -3,8 +3,8 @@
 namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Order;
 
 use Message\Cog\Controller\Controller;
-
 use Message\Mothership\Commerce\Order;
+use Message\Mothership\Commerce\OrderReturn;
 
 class Detail extends Controller
 {
@@ -220,8 +220,8 @@ class Detail extends Controller
 			$this->get('stock.movement.reasons')->get('returned') // reason
 		);
 
-		// Cancel the returned item
-		$this->get('order.item.edit')->updateStatus($return->item, Order\Statuses::CANCELLED);
+		// Complete the returned item
+		$this->get('order.item.edit')->updateStatus($return->item, OrderReturn\Statuses::RETURN_COMPLETED);
 
 		return $this->redirect($viewURL);
 	}
