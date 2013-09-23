@@ -27,8 +27,7 @@ class Create extends Controller
 		$item = $this->get('order.item.loader')->getByID($itemID);
 
 		if ($item->order->user->id != $user->id) {
-			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
-				view this page.');
+			throw $this->createNotFoundException();
 		}
 
 		$form = $this->_createForm($item);
@@ -52,8 +51,7 @@ class Create extends Controller
 		$item = $this->get('order.item.loader')->getByID($itemID);
 
 		if ($item->order->user->id != $user->id) {
-			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
-				view this page.');
+			throw $this->createNotFoundException();
 		}
 
 		$form = $this->_createForm($item);
