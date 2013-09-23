@@ -30,10 +30,15 @@ class Create extends Controller
 			throw $this->createNotFoundException();
 		}
 
+		// Redirect to view a return if this item has already been returned and the return was not rejected.
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
-			return $this->redirectToRoute('ms.user.return.detail', array(
-				'returnID' => $exists[key($exists)]->id
-			));
+			foreach ($exists as $return) {
+				if (! $return->isRejected()) {
+					return $this->redirectToRoute('ms.user.return.detail', array(
+						'returnID' => $return->id
+					));
+				}
+			}
 		}
 
 		$form = $this->_createForm($item);
