@@ -8,4 +8,4 @@
 
 <p>Additional notes: {{ data.note }}</p>
 
-<a href="#">Back</a> or <a class="button submit" href="{{ url('ms.user.return.store', {itemID: item.id}) }}">Proceed</a>
+<a href="{{ url('ms.user.order.detail', {orderID: item.order.id}) }}">Back</a> or <a class="button submit" href="{{ url('ms.user.return.store', {itemID: item.id}) }}">Proceed</a>
