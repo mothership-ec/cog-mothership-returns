@@ -61,10 +61,12 @@ class Services implements ServicesInterface
 			// Add basic item return statuses
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_RETURN, 'Awaiting Return'));
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_RECEIVED, 'Return Received'));
+			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::EXCHANGE_COMPLETED, 'Exchange Completed'));
+			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::REFUND_COMPLETE, 'Refund Completed'));
 
 			return $statuses;
 		}));
-		
+
 		// Extend stock movement reasons
 		$services['stock.movement.reasons'] = $services->share($services->extend('stock.movement.reasons', function($reasons) {
 			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('returned', 'Returned'));
