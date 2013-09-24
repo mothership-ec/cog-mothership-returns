@@ -1,7 +1,7 @@
 <div class="container" id="return{{ return.id }}">
 	<section class="group">
 		<h1 class="title">
-			{<a href="{ url('ms.commerce.product.edit', {productID: return.item.productID}) }" data-live>{{ return.item.productName }}</a> }
+			{<a href="{ url('ms.commerce.product.edit.details', {productID: return.item.productID}) }" data-live>{{ return.item.productName }}</a> }
 			{{ return.item.brand }} {{ return.item.productName }}
 		</h1>
 
@@ -11,7 +11,7 @@
 				<span>Resolution </span>{{ return.resolution }}
 				{% if return.isExchangeResolution %}
 					{% if return.exchangeItem %}
-						for <a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
+						for <a href="{{ url('ms.commerce.product.edit.details', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
 					{% else %}
 						{ERROR}
 					{% endif %}
@@ -121,7 +121,7 @@
 
 					<ul class="order-details">
 						<li><span>Replacement Item</span>
-							<a href="{{ url('ms.commerce.product.edit', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
+							<a href="{{ url('ms.commerce.product.edit.details', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
 						</li>
 					</ul>
 
