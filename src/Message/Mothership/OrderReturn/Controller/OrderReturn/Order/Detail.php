@@ -70,8 +70,7 @@ class Detail extends Controller
 
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo('laurence@message.co.uk');
-			$message->setFrom('laurence@message.co.uk');
+			$message->setTo($return->order->user->email, $return->order->user->name);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => nl2br($data['message'])
 			));
@@ -159,8 +158,7 @@ class Detail extends Controller
 		// Send the message
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo('laurence@message.co.uk');
-			$message->setFrom('laurence@message.co.uk');
+			$message->setTo($return->order->user->email, $return->order->user->name);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => nl2br($data['message'])
 			));
