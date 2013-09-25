@@ -1,10 +1,13 @@
-<div class="container" id="return{{ return.id }}">
-	<section class="group">
-		<h1 class="title">
+	<div class="display-group">
+	<h2 class="title">
 			{<a href="{ url('ms.commerce.product.edit.details', {productID: return.item.productID}) }" data-live>{{ return.item.productName }}</a> }
 			{{ return.item.brand }} {{ return.item.productName }}
-		</h1>
+		</h2>
+<div class="container-details dual-column" id="return{{ return.id }}">
 
+	<div class="column">
+
+		<h2>Return Details</h2>
 		<ul class="order-details">
 			<li><span>Reason </span>{{ return.reason }}</li>
 			<li>
@@ -41,17 +44,17 @@
 				<li><span>Updated by</span> {{ return.authorship.updatedBy }} <span>at</span> {{ return.authorship.updatedAt|date }}</li>
 			{% endif %}
 		</ul>
-
-
+	</div>
+	<div class="column">
 		{# Show the received form if not yet set #}
 		{% if not return.isReceived %}
-			<h2 class="title">Returned Package</h2>
+			<h2>Returned Package</h2>
 			{{ form_start(received_form) }}
 				{{ form_row(received_form.received) }}
 				{{ form_row(received_form.received_date) }}
 				{{ form_row(received_form.message) }}
 
-				<button class="button submit">Notify Customer</button>
+				<button class="button submit small block-btn">Notify Customer</button>
 			{{ form_end(received_form) }}
 
 		{% else %}
@@ -62,7 +65,7 @@
 
 			{# Show the accept / reject option if neither action has yet been taken #}
 			{% if not return.isAccepted and not return.isRejected %}
-				<h2 class="title">Accept / Reject</h2>
+				<h2>Accept / Reject</h2>
 				{{ form_start(accepted_form) }}
 					{{ form_row(accepted_form.accept_reject) }}
 
@@ -76,7 +79,7 @@
 
 				{# Show the balance form if not yet enacted #}
 				{% if not return.hasBalance %}
-					<h2 class="title">Outstanding Balance</h2>
+					<h2>Outstanding Balance</h2>
 					{{ form_start(balance_form) }}
 						{{ form_row(balance_form.payee) }}
 						{{ form_row(balance_form.balance_amount) }}
@@ -89,7 +92,7 @@
 
 				{# else show the refund payments made #}
 				{% else %}
-					<h2 class="title">Balance Payment</h2>
+					<h2>Balance Payment</h2>
 					{% for refund in return.refunds %}
 						<ul class="order-details">
 							<li>
@@ -117,7 +120,7 @@
 
 				{# Show the exchange resolution options #}
 				{% if return.isExchangeResolution %}
-					<h2 class="title">Exchange</h2>
+					<h2>Exchange</h2>
 
 					<ul class="order-details">
 						<li><span>Replacement Item</span>
@@ -141,7 +144,7 @@
 
 
 				{# Show the returned item form #}
-				<h2 class="title">Returned Item</h2>
+				<h2>Returned Item</h2>
 
 				{% if not return.returnedItemProcessed %}
 					{{ form_start(returned_item_form) }}
@@ -163,6 +166,5 @@
 			{% endif %}
 
 		{% endif %}
-
-	</section>
+</div>
 </div>
