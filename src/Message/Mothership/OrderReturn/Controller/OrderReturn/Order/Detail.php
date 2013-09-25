@@ -70,7 +70,7 @@ class Detail extends Controller
 
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->name);
+			$message->setTo($return->order->user->email, $return->order->user->getName());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => nl2br($data['message'])
 			));
@@ -141,7 +141,7 @@ class Detail extends Controller
 					$this->get('order.refund.edit')->setPayment($return->refund, $payment);
 
 					// Inform the user the payment was sent successfully
-					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->name));
+					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->getName()));
 				}
 				catch (Exception $e) {
 					// If the payment failed, inform the user
@@ -158,7 +158,7 @@ class Detail extends Controller
 		// Send the message
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->name);
+			$message->setTo($return->order->user->email, $return->order->user->getName());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => nl2br($data['message'])
 			));
