@@ -1,3 +1,8 @@
+{% extends 'Message:Mothership:User::account:account-layout' %}
+{% block title %}Return an Item | {{ app.cfg.app.name }}{% endblock %}
+
+{% block account_content %}
+
 <article class="return">
 	<header>
 		<h1>Return - {{ return.item.productName }}</h1>
@@ -28,3 +33,5 @@
 		<dd>{{ return.balance|price }}</dd>
 	</dl>
 </article>
+
+{% endblock %}

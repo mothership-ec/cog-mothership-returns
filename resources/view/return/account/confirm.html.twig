@@ -1,11 +1,25 @@
+{% extends 'Message:Mothership:User::account:account-layout' %}
+{% block title %}Confirm Return | {{ app.cfg.app.name }}{% endblock %}
+
+{% block account_content %}
+<div class="return">
 <h1>Return an item</h1>
 
-<p>Item to be returned: {{ item.getDescription }}</p>
+<dl>
+	<dt>Item to be returned</dt>
+	<dd>{{ item.getDescription }}</dd>
+</dl>
 
-<p>{{ resolutionMessage }}</p>
+<p><strong>{{ resolutionMessage }}</strong></p>
 
-<p>{{ balanceMessage }} {{ balance|price }}</p>
+<p>{{ balanceMessage }} <strong>{{ balance|price }}</strong></p>
 
-<p>Additional notes: {{ data.note }}</p>
+
+<dl>
+	<dt>Additional notes:</dt>
+	<dd>{{ data.note }}</dd>
+</dl>
 
 <a href="{{ url('ms.user.order.detail', {orderID: item.order.id}) }}">Back</a> or <a class="button submit" href="{{ url('ms.user.return.store', {itemID: item.id}) }}">Proceed</a>
+</div>
+{% endblock %}
