@@ -66,7 +66,6 @@ class Create extends Controller
 		}
 
 		$form = $this->_createForm($item);
-
 		$data = $form->getFilteredData();
 
 		$balance = 0;
@@ -96,7 +95,7 @@ class Create extends Controller
 		}
 
 		// Flash $data to session
-		$this->get('http.session')->getFlashBag()->set('return.data', $data);
+		$this->get('http.session')->set('return.data', $data);
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:confirm', array(
 			'user' => $user,
@@ -124,7 +123,8 @@ class Create extends Controller
 				view this page.');
 		}
 
-		$data = $this->get('http.session')->getFlashBag()->get('return.data');
+		$data = $this->get('http.session')->get('return.data');
+		$this->get('http.session')->remove('return.data');
 
 		if (isset($data['note']) and ! empty($data['note'])) {
 			// Add the note to order
