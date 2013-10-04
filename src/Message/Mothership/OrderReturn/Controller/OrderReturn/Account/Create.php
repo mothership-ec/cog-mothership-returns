@@ -124,7 +124,6 @@ class Create extends Controller
 		}
 
 		$data = $this->get('http.session')->get('return.data');
-		$this->get('http.session')->remove('return.data');
 
 		if (isset($data['note']) and ! empty($data['note'])) {
 			// Add the note to order
@@ -190,6 +189,8 @@ class Create extends Controller
 	{
 		$user = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
+
+		$this->get('http.session')->remove('return.data');
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:complete', array(
 			'user' => $user,
