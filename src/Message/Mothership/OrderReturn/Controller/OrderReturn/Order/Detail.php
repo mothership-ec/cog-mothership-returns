@@ -123,9 +123,6 @@ class Detail extends Controller
 			// Refund the return
 			$return = $this->get('return.edit')->refund($return, $method, $amount);
 
-			// Set the new balance, invert the amount to represent the client as the payer
-			$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
-
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order
@@ -140,6 +137,9 @@ class Detail extends Controller
 					// Update the refund with the payment
 					$this->get('order.refund.edit')->setPayment($return->refund, $payment);
 
+					// Set the balance to 0 to indicate it has been fully refunded
+					$return = $this->get('return.edit')->setBalance($return, 0);
+
 					// Inform the user the payment was sent successfully
 					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->getName()));
 				}
@@ -147,6 +147,10 @@ class Detail extends Controller
 					// If the payment failed, inform the user
 					$this->addFlash('error', $e->getMessage());
 				}
+			}
+			else {
+				// If refunding manually, just set the balance to 0 without checking for a pyament
+				$return = $this->get('return.edit')->setBalance($return, 0);
 			}
 		}
 
