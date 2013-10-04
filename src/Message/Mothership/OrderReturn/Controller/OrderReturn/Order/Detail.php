@@ -219,7 +219,7 @@ class Detail extends Controller
 		);
 
 		// Complete the returned item
-		$this->get('order.item.edit')->updateStatus($return->item, OrderReturn\Statuses::RETURN_COMPLETED);
+		$this->get('order.item.edit')->updateStatus($return->item, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
 
 		return $this->redirect($viewURL);
 	}
