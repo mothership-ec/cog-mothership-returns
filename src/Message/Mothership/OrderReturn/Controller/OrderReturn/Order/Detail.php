@@ -4,7 +4,7 @@ namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Order;
 
 use Message\Cog\Controller\Controller;
 use Message\Mothership\Commerce\Order;
-use Message\Mothership\Commerce\OrderReturn;
+use Message\Mothership\OrderReturn;
 
 class Detail extends Controller
 {
