@@ -95,8 +95,8 @@ class Create extends Controller
 			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.none');
 		}
 
-		// Flash $data to session
-		$this->get('http.session')->getFlashBag()->set('return.data', $data);
+		// Set $data on session
+		$this->get('http.session')->set('return.data', $data);
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:confirm', array(
 			'user' => $user,
@@ -124,7 +124,8 @@ class Create extends Controller
 				view this page.');
 		}
 
-		$data = $this->get('http.session')->getFlashBag()->get('return.data');
+		$data = $this->get('http.session')->get('return.data');
+		$this->get('http.session')->remove('return.data');
 
 		if (isset($data['note']) and ! empty($data['note'])) {
 			// Add the note to order
