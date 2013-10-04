@@ -66,7 +66,6 @@ class Create extends Controller
 		}
 
 		$form = $this->_createForm($item);
-
 		$data = $form->getFilteredData();
 
 		$balance = 0;
@@ -146,7 +145,7 @@ class Create extends Controller
 		$return->order = $item->order;
 		$return->reason = $reason->code;
 		$return->resolution = $resolution->code;
-		$return->note = $note;
+		$return->note = isset($note) ? $note : null;
 
 		if ($resolution->code == 'exchange') {
 			// Get the exchanged unit
