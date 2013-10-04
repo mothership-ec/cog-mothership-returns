@@ -2,7 +2,7 @@
 
 use Message\Cog\Migration\Adapter\MySQL\Migration;
 
-class _1380638641_UpdateOrderCreate extends Migration
+class _1380892582_OrderItemReturnNote extends Migration
 {
 	public function up()
 	{
