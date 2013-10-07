@@ -1,4 +1,4 @@
-§<?php
+<?php
 
 namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Order;
 
