@@ -54,7 +54,7 @@
 				{{ form_row(received_form.received_date) }}
 				{{ form_row(received_form.message) }}
 
-				<button class="button save small save-content">Notify Customer</button>
+				<button class="button save small">Notify Customer</button>
 			{{ form_end(received_form) }}
 
 		{% else %}
@@ -69,7 +69,7 @@
 				{{ form_start(accepted_form) }}
 					{{ form_row(accepted_form.accept_reject) }}
 
-					<button class="button save small save-content">Update</button>
+					<button class="button save small">Update</button>
 				{{ form_end(accepted_form) }}
 			{% endif %}
 
@@ -87,7 +87,7 @@
 						{{ form_row(balance_form.refund_method) }}
 						{{ form_row(balance_form.message) }}
 
-						<button class="button save small save-content">Process Balance</button>
+						<button class="button save small">Process Balance</button>
 					{{ form_end(balance_form) }}
 
 				{# else show the refund payments made #}
@@ -131,7 +131,7 @@
 					{# Show the exchanged form if not yet enacted #}
 					{% if not return.isExchanged %}
 						{{ form_start(exchange_form) }}
-							<button class="button save small save-content">Set Replacement Ready For Dispatch</button>
+							<button class="button save small">Set Replacement Ready For Dispatch</button>
 						{{ form_end(exchange_form) }}
 
 					{# else notify that the exchange has been made #}
@@ -150,7 +150,7 @@
 					{{ form_start(returned_item_form) }}
 						{{ form_row(returned_item_form.stock_location) }}
 
-						<button class="button save small save-content">Process Returned Item</button>
+						<button class="button save small">Process Returned Item</button>
 					{{ form_end(returned_item_form) }}
 				{% else %}
 					<ul class="order-details">
