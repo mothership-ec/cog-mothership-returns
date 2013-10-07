@@ -1,4 +1,4 @@
-<?php
+§<?php
 
 namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Order;
 
@@ -72,7 +72,7 @@ class Detail extends Controller
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-				'message' => nl2br($data['message'])
+				'message' => $data['message']
 			));
 
 			$dispatcher = $this->get('mail.dispatcher');
@@ -164,7 +164,7 @@ class Detail extends Controller
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-				'message' => nl2br($data['message'])
+				'message' => $data['message']
 			));
 
 			$dispatcher = $this->get('mail.dispatcher');
