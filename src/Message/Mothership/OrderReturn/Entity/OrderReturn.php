@@ -54,6 +54,13 @@ class OrderReturn implements EntityInterface
 		return $this->balance !== null;
 	}
 
+	public function hasRemainingBalance()
+	{
+		// Don't need to check with !== here as null is also a value negative
+		// value in this case.
+		return $this->balance != 0;
+	}
+
 	public function payeeIsCustomer()
 	{
 		return $this->balance < 0;
