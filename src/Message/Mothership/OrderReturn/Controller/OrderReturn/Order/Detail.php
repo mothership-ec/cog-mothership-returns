@@ -190,12 +190,18 @@ class Detail extends Controller
 
 		$locations = $this->get('stock.locations');
 
-		// Move the exchange item to the order
-		$this->get('return.edit')->moveUnitStock(
+
+		$stockManager = $this->get('stock.manager');
+		$stockManager->setReason($this->get('stock.movement.reasons')->get('exchange_item'));
+		$stockManager->setNote(sprintf('Order #%s, Return #%s', $return->order->id, $returnID));
+		$stockManager->setAutomated(true);
+
+		$stockManager->decrement(
 			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID), // unit
-			$locations->getRoleLocation($locations::SELL_ROLE), // location
-			$this->get('stock.movement.reasons')->get('returned') // reason
+			$locations->getRoleLocation($locations::SELL_ROLE) // location
 		);
+
+		$stockManager->commit();
 
 		$this->get('order.item.edit')->updateStatus($return->exchangeItem, Order\Statuses::AWAITING_DISPATCH);
 
@@ -215,12 +221,17 @@ class Detail extends Controller
 		$data = $form->getFilteredData();
 		$viewURL = $this->generateUrl('ms.commerce.order.view.return', array('orderID' => $return->order->id));
 
-		// Move the item to the new stock location
-		$this->get('return.edit')->moveUnitStock(
+		$stockManager = $this->get('stock.manager');
+		$stockManager->setReason($this->get('stock.movement.reasons')->get('returned'));
+		$stockManager->setNote(sprintf('Return #%s', $returnID));
+		$stockManager->setAutomated(true);
+
+		$stockManager->increment(
 			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->unitID), // unit
-			$this->get('stock.locations')->get($data['stock_location']), // location
-			$this->get('stock.movement.reasons')->get('returned') // reason
+			$this->get('stock.locations')->get($data['stock_location']) // location
 		);
+
+		$stockManager->commit();
 
 		// Complete the returned item
 		$this->get('order.item.edit')->updateStatus($return->item, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
