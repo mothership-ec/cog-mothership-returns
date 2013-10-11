@@ -37,7 +37,7 @@ class ReturnSlip implements ContainerAwareInterface
 
 		$this->_createFile($filename, $html);
 
-		$path = $this->_getPath($filename);;
+		$path = $this->_getPath($filename);
 
 		$document = new Document;
 		$document->order = $return->order;
