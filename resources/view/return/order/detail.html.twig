@@ -22,16 +22,20 @@
 			</li>
 			<li>
 				{% if not return.hasBalance %}
-					{% if return.calculatedBalance > 0 %}
+					{% if return.payeeIsClient %}
+						<span>Your Balance</span>{{ (0 - return.calculatedBalance)|price }}
+					{% elseif return.payeeIsCustomer %}
 						<span>Customer Balance</span>{{ return.calculatedBalance|price }}
 					{% else %}
-						<span>Your Balance</span>{{ (0 - return.calculatedBalance)|price }}
+						<span>Balance</span>None
 					{% endif %}
 				{% else %}
 					{% if return.payeeIsClient %}
+						<span>Your Balance</span>{{ (0 - return.balance)|price }}
+					{% elseif return.payeeIsCustomer %}
 						<span>Customer Balance</span>{{ return.balance|price }}
 					{% else %}
-						<span>Your Balance</span>{{ (0 - return.balance)|price }}
+						<span>Balance</span>Cleared
 					{% endif %}
 				{% endif %}
 			</li>

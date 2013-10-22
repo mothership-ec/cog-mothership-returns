@@ -79,15 +79,15 @@ class Create extends Controller
 			$balance = $exchangeUnit->getPrice('retail', $item->order->currencyID) - $item->listPrice;
 		}
 		else {
-			$balance = $item->listPrice;
+			$balance = 0 - $item->listPrice;
 			$resolutionMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.resolution.refund');
 		}
 
-		if ($balance < 0) {
-			$balance = -$balance;
+		if ($balance > 0) {
 			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.pay');
 		}
-		elseif ($balance > 0) {
+		elseif ($balance < 0) {
+			$balance = -$balance;
 			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.refund');
 		}
 		else {
