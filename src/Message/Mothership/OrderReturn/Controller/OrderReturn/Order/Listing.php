@@ -20,11 +20,11 @@ class Listing extends Controller
 			);
 		}
 
-		//$returns = $this->get('return.loader')->getByOrder($order);
+		$returns = $this->get('return.loader')->getByOrder($order);
 
 		return $this->render('Message:Mothership:OrderReturn::return:order:listing', array(
 			'order' => $order,
-		//	'returns' => $returns,
+			'returns' => $returns,
 		));
 	}
 }
