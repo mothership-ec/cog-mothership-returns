@@ -27,13 +27,13 @@ class Checkout extends Controller
 		}
 
 		return $this->render('::return:checkout:single-payment-checkout', array(
-			'amount' => $this->getPaymentAmount($returns),
+			'amount'  => $this->_getPaymentAmount($returns),
 			'returns' => $returns,
-			'form' => $this->getPaymentForm($returns),
+			'form'    => $this->_getPaymentForm($order),
 		));
 	}
 
-	public function getPaymentAmount($returns)
+	protected function _getPaymentAmount($returns)
 	{
 		$balance = 0;
 
@@ -50,9 +50,14 @@ class Checkout extends Controller
 		return false;
 	}
 
-	public function getPaymentForm($returns)
+	protected function _getPaymentForm($order)
 	{
 		$form = $this->get('form');
+
+		$form->setAction($this->generateUrl('ms.ecom.return.payment.store', array(
+			'orderID' => $order->id
+		)));
+		$form->setMethod('POST');
 
 		return $form;
 	}
