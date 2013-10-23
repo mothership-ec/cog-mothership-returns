@@ -8,69 +8,69 @@
 	</header>
 
 	<section class="customer">
-		<header>
-			<h2>Customer details</h2>
-			<h2>RFR Number</h2>
-			<h2>RFR Date</h2>
-		</header>
+		<table>
+			<thead>
+				<tr>
+					<th>Customer details</th>
+					<th>RFR Number</th>
+					<th>RFR Date</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>
+						<dl>
+							<dt>Name</dt>
+							<dd>{{ return.order.user.name }}</dd>
 
-		<div class="details">
-			{# Customer Details #}
-			<dl>
-				<dt>Name</dt>
-				<dd>{{ return.order.user.name }}</dd>
+							<dt>Billing address</dt>
+							<dd>{{ return.order.getAddress('billing').flatten()|join('<br>')|raw }}</dd>
 
-				<dt>Billing address</dt>
-				<dd>{{ return.order.getAddress('billing').getString('<br>')|raw }}</dd>
+							<dt>Email</dt>
+							<dd>{{ return.order.user.email }}</dd>
+						</dl>
+					</td>
+					<td>R{{ return.order.id }}</td>
+					<td>{{ return.createdAt|date }}</td>
+				</tr>
+			</tbody>
+		</table>
 
-				<dt>Phone</dt>
-				<dd>{{ return.order.getAddress('billing').telephone }}</dd>
-
-				<dt>Email</dt>
-				<dd>{{ return.order.user.email }}</dd>
-			</dl>
-
-			{# RFR Number #}
-			<p>R{{ return.order.id }}</p>
-
-			{# RFR Date #}
-			<p>{{ '' }}</p>
-		</div>
-
-		<div class="notes">
-			<span>Notes</span>
-			{% for note in return.order.notes %}
-				<p>{{ note.note }}</p>
-			{% endfor %}
-		</div>
+		<table>
+			<thead>
+				<tr>
+					<th>Notes</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for note in return.order.notes %}
+					<tr>
+						<td>{{ note.note }}</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
 	</section>
 
 	<section class="breakdown">
-		<header>
-			<h2>Returned item</h2>
-			<h2>Reason</h2>
-			<h2>Replacement</h2>
-			<h2>Balance</h2>
-		</header>
-
-		<div class="item">
-			{# Returned Item #}
-			<p>{{ return.item.getDescription }}</p>
-
-			{# Reason #}
-			<p>{{ return.reason }}</p>
-
-			{# Replacement #}
-			<p>{{ return.exchangeItem.getDescription }}</p>
-
-			{# Balance #}
-			<p>{{ (return.exchangeItem.gross - return.item.gross)|price }}</p>
-		</div>
-
-		<div class="total">
-			<p><strong>Total</strong></p>
-			<p><strong>{{ return.balance|price }}</strong></p>
-		</div>
+		<table>
+			<thead>
+				<tr>
+					<td>Returned item</td>
+					<td>Reason</td>
+					<td>Replacement</td>
+					<td>Balance</td>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>{{ return.item.getDescription }}</td>
+					<td>{{ return.reason }}</td>
+					<td>{{ return.exchangeItem.getDescription }}</td>
+					<td>{{ (return.calculatedBalance)|price }}</td>
+				</tr>
+			</tbody>
+		</table>
 	</section>
 
 	<section class="return-delivery">
@@ -83,10 +83,7 @@
 			<dd>{{ return.order.user.name }}</dd>
 
 			<dt>Delivery address</dt>
-			<dd>{{ return.order.getAddress('delivery').getString('<br>')|raw }}</dd>
-
-			<dt>Phone</dt>
-			<dd>{{ return.order.getAddress('billing').telephone }}</dd>
+			<dd>{{ return.order.getAddress('delivery').flatten()|join('<br>')|raw }}</dd>
 		</dl>
 	</section>
 </article>
