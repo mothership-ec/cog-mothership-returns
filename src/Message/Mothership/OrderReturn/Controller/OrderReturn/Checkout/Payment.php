@@ -189,7 +189,7 @@ class Payment extends Controller
 
 			if ($reference = $final->getTransactionReference()) {
 				$salt  = $this->_services['cfg']['checkout']->payment->salt;
-				$hash = $this->get('checkout.hash')->encrypt($data['order']->id, $salt);
+				$hash = $this->get('checkout.hash')->encrypt($orderID, $salt);
 
 				$final->confirm($this->generateUrl('ms.ecom.return.payment.success', array(
 					'orderID' => $orderID,
