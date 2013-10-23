@@ -21,7 +21,7 @@ class Checkout extends Controller
 		$returns = $this->get('return.loader')->getByOrder($order);
 
 		foreach ($returns as $key => $return) {
-			if ($return->payeeIsCustomer()) {
+			if ($return->payeeIsClient()) {
 				unset($returns[$key]);
 			}
 		}
@@ -38,7 +38,7 @@ class Checkout extends Controller
 		$balance = 0;
 
 		foreach ($returns as $return) {
-			if ($return->payeeIsClient()) {
+			if ($return->payeeIsCustomer()) {
 				$balance += abs($return->balance);
 			}
 		}
