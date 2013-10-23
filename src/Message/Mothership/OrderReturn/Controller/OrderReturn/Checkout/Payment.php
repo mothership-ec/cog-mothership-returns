@@ -38,8 +38,6 @@ class Payment extends Controller
 			return $this->localPayment($order);
 		}
 
-		de('?');
-
 		$gateway  = $this->get('commerce.gateway');
 		$config   = $this->_services['cfg']['checkout']->payment;
 
