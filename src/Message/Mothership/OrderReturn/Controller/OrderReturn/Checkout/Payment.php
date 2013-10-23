@@ -67,7 +67,7 @@ class Payment extends Controller
 			$this->addFlash('error', 'Couldn\'t connect to payment gateway');
 		}
 
-		return $this->redirectToRoute('ms.repair.front.assess.payment.error', array(
+		return $this->redirectToRoute('ms.ecom.return.payment.error', array(
 			'orderID' => $orderID,
 			'hash'    => $hash,
 		));
