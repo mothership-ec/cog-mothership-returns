@@ -30,13 +30,13 @@
 						<td>
 							{% if not return.hasBalance %}
 								{% if return.payeeIsClient %}
-									{{ (0 - return.calculatedBalance)|price }} (calculated)
+									{{ return.calculatedBalance|price }} (calculated)
 								{% elseif return.payeeIsCustomer %}
 									{{ return.calculatedBalance|price }} (calculated)
 								{% endif %}
 							{% else %}
 								{% if return.payeeIsClient %}
-									{{ (0 - return.balance)|price }}
+									{{ return.balance|price }}
 								{% elseif return.payeeIsCustomer %}
 									{{ return.balance|price }}
 								{% endif %}
