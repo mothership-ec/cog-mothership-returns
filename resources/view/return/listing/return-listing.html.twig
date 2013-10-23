@@ -16,6 +16,7 @@
 				<th><span>Resolution</span></th>
 				<th><span>Status</span></th>
 				<th><span>Balance</span></th>
+				<th>&nbsp;</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -26,7 +27,40 @@
 						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: return.order.user.id}) }}">{{ return.order.user.name }}</a></td>
 						<td>{{ return.resolution }}</td>
 						<td>{{ return.item.status }}</td>
-						<td>{{ return.balance|price }}</td>
+						<td>
+							{% if not return.hasBalance %}
+								{% if return.payeeIsClient %}
+									You Owe
+								{% elseif return.payeeIsCustomer %}
+									Customer Owes
+								{% else %}
+									None
+								{% endif %}
+							{% else %}
+								{% if return.payeeIsClient %}
+									You Owe
+								{% elseif return.payeeIsCustomer %}
+									Customer Owes
+								{% else %}
+									Cleared
+								{% endif %}
+							{% endif %}
+						</td>
+						<td>
+							{% if not return.hasBalance %}
+								{% if return.payeeIsClient %}
+									{{ (0 - return.calculatedBalance)|price }} (calculated)
+								{% elseif return.payeeIsCustomer %}
+									{{ return.calculatedBalance|price }} (calculated)
+								{% endif %}
+							{% else %}
+								{% if return.payeeIsClient %}
+									{{ (0 - return.balance)|price }}
+								{% elseif return.payeeIsCustomer %}
+									{{ return.balance|price }}
+								{% endif %}
+							{% endif %}
+						</td>
 					</tr>
 				{% endfor %}
 			</tbody>
