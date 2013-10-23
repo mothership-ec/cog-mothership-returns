@@ -72,7 +72,7 @@ class Detail extends Controller
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-				'message' => $data['message']
+				'message' => nl2br($data['message'])
 			));
 
 			$dispatcher = $this->get('mail.dispatcher');
@@ -164,7 +164,7 @@ class Detail extends Controller
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-				'message' => $data['message']
+				'message' => nl2br($data['message'])
 			));
 
 			$dispatcher = $this->get('mail.dispatcher');
@@ -290,6 +290,7 @@ class Detail extends Controller
 		$payee = 'none';
 		if ($return->calculatedBalance > 0) $payee = 'client';
 		if ($return->calculatedBalance < 0) $payee = 'customer';
+
 		$form->add('payee', 'choice', 'Payee', array(
 			'choices' => array(
 				'none' => 'Clear the balance',
@@ -324,13 +325,19 @@ class Detail extends Controller
 			'required' => false,
 		));
 
-		$form->add('message', 'textarea', 'Message to customer (optional)', array(
-			'required' => false,
-			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:balance', array(
+		$message = '';
+
+		if ($return->hasBalance()) {
+			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:balance-' . $payee, array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->merchant->companyName,
 				'email' => $this->get('cfg')->merchant->email,
-			))
+			));
+		}
+
+		$form->add('message', 'textarea', 'Message to customer (optional)', array(
+			'required' => false,
+			'data' => $message
 		));
 
 		return $form;
