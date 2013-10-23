@@ -14,8 +14,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 
 		if ($return->order->user->id != $user->id) {
-			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
-				view this page.');
+			throw $this->createNotFoundException();
 		}
 
 		return $this->render('Message:Mothership:OrderReturn::return:account:detail', array(
@@ -30,8 +29,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 
 		if ($return->order->user->id != $user->id) {
-			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
-				view this page.');
+			throw $this->createNotFoundException();
 		}
 
 		return $this->render('Message:Mothership:OrderReturn::return:blank', array(

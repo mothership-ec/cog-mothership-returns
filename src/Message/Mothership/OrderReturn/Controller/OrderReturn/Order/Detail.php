@@ -156,7 +156,7 @@ class Detail extends Controller
 
 		// Notify customer they owe the outstanding balance
 		elseif ($data['payee'] == 'client') {
-			$this->get('return.edit')->setBalance($return, $data['balance_amount']);
+			$this->get('return.edit')->setBalance($return, 0 - $data['balance_amount']);
 		}
 
 		// Send the message
@@ -288,8 +288,8 @@ class Detail extends Controller
 		$form->setAction($this->generateUrl('ms.commerce.order.return.edit.balance', array('returnID' => $return->id)));
 
 		$payee = 'none';
-		if ($return->calculatedBalance > 0) $payee = 'client';
-		if ($return->calculatedBalance < 0) $payee = 'customer';
+		if ($return->payeeIsClient()) $payee = 'client';
+		if ($return->payeeIsCustomer()) $payee = 'customer';
 
 		$form->add('payee', 'choice', 'Payee', array(
 			'choices' => array(
@@ -306,7 +306,7 @@ class Detail extends Controller
 		$form->add('balance_amount', 'money', ' ', array(
 			'currency' => 'GBP',
 			'required' => false,
-			'data' => ($return->calculatedBalance < 0) ? 0 - $return->calculatedBalance : $return->calculatedBalance // display the price as positive
+			'data' => abs($return->calculatedBalance) // display the price as positive
 		));
 
 		// payee == 'customer' || 'client'
@@ -327,8 +327,8 @@ class Detail extends Controller
 
 		$message = '';
 
-		if ($return->hasBalance()) {
-			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:balance-' . $payee, array(
+		if ($return->hasCalculatedBalance()) {
+			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:payee-' . $payee, array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->merchant->companyName,
 				'email' => $this->get('cfg')->merchant->email,

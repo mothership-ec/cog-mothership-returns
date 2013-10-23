@@ -4,7 +4,9 @@ You have outstanding balance on your return.
 
 Return Number: R{{ return.id }}
 
-Balance: {{ return.balance|price }}
+Balance: {{ return.calculatedBalance|abs|price }}
+
+To pay your remaining balance please log in then visit this link: {{ url }}
 
 If you have any queries about your return please email: {{ email }}
 

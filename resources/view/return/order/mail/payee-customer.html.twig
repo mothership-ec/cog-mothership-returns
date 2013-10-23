@@ -4,7 +4,7 @@ We are processing our remaining balance on your return.
 
 Return Number: R{{ return.id }}
 
-Balance: {{ return.balance|price }}
+Balance: {{ return.calculatedBalance|abs|price }}
 
 If you have any queries about your return please email: {{ email }}
 
