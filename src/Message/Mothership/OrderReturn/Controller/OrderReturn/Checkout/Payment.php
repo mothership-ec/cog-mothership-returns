@@ -46,7 +46,6 @@ class Payment extends Controller
 
 		$redirect = $this->generateUrl('ms.ecom.return.payment.response', array(
 			'orderID' => $order->id,
-			'hash'    => $hash,
 		), true);
 
 		$gateway->setUsername($config->username);
@@ -172,14 +171,6 @@ class Payment extends Controller
 	 */
 	public function response($orderID)
 	{
-		$salt = $this->_services['cfg']['checkout']->payment->salt;
-		$generatedHash = $this->get('checkout.hash')->encrypt($orderID, $salt);
-
-		// Check that the generated hash and the passed through hashes match
-		if ($hash != $generatedHash) {
-			throw new Exception('Return hash doesn\'t match');
-		}
-
 		$config  = $this->get('cfg')->checkout->payment;
 		$id      = $this->get('request')->get('VPSTxId');
 		$gateway = $this->get('return.gateway');
@@ -194,16 +185,11 @@ class Payment extends Controller
 				throw new Exception('Payment data could not be retrieved');
 			}
 
-			$dataHash = $this->get('checkout.hash')->encrypt($data['order']->id, $salt);
-
-			// Check that the data hash and the passed through hashes match
-			if ($hash != $dataHash) {
-				throw new Exception('Return payment data hash doesn\'t match');
-			}
-
 			$final = $gateway->completePurchase($data);
 
 			if ($reference = $final->getTransactionReference()) {
+				$salt  = $this->_services['cfg']['checkout']->payment->salt;
+				$hash = $this->get('checkout.hash')->encrypt($data['order']->id, $salt);
 
 				$final->confirm($this->generateUrl('ms.ecom.return.payment.success', array(
 					'orderID' => $orderID,
