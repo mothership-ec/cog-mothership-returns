@@ -1,25 +1,36 @@
-<h1>Checkout</h1>
+{% extends 'Message:Mothership:User::account:account-layout' %}
+{% block title %}Pay Return Balance | {{ app.cfg.app.name }}{% endblock %}
 
-{% if amount %}
-	{% for return in returns %}
-		<dl>
-			<dt>Item</dt>
-			<dd>{{ return.item.productName }} - {{ return.item.options }}</dd>
+{% block account_content %}
 
-			<dt>Amount</dt>
-			<dd>{{ return.balance|price }}</dd>
-		</dl>
-	{% endfor %}
+	<section>
+		<h1>Pay Return Balance</h1>
+	</section>
 
-	<div class="totals">
-		<p>Total: {{ amount|price }}</p>
-	</div>
+	<section>
+		{% if amount %}
+			{% for return in returns %}
+				<dl>
+					<dt>Item</dt>
+					<dd>{{ return.item.productName }} - {{ return.item.options }}</dd>
 
-	{{ form_start(form) }}
+					<dt>Amount</dt>
+					<dd>{{ return.balance|abs|price }}</dd>
+				</dl>
+			{% endfor %}
 
-		<button class="button submit">Continue</button>
-	{{ form_end(form) }}
+			<div class="totals">
+				<p>Total: {{ amount|price }}</p>
+			</div>
 
-{% else %}
-	<p>Nothing to pay.</p>
-{% endif %}
+			{{ form_start(form) }}
+
+				<button class="button submit">Continue</button>
+			{{ form_end(form) }}
+
+		{% else %}
+			<p>Nothing to pay.</p>
+		{% endif %}
+	</section>
+
+{% endblock %}

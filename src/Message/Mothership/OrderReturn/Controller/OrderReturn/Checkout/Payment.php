@@ -19,8 +19,7 @@ class Payment extends Controller
 		$order = $this->get('order.loader')->getByID($orderID);
 
 		if ($order->user->id != $user->id) {
-			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
-				view this page.');
+			throw $this->createNotFoundException();
 		}
 
 		$returns = $this->get('return.loader')->getByOrder($order);
@@ -104,8 +103,8 @@ class Payment extends Controller
 		$balance = 0;
 
 		foreach ($returns as $return) {
-			if ($return->balance > 0) {
-				$balance += $return->balance;
+			if ($return->payeeIsClient()) {
+				$balance += abs($return->balance);
 			}
 		}
 
