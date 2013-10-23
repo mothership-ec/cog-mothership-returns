@@ -325,13 +325,19 @@ class Detail extends Controller
 			'required' => false,
 		));
 
-		$form->add('message', 'textarea', 'Message to customer (optional)', array(
-			'required' => false,
-			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:balance-' . $payee, array(
+		$message = '';
+
+		if ($return->hasBalance()) {
+			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:order:mail:balance-' . $payee, array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->merchant->companyName,
 				'email' => $this->get('cfg')->merchant->email,
-			))
+			));
+		}
+
+		$form->add('message', 'textarea', 'Message to customer (optional)', array(
+			'required' => false,
+			'data' => $message
 		));
 
 		return $form;
