@@ -28,6 +28,11 @@ class OrderReturn implements EntityInterface
 		$this->authorship = new Authorship;
 	}
 
+	public function getDisplayID()
+	{
+		return 'R' . $this->id;
+	}
+
 	public function isReceived()
 	{
 		return $this->item->status->code >= Statuses::RETURN_RECEIVED or
