@@ -1,0 +1,54 @@
+<div class="display-group">
+	<h2 class="title">
+		{<a href="{ url('ms.commerce.product.edit.details', {productID: return.item.productID}) }" data-live>{{ return.item.productName }}</a>}
+		{{ return.item.brand }} {{ return.item.productName }}
+	</h2>
+	<div class="container-details dual-column" id="return{{ return.id }}">
+
+		<div class="column">
+			<h2>Return Details</h2>
+			<ul class="order-details">
+				<li><span>Reason </span>{{ return.reason }}</li>
+				<li>
+					<span>Resolution </span>{{ return.resolution }}
+					{% if return.isExchangeResolution %}
+						{% if return.exchangeItem %}
+							for <a href="{{ url('ms.commerce.product.edit.details', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
+						{% else %}
+							{ERROR}
+						{% endif %}
+					{% endif %}
+				</li>
+				<li>
+					{% if not return.hasBalance %}
+						{% if return.payeeIsClient %}
+							<span>Customer Balance</span>{{ return.calculatedBalance|abs|price }}
+						{% elseif return.payeeIsCustomer %}
+							<span>Your Balance</span>{{ return.calculatedBalance|abs|price }}
+						{% else %}
+							<span>Balance</span>None
+						{% endif %}
+					{% else %}
+						{% if return.payeeIsClient %}
+							<span>Customer Balance</span>{{ return.balance|abs|price }}
+						{% elseif return.payeeIsCustomer %}
+							<span>Your Balance</span>{{ return.balance|abs|price }}
+						{% else %}
+							<span>Balance</span>Cleared
+						{% endif %}
+					{% endif %}
+				</li>
+				<li><span>Status </span>{{ return.item.status }}</li>
+				{% if return.note %}
+					<li><span>Note</span>{{ return.note.note }}</li>
+				{% endif %}
+				<li><span>Created by</span>{{ return.order.user.name }} on {{ return.authorship.createdAt|date }}</li>
+				{% if not return.authorship.updatedAt is empty and not return.authorship.updatedBy is empty %}
+					<li><span>Updated by</span> {{ return.authorship.updatedBy }} <span>at</span> {{ return.authorship.updatedAt|date }}</li>
+				{% endif %}
+			</ul>
+
+			<a class="button" href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">Process this Return</a>
+		</div>
+	</div>
+</div>
