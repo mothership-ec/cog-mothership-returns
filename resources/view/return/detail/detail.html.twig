@@ -138,6 +138,7 @@
 				<div class="column">
 					<h2>Return Details</h2>
 					<ul class="order-details">
+						<li><span>Order</span><a href="{{ url('ms.commerce.order.view.return', {orderID: return.order.id}) }}">{{ return.order.id }}</a></li>
 						<li><span>Reason </span>{{ return.reason }}</li>
 						<li>
 							<span>Resolution </span>{{ return.resolution }}
