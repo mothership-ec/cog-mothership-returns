@@ -39,7 +39,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_acceptOrRejectForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.return.view.return', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 		if ($data['accept_reject'] == 'accept') {
 			$this->get('return.edit')->accept($return);
@@ -62,7 +62,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_receivedForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.return.view.return', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 		if ($data['received']) {
 			$this->get('return.edit')->setAsReceived($return, $data['received_date']);
@@ -94,7 +94,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_balanceForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.return.view.return', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 		// Clear the balance
 		if ($data['payee'] == 'none') {
@@ -186,7 +186,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_exchangeForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.return.view.return', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 		$locations = $this->get('stock.locations');
 
@@ -219,7 +219,7 @@ class Detail extends Controller
 		$return = $this->get('return.loader')->getByID($returnID);
 		$form = $this->_returnedItemForm($return);
 		$data = $form->getFilteredData();
-		$viewURL = $this->generateUrl('ms.commerce.return.view.return', array('orderID' => $return->order->id));
+		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 		$stockManager = $this->get('stock.manager');
 		$stockManager->setReason($this->get('stock.movement.reasons')->get('returned'));
