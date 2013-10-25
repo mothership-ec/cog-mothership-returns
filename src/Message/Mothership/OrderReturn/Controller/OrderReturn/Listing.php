@@ -48,7 +48,7 @@ class Listing extends Controller
 			$returnID = $data['term'];
 
 			if ($return = $this->get('return.loader')->getById($returnID)) {
-				return $this->redirectToRoute('ms.commerce.return.detail.view', array('returnID' => $return->id));
+				return $this->redirectToRoute('ms.commerce.return.view', array('returnID' => $return->id));
 			} else {
 				$this->addFlash('warning', sprintf('No search results were found for "%s"', $returnID));
 				return $this->redirectToReferer();
