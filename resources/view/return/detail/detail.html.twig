@@ -25,14 +25,14 @@
 						{{ form_end(received_form) }}
 
 					{% else %}
+						<h2>Returned Package</h2>
 						<ul class="order-details">
-							<li><span>Received </span>The customer has been notified that the package was received</li>
+							<li><span>Received</span>The customer has been notified that the package was received</li>
 						</ul>
-
 
 						{# Show the accept / reject option if neither action has yet been taken #}
 						{% if not return.isAccepted and not return.isRejected %}
-							<h2>2. Accept / Reject</h2>
+							<h2>Accept / Reject</h2>
 							{{ form_start(accepted_form) }}
 								{{ form_row(accepted_form.accept_reject) }}
 
@@ -76,9 +76,9 @@
 								{% else %}
 									<ul class="order-details">
 										{% if not return.hasRemainingBalance %}
-											<li>No outstanding balance or payments</li>
+											<li><span>Status</span>No outstanding balance or payments</li>
 										{% elseif return.payeeIsClient %}
-											<li>Awaiting customer's payment of {{ return.balance|abs|price }}</li>
+											<li><span>Status</span>Awaiting customer's payment of {{ return.balance|abs|price }}</li>
 										{% endif %}
 									</ul>
 								{% endfor %}
