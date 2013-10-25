@@ -11,6 +11,7 @@
 			<thead>
 			<tr>
 				<th><span>Return ID</span></th>
+				<th><span>Order ID</span></th>
 				<th><span>Item</span></th>
 				<th><span>Created at</span></th>
 				<th><span>User</span></th>
@@ -23,7 +24,8 @@
 			<tbody>
 				{% for return in returns %}
 					<tr>
-						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: return.order.id}) }}">{{ return.id }}</a></td>
+						<td><a href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">{{ return.id }}</a></td>
+						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: return.order.id}) }}">{{ return.order.id }}</a></td>
 						<td>{{ return.item.productName }}</td>
 						<td>{{ return.authorship.createdAt|date }}</td>
 						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: return.order.user.id}) }}">{{ return.order.user.name }}</a></td>

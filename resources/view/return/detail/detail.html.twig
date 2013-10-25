@@ -3,7 +3,7 @@
 {% block returns %}
 
 	<section class="container-content">
-		<h1>Return {{ return.getDisplayID() }}</h1>
+		<h1>Return {{ return.getDisplayID() }} <span class="updated-date">(Last updated: {{ return.authorship.updatedAt|date }})</span></h1>
 
 		<div class="display-group">
 			<h2 class="title">
