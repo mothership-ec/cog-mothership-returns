@@ -11,10 +11,10 @@ class Listing extends Controller
 	{
 		switch ($status) {
 			case 'awaiting-return':
-				$returns = $this->get('return.loader')->getAwaitingReturn();
+				$returns = $this->get('return.loader')->getByStatusCode(Statuses::AWAITING_RETURN);
 				break;
 			case 'received':
-				$returns = $this->get('return.loader')->getReceived();
+				$returns = $this->get('return.loader')->getByStatusCode(Statuses::RECEIVED);
 				break;
 			case 'awaiting-payment':
 				$returns = $this->get('return.loader')->getAwaitingPayment();
