@@ -39,19 +39,6 @@ class Loader extends Order\Entity\BaseLoader
 		return $this->_load($result->flatten(), true);
 	}
 
-	public function getByStatus($statuses)
-	{
-		$all = $this->getAll();
-		$returns = array();
-		foreach ($all as $return) {
-			if (in_array($return->item->status->code, $statuses)) {
-				$returns[$return->id] = $return;
-			}
-		}
-
-		return $returns;
-	}
-
 	public function getOpen()
 	{
 		$result = $this->_query->run('
@@ -101,20 +88,6 @@ class Loader extends Order\Entity\BaseLoader
 		$ids = array_keys($unique);
 
 		return $ids;
-	}
-
-	public function getAwaitingReturn()
-	{
-		$result = $this->_getIDsByStatusCode(\Message\Mothership\OrderReturn\Statuses::AWAITING_RETURN);
-
-		return $this->_load($result, true);
-	}
-
-	public function getReceived()
-	{
-		$result = $this->_getIDsByStatusCode(\Message\Mothership\OrderReturn\Statuses::RETURN_RECEIVED);
-
-		return $this->_load($result, true);
 	}
 
 	public function getAwaitingPayment()
