@@ -72,7 +72,7 @@ class Loader extends Order\Entity\BaseLoader
 		return $this->_load($result->flatten(), true);
 	}
 
-	protected function _getIDsByStatusCode($code)
+	public function getByStatusCode($code)
 	{
 		$result = $this->_query->run('
 			SELECT
