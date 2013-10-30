@@ -14,7 +14,7 @@ class Listing extends Controller
 				$returns = $this->get('return.loader')->getByStatusCode(Statuses::AWAITING_RETURN);
 				break;
 			case 'received':
-				$returns = $this->get('return.loader')->getByStatusCode(Statuses::RECEIVED);
+				$returns = $this->get('return.loader')->getByStatusCode(Statuses::RETURN_RECEIVED);
 				break;
 			case 'awaiting-payment':
 				$returns = $this->get('return.loader')->getAwaitingPayment();
