@@ -87,7 +87,7 @@ class Loader extends Order\Entity\BaseLoader
 
 		$ids = array_keys($unique);
 
-		return $ids;
+		return $this->_load($ids, true);
 	}
 
 	public function getAwaitingPayment()
