@@ -46,7 +46,7 @@ class Create extends Controller
 		return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
 			'user' => $user,
 			'item' => $item,
-			'form' => $form->getForm()->createView()
+			'form' => $form
 		));
 	}
 
@@ -67,6 +67,14 @@ class Create extends Controller
 
 		$form = $this->_createForm($item);
 		$data = $form->getFilteredData();
+
+		if (!$form->isValid()) {
+			return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
+				'user' => $user,
+				'item' => $item,
+				'form' => $form
+			));
+		}
 
 		$balance = 0;
 
