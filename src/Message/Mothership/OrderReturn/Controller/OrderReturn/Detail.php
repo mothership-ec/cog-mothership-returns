@@ -327,7 +327,7 @@ class Detail extends Controller
 
 		$message = '';
 
-		if ($return->hasCalculatedBalance()) {
+		if ($return->hasCalculatedBalance() and 'none' !== $payee) {
 			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:mail:payee-' . $payee, array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->merchant->companyName,
