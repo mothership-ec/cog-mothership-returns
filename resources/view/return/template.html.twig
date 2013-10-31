@@ -1,0 +1,14 @@
+{% extends 'Message:Mothership:ControlPanel::_templates/left_sidebar' %}
+
+{% block sidebar %}
+	{{ render(controller('Message:Mothership:OrderReturn::Controller:OrderReturn:Listing#sidebar')) }}
+{% endblock %}
+
+
+
+{% block main %}
+
+	{% block returns %}
+	{% endblock %}
+
+{% endblock %}

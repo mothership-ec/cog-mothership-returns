@@ -46,7 +46,7 @@ class Create extends Controller
 		return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
 			'user' => $user,
 			'item' => $item,
-			'form' => $form->getForm()->createView()
+			'form' => $form
 		));
 	}
 
@@ -68,6 +68,14 @@ class Create extends Controller
 		$form = $this->_createForm($item);
 		$data = $form->getFilteredData();
 
+		if (!$form->isValid()) {
+			return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
+				'user' => $user,
+				'item' => $item,
+				'form' => $form
+			));
+		}
+
 		$balance = 0;
 
 		// Get translated messages for exchanges and refunds
@@ -79,7 +87,7 @@ class Create extends Controller
 			$balance = $item->listPrice - $exchangeUnit->getPrice('retail', $item->order->currencyID);
 		}
 		else {
-			$balance = 0 - $item->listPrice;
+			$balance = $item->listPrice;
 			$resolutionMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.resolution.refund');
 		}
 

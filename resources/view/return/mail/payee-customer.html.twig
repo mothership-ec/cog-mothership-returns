@@ -2,7 +2,7 @@ Dear {{ return.order.user.name }}
 
 We are processing our remaining balance on your return.
 
-Return Number: R{{ return.id }}
+Return Number: {{ return.getDisplayID() }}
 
 Balance: {{ return.calculatedBalance|abs|price }}
 

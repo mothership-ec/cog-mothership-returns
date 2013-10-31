@@ -30,7 +30,7 @@
 							<dd>{{ return.order.user.email }}</dd>
 						</dl>
 					</td>
-					<td>R{{ return.order.id }}</td>
+					<td>{{ return.getDisplayID() }}</td>
 					<td>{{ return.createdAt|date }}</td>
 				</tr>
 			</tbody>
