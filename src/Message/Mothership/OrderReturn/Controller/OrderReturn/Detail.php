@@ -71,6 +71,7 @@ class Detail extends Controller
 		if ($data['message']) {
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setSubject('Your returned item has been received - ' . $this->get('cfg')->merchant->companyName);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => nl2br($data['message'])
 			));
@@ -163,6 +164,7 @@ class Detail extends Controller
 		if ($data['message']) {
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->merchant->companyName);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => nl2br($data['message'])
 			));
