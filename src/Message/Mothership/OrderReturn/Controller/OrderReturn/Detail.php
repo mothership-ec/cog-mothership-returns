@@ -110,6 +110,11 @@ class Detail extends Controller
 				return $this->redirect($viewURL);
 			}
 
+			if (! isset($data['refund_method']) or ! $data['refund_method']) {
+				$this->addFlash('error', 'You must select a refund method');
+				return $this->redirect($viewURL);
+			}
+
 			// Get the balance amount
 			$amount = $data['balance_amount'];
 
@@ -323,9 +328,8 @@ class Detail extends Controller
 				'manual' => 'Manual'
 			),
 			'expanded' => true,
-			'empty_value' => false,
-			'required' => false,
-		));
+			'empty_value' => false
+		))->val()->optional();
 
 		$message = '';
 
