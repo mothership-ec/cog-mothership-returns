@@ -10,6 +10,7 @@ use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
 use Message\Mothership\Commerce\Order\Entity\Note\Note;
+use Message\Mothership\Ecommerce\OrderItemStatuses;
 
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
@@ -162,6 +163,9 @@ class Create extends Controller
 			$exchangeItem = new Item;
 			$exchangeItem->order = $item->order;
 			$exchangeItem->populate($unit);
+
+			$exchangeItem->status = clone $this->get('order.item.statuses')->get(OrderItemStatuses::HOLD);
+
 			$exchangeItem->stockLocation = $this->get('stock.locations')->get('web'); // is this the correct location?
 			$item->order->items->append($exchangeItem);
 			$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);

@@ -95,11 +95,8 @@ class Create
 			'documentID' => $document->id
 		));
 
-		// Update item statuses
+		// Update item status
 		$this->_itemEdit->updateStatus($return->item, Statuses::AWAITING_RETURN);
-		if ($return->exchangeItem) {
-			$this->_itemEdit->updateStatus($return->exchangeItem, OrderItemStatuses::HOLD);
-		}
 
 		return $return;
 	}
