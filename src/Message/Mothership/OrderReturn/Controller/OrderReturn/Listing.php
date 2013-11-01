@@ -38,6 +38,7 @@ class Listing extends Controller
 
 		return $this->render('Message:Mothership:OrderReturn::return:listing:return-listing', array(
 			'returns' => $returns,
+			'status'  => ucwords(str_replace('-', ' ', $status)),
 		));
 	}
 
