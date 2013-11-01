@@ -106,6 +106,8 @@ class Create extends Controller
 		// Set $data on session
 		$this->get('http.session')->set('return.data', $data);
 
+		$confirmForm = $this->_confirmForm($item);
+
 		return $this->render('Message:Mothership:OrderReturn::return:account:confirm', array(
 			'user' => $user,
 			'item' => $item,
@@ -113,6 +115,7 @@ class Create extends Controller
 			'balance' => $balance,
 			'resolutionMessage' => $resolutionMessage,
 			'balanceMessage' => $balanceMessage,
+			'confirmForm' => $confirmForm,
 		));
 	}
 
@@ -130,6 +133,12 @@ class Create extends Controller
 		if ($item->order->user->id != $user->id) {
 			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
 				view this page.');
+		}
+
+		$confirmForm = $this->_confirmForm($item);
+
+		if (! $confirmForm->isValid()) {
+			return $this->redirectToReferer();
 		}
 
 		$data = $this->get('http.session')->get('return.data');
@@ -256,6 +265,23 @@ class Create extends Controller
 		))->val()->optional();
 
 		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
+
+		return $form;
+	}
+
+	/**
+	 * Get the confirmation form.
+	 *
+	 * @param  Item $item
+	 * @return [type]
+	 */
+	public function _confirmForm($item)
+	{
+		$form = $this->get('form');
+
+		$form->setAction($this->generateUrl('ms.user.return.store', array('itemID' => $item->id)));
+
+		$form->add('terms', 'checkbox', 'By clicking here you agree to the terms and conditions of returns');
 
 		return $form;
 	}
