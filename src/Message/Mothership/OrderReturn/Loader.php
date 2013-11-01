@@ -39,19 +39,6 @@ class Loader extends Order\Entity\BaseLoader
 		return $this->_load($result->flatten(), true);
 	}
 
-	public function getByStatus($statuses)
-	{
-		$all = $this->getAll();
-		$returns = array();
-		foreach ($all as $return) {
-			if (in_array($return->item->status->code, $statuses)) {
-				$returns[$return->id] = $return;
-			}
-		}
-
-		return $returns;
-	}
-
 	public function getOpen()
 	{
 		$result = $this->_query->run('
@@ -70,6 +57,94 @@ class Loader extends Order\Entity\BaseLoader
 		');
 
 		return $this->_load($result->flatten(), true);
+	}
+
+	public function getByStatusCode($code)
+	{
+		$result = $this->_query->run('
+			SELECT
+				r.return_id,
+				s.status_code
+			FROM
+				order_item_return r
+			RIGHT JOIN
+				order_item_status s ON r.item_id = s.item_id
+			ORDER BY
+				s.created_at DESC
+		');
+
+		$unique = array();
+
+		foreach ($result as $r) {
+			if (! isset($unique[$r->return_id])) {
+				$unique[$r->return_id] = $r;
+			}
+		}
+
+		$unique = array_filter($unique, function($r) use ($code) {
+			return $code == $r->status_code;
+		});
+
+		$ids = array_keys($unique);
+
+		return $this->_load($ids, true);
+	}
+
+	public function getAwaitingPayment()
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id
+			FROM
+				order_item_return
+			WHERE
+				balance IS NOT NULL AND
+				balance < 0 AND
+				accepted = 1
+		');
+
+		return $this->_load($result->flatten(), true);
+	}
+
+	public function getPendingRefund()
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id
+			FROM
+				order_item_return
+			WHERE
+				balance IS NOT NULL AND
+				balance > 0 AND
+				accepted = 1
+		');
+
+		return $this->_load($result->flatten(), true);
+	}
+
+	public function getPendingExchange()
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id, exchange_item_id
+			FROM
+				order_item_return
+			WHERE
+				exchange_item_id > 0 AND
+				accepted = 1
+		');
+
+		$returns = $this->_load($result->flatten(), true);
+
+		foreach ($returns as $i => $return) {
+			if (Statuses::RETURN_RECEIVED > $return->item->status->code or
+				Order\Statuses::DISPATCHED > $return->exchangeItem->status->code
+			) {
+				unset($returns[$i]);
+			}
+		}
+
+		return $returns;
 	}
 
 	public function getCompleted()

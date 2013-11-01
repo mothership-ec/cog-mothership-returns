@@ -10,8 +10,20 @@ class Listing extends Controller
 	public function all($status = null)
 	{
 		switch ($status) {
-			case 'open':
-				$returns = $this->get('return.loader')->getOpen();
+			case 'awaiting-return':
+				$returns = $this->get('return.loader')->getByStatusCode(Statuses::AWAITING_RETURN);
+				break;
+			case 'received':
+				$returns = $this->get('return.loader')->getByStatusCode(Statuses::RETURN_RECEIVED);
+				break;
+			case 'awaiting-payment':
+				$returns = $this->get('return.loader')->getAwaitingPayment();
+				break;
+			case 'pending-refund':
+				$returns = $this->get('return.loader')->getPendingRefund();
+				break;
+			case 'pending-exchange':
+				$returns = $this->get('return.loader')->getPendingExchange();
 				break;
 			case 'completed':
 				$returns = $this->get('return.loader')->getCompleted();
@@ -26,6 +38,7 @@ class Listing extends Controller
 
 		return $this->render('Message:Mothership:OrderReturn::return:listing:return-listing', array(
 			'returns' => $returns,
+			'status'  => ucwords(str_replace('-', ' ', $status)),
 		));
 	}
 
