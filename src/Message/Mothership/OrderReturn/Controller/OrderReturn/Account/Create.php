@@ -154,6 +154,8 @@ class Create extends Controller
 			$note = $this->get('order.note.create')->create($note);
 		}
 
+		$stockLocations = $this->get('stock.locations');
+
 		$reason = $this->get('return.reasons')->get($data['reason']);
 		$resolution = $this->get('return.resolutions')->get($data['resolution']);
 
@@ -172,10 +174,8 @@ class Create extends Controller
 			$exchangeItem = new Item;
 			$exchangeItem->order = $item->order;
 			$exchangeItem->populate($unit);
-
+			$exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
 			$exchangeItem->status = clone $this->get('order.item.statuses')->get(OrderItemStatuses::HOLD);
-
-			$exchangeItem->stockLocation = $this->get('stock.locations')->get('web'); // is this the correct location?
 			$item->order->items->append($exchangeItem);
 			$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
 
@@ -190,11 +190,31 @@ class Create extends Controller
 		$return = $this->get('return.create')->create($return);
 
 		if ($resolution->code == 'exchange') {
-			// Move the exchange item to the order
-			$unit = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID);
-			$location = $this->get('stock.locations')->get($exchangeItem->stockLocation->name);
-			$reason = $this->get('stock.movement.reasons')->get('exchange_item');
-			$this->get('return.edit')->moveUnitStock($unit, $location, $reason);
+			// Change stock for replacement item
+			$unit         = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID);
+			$stockManager = $this->get('stock.manager');
+
+			$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item requested.', $return->order->id, $return->id));
+
+			$stockManager->setReason(
+				$this->get('stock.movement.reasons')->get('exchange_item')
+			);
+
+			$stockManager->setAutomated(true);
+
+			// Decrement from sell stock
+			$stockManager->decrement(
+				$unit,
+				$exchangeItem->stockLocation
+			);
+
+			// Increment in hold stock
+			$stockManager->increment(
+				$unit,
+				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
+			);
+
+			$stockManager->commit();
 		}
 
 		return $this->redirect($this->generateUrl('ms.user.return.complete', array('returnID' => $return->id)));

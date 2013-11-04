@@ -20,16 +20,14 @@ class Edit
 	protected $_user;
 	protected $_itemEdit;
 	protected $_refundCreate;
-	protected $_stockManager;
 
 	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit,
-		Order\Entity\Refund\Create $refundCreate, $stockManager)
+		Order\Entity\Refund\Create $refundCreate)
 	{
 		$this->_query = $query;
 		$this->_user  = $user;
 		$this->_itemEdit = $itemEdit;
 		$this->_refundCreate = $refundCreate;
-		$this->_stockManager = $stockManager;
 	}
 
 	public function setAsReceived(Entity\OrderReturn $return, $date = null)
@@ -119,22 +117,9 @@ class Edit
 		return $return;
 	}
 
-	public function moveUnitStock(Product\Unit\Unit $unit, Product\Stock\Location\Location $location, Product\Stock\Movement\Reason\Reason $reason)
-	{
-		$this->_stockManager->setReason($reason);
-		$this->_stockManager->setAutomated(false);
-		
-		$this->_stockManager->increment(
-			$unit,
-			$location
-		);
-
-		return $this->_stockManager->commit();
-	}
-
 	protected function _validate(Entity\OrderReturn $return)
 	{
-		// 
+		//
 	}
 
 }
