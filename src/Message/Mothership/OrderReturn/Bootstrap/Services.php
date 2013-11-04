@@ -71,6 +71,18 @@ class Services implements ServicesInterface
 			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('exchange_item', 'Exchange Item'));
 			return $reasons;
 		}));
+
+
+		$services['return.gateway'] = function($c) {
+			return new \Message\Mothership\Commerce\Gateway\Sagepay(
+				'SagePay_Server',
+				$c['user.current'],
+				$c['http.request.master'],
+				$c['cache'],
+				$c['order'],
+				$c['cfg']
+			);
+		};
 	}
 
 }

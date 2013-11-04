@@ -10,10 +10,14 @@ class CheckoutRoutes implements RoutesInterface
 	{
 		$router['ms.ecom.return']->setPrefix('/checkout/return'); // temp
 
-		$router['ms.ecom.return']->add('ms.ecom.return', '/{orderID}', '::Controller:OrderReturn:Checkout:Checkout#view')
+		$router['ms.ecom.return']->add('ms.ecom.return.payment', '/{orderID}', '::Controller:OrderReturn:Checkout:Checkout#view')
 			->setMethod('GET');
 
-		$router['ms.ecom.return']->add('ms.ecom.return.store', '/{orderID}', '::Controller:OrderReturn:Checkout:Payment#store')
+		$router['ms.ecom.return']->add('ms.ecom.return.payment.store', '/{orderID}/store', '::Controller:OrderReturn:Checkout:Payment#store')
 			->setMethod('POST');
+
+		$router['ms.ecom.return']->add('ms.ecom.return.payment.response', '/{orderID}/response', '::Controller:OrderReturn:Checkout:Payment#response');
+		$router['ms.ecom.return']->add('ms.ecom.return.payment.success', '/{orderID}/success/{hash}', '::Controller:OrderReturn:Checkout:Payment#success');
+		$router['ms.ecom.return']->add('ms.ecom.return.payment.error', '/{orderID}/error/hash}', '::Controller:OrderReturn:Checkout:Payment#error');
 	}
 }

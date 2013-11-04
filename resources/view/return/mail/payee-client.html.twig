@@ -6,7 +6,7 @@ Return Number: {{ return.getDisplayID() }}
 
 Balance: {{ return.calculatedBalance|abs|price }}
 
-To pay your remaining balance please log in then visit this link: {{ url }}
+To pay your remaining balance please log in then visit this link: {{ url('ms.ecom.return.payment', {orderID: return.order.id}) }}
 
 If you have any queries about your return please email: {{ email }}
 
