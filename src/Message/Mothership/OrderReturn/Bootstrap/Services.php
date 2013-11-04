@@ -48,8 +48,7 @@ class Services implements ServicesInterface
 		};
 
 		$services['return.edit'] = function($c) {
-			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit'], $c['order.refund.create'],
-				$c['stock.manager']);
+			return new OrderReturn\Edit($c['db.query'], $c['user'], $c['order.item.edit'], $c['order.refund.create']);
 		};
 
 		// Register files

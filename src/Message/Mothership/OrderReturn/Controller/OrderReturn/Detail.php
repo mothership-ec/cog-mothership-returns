@@ -200,12 +200,12 @@ class Detail extends Controller
 
 		$stockManager = $this->get('stock.manager');
 		$stockManager->setReason($this->get('stock.movement.reasons')->get('exchange_item'));
-		$stockManager->setNote(sprintf('Order #%s, Return #%s', $return->order->id, $returnID));
+		$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item ready for fulfillment.', $return->order->id, $returnID));
 		$stockManager->setAutomated(true);
 
 		$stockManager->decrement(
-			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID), // unit
-			$locations->getRoleLocation($locations::SELL_ROLE) // location
+			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID),
+			$locations->getRoleLocation($locations::HOLD_ROLE)
 		);
 
 		$stockManager->commit();
