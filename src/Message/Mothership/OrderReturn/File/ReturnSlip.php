@@ -96,7 +96,7 @@ class ReturnSlip implements ContainerAwareInterface
 		$handler = $manager::getHandler('cog');
 		$path = $handler->getLocalPath($path);
 
-		$this->_container['filesystem']->dumpFile($path, $contents);
+		$this->_container['filesystem.conversion.pdf']->setHtml($contents)->save($path);
 
 		return true;
 	}
@@ -128,7 +128,7 @@ class ReturnSlip implements ContainerAwareInterface
 	protected function _getPath($filename)
 	{
 		$dirs = $this->_getDirs();
-		return array_pop($dirs) . '/' . $filename . '.html';
+		return array_pop($dirs) . '/' . $filename . '.pdf';
 	}
 
 }
