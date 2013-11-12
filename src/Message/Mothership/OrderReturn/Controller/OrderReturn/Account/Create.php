@@ -70,11 +70,13 @@ class Create extends Controller
 		$data = $form->getFilteredData();
 
 		if (!$form->isValid()) {
-			return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
-				'user' => $user,
-				'item' => $item,
-				'form' => $form
-			));
+			if (!$data = $this->get('http.session')->get('return.data')) {
+				return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
+					'user' => $user,
+					'item' => $item,
+					'form' => $form
+				));
+			}
 		}
 
 		$balance = 0;
