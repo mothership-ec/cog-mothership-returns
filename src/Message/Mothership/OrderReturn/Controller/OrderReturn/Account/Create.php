@@ -51,6 +51,77 @@ class Create extends Controller
 		));
 	}
 
+	public function note($itemID)
+	{
+		$user = $this->get('user.current');
+		$item = $this->get('order.item.loader')->getByID($itemID);
+
+		$createForm	= $this->_createForm($item);
+		$createData	= $createForm->getFilteredData();
+
+		$this->get('http.session')->set('return.data', $createData);
+
+		$form = $this->_noteForm($itemID, 'ms.user.return.note.process');
+
+		if ($item->order->user->id != $user->id) {
+			throw $this->createNotFoundException();
+		}
+
+		// Redirect to view a return if this item has already been returned and the return was not rejected.
+		if ($exists = $this->get('return.loader')->getByItem($item)) {
+			foreach ($exists as $return) {
+				if (! $return->isRejected()) {
+					return $this->redirectToRoute('ms.user.return.detail', array(
+						'returnID' => $return->id
+					));
+				}
+			}
+		}
+
+		return $this->render('Message:Mothership:OrderReturn::return:account:note', array(
+			'form'	=> $form,
+			'user'	=> $user,
+			'item'	=> $item,
+		));
+	}
+
+	public function noteAction($itemID)
+	{
+		$user = $this->get('user.current');
+		$item = $this->get('order.item.loader')->getByID($itemID);
+		$form = $this->_noteForm($itemID);
+
+		$sessionData = $this->get('http.session')->get('return.data');
+
+		if ($item->order->user->id != $user->id) {
+			throw $this->createNotFoundException();
+		}
+
+		// Redirect to view a return if this item has already been returned and the return was not rejected.
+		if ($exists = $this->get('return.loader')->getByItem($item)) {
+			foreach ($exists as $return) {
+				if (! $return->isRejected()) {
+					return $this->redirectToRoute('ms.user.return.detail', array(
+						'returnID' => $return->id
+					));
+				}
+			}
+		}
+
+		if ($form->isValid() && $data = $form->getFilteredData()) {
+			$data = array_merge($sessionData, $data);
+			$this->get('http.session')->set('return.data', $data);
+			return $this->redirectToRoute('ms.user.return.confirm', array(
+				'itemID'	=> $itemID,
+			));
+		}
+
+		return $this->redirectToRoute('ms.user.return.create', array(
+			'itemID'	=> $itemID,
+		));
+
+	}
+
 	/**
 	 * View the confirm return page.
 	 *
@@ -66,18 +137,7 @@ class Create extends Controller
 			throw $this->createNotFoundException();
 		}
 
-		$form = $this->_createForm($item);
-		$data = $form->getFilteredData();
-
-		if (!$form->isValid()) {
-			if (!$data = $this->get('http.session')->get('return.data')) {
-				return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
-					'user' => $user,
-					'item' => $item,
-					'form' => $form
-				));
-			}
-		}
+		$data = $this->get('http.session')->get('return.data');
 
 		$balance = 0;
 
@@ -270,7 +330,7 @@ class Create extends Controller
 
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.user.return.confirm', array('itemID' => $item->id)));
+		$form->setAction($this->generateUrl('ms.user.return.note', array('itemID' => $item->id)));
 
 		$form->add('reason', 'choice', 'Why are you returning the item?', array(
 			'choices' => $reasons,
@@ -285,6 +345,15 @@ class Create extends Controller
 		$form->add('exchangeUnit', 'choice', 'Choose a replacement item', array(
 			'choices' => $units
 		))->val()->optional();
+
+		return $form;
+	}
+
+	public function _noteForm($itemID, $action = 'ms.user.return.note')
+	{
+		$form = $this->get('form');
+
+		$form->setAction($this->generateUrl($action, array('itemID' => $itemID)));
 
 		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
 
