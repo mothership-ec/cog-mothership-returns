@@ -381,9 +381,9 @@ class Detail extends Controller
 
 	protected function _getHtml($reference, $params)
 	{
-		return $this->get('response_builder')
-			->setRequest($this->get('request'))
-			->render($reference, $params)
-			->getContent();
+		$message = clone $this->get('mail.message');
+		$message->setView($reference, $params);
+
+		return $message->getBody();
 	}
 }
