@@ -1,10 +1,14 @@
 Dear {{ return.order.user.name }}
 
-We are processing our remaining balance on your return.
+We are happy to inform you that your returned item/s below have been refunded:
 
-Return Number: {{ return.getDisplayID() }}
+RETURN NUMBER: {{ return.getDisplayID() }}
 
-Balance: {{ return.calculatedBalance|abs|price }}
+REFUNDED ITEM:
+{{ return.item.description }} {{ return.item.price|price }}
+
+REFUND DETAILS
+Your credit card / debit card has been credited {{ return.calculatedBalance|abs|price }}. Please allow 3-5 business days for your bank to process your refund.
 
 If you have any queries about your return please email: {{ email }}
 
