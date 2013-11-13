@@ -180,7 +180,7 @@ class Create extends Controller
 			$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
 
 			// Set the balance as the difference in price between the exchanged and returned items
-			$return->balance = $item->gross - $return->exchangeItem->gross;
+			$return->balance = $return->exchangeItem->gross - $item->gross;
 		}
 		elseif ($resolution->code == 'refund') {
 			// Set the balance as the list price of the returned item
