@@ -59,7 +59,9 @@ class Create extends Controller
 		$createForm	= $this->_createForm($item);
 		$createData	= $createForm->getFilteredData();
 
-		$this->get('http.session')->set('return.data', $createData);
+		if (!empty($createData)) {
+			$this->get('http.session')->set('return.data', $createData);
+		}
 
 		$form = $this->_noteForm($itemID, 'ms.user.return.note.process');
 
@@ -91,7 +93,7 @@ class Create extends Controller
 		$item = $this->get('order.item.loader')->getByID($itemID);
 		$form = $this->_noteForm($itemID);
 
-		$sessionData = $this->get('http.session')->get('return.data');
+		$sessionData = (array) $this->get('http.session')->get('return.data');
 
 		if ($item->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
@@ -138,7 +140,6 @@ class Create extends Controller
 		}
 
 		$data = $this->get('http.session')->get('return.data');
-
 		$balance = 0;
 
 		// Get translated messages for exchanges and refunds
@@ -353,7 +354,7 @@ class Create extends Controller
 	{
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl($action, array('itemID' => $itemID)));
+		$form->setMethod('POST')->setAction($this->generateUrl($action, array('itemID' => $itemID)));
 
 		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
 

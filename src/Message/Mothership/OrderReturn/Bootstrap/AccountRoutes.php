@@ -17,11 +17,12 @@ class AccountRoutes implements RoutesInterface
 
 		$router['ms.user.account']->add('ms.user.return.note', '/return/note/{itemID}', '::Controller:OrderReturn:Account:Create#note')
 			->setRequirement('itemID', '\d+')
-			->setMethod('POST');
+		;
 
 		$router['ms.user.account']->add('ms.user.return.note.process', '/return/note/process/{itemID}', '::Controller:OrderReturn:Account:Create#noteAction')
 			->setRequirement('itemID', '\d+')
-			->setMethod('POST');
+			->setMethod('POST')
+		;
 
 
 		$router['ms.user.account']->add('ms.user.return.confirm', '/return/confirm/{itemID}', '::Controller:OrderReturn:Account:Create#confirm')
