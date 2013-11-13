@@ -71,7 +71,7 @@ class Detail extends Controller
 		if ($data['message']) {
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
-			$message->setSubject('Your returned item has been received - ' . $this->get('cfg')->app->defaultEmailFrom->name);
+			$message->setSubject('Your ' . $this->get('cfg')->app->defaultEmailFrom->name .' return has been received - ' . $return->getDisplayID());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => $data['message']
 			));
