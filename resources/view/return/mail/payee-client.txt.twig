@@ -1,0 +1,16 @@
+Dear {{ return.order.user.title }} {{ return.order.user.name }}
+
+There is a balance to pay for the item you wish to exchange your recent return for:
+
+RETURN NUMBER: {{ return.getDisplayID() }}
+
+RETURNED ITEM:
+{{ return.item.description }} {{ return.item.listPrice|price }}
+
+EXCHANGE ITEM:
+{{ return.exchangeItem.description }} {{ return.exchangeItem.listPrice|price }}
+
+BALANCE DUE:
+{{ return.calculatedBalance|abs|price }}
+
+To pay your remaining balance please log in then visit this link: {{ url('ms.ecom.return.payment', {orderID: return.order.id}) }}

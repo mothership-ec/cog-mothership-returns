@@ -71,9 +71,9 @@ class Detail extends Controller
 		if ($data['message']) {
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
-			$message->setSubject('Your returned item has been received - ' . $this->get('cfg')->merchant->companyName);
+			$message->setSubject('Your ' . $this->get('cfg')->app->defaultEmailFrom->name .' return has been received - ' . $return->getDisplayID());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-				'message' => nl2br($data['message'])
+				'message' => $data['message']
 			));
 
 			$dispatcher = $this->get('mail.dispatcher');
@@ -169,9 +169,9 @@ class Detail extends Controller
 		if ($data['message']) {
 			$message = $this->get('mail.message');
 			$message->setTo($return->order->user->email, $return->order->user->getName());
-			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->merchant->companyName);
+			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-				'message' => nl2br($data['message'])
+				'message' => $data['message']
 			));
 
 			$dispatcher = $this->get('mail.dispatcher');
@@ -280,7 +280,7 @@ class Detail extends Controller
 			'required' => false,
 			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:mail:received', array(
 				'return' => $return,
-				'companyName' => $this->get('cfg')->merchant->companyName,
+				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,
 				'email' => $this->get('cfg')->merchant->email,
 			))
 		));
@@ -336,7 +336,7 @@ class Detail extends Controller
 		if ($return->hasCalculatedBalance() and 'none' !== $payee) {
 			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:mail:payee-' . $payee, array(
 				'return' => $return,
-				'companyName' => $this->get('cfg')->merchant->companyName,
+				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,
 				'email' => $this->get('cfg')->merchant->email,
 			));
 		}
@@ -381,9 +381,9 @@ class Detail extends Controller
 
 	protected function _getHtml($reference, $params)
 	{
-		return $this->get('response_builder')
-			->setRequest($this->get('request'))
-			->render($reference, $params)
-			->getContent();
+		$message = clone $this->get('mail.message');
+		$message->setView($reference, $params);
+
+		return $message->getBody();
 	}
 }

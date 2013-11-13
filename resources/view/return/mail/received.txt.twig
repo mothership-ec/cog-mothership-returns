@@ -1,0 +1,18 @@
+Dear {{ return.order.user.title }} {{ return.order.user.name }}
+
+We have received your returned items:
+
+RETURN NUMBER: {{ return.getDisplayID() }}
+
+RETURNED ITEM:
+{{ return.item.description }}
+
+REASON FOR RETURN:
+{{ return.reason.name }}
+
+REFUND OR EXCHANGE:
+{% if return.isRefundResolution %}
+Refund this item.
+{% else %}
+Exchange for {{ return.exchangeItem.description }}
+{% endif %}
