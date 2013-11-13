@@ -5,10 +5,10 @@ There is a balance to pay for the item you wish to exchange your recent return f
 RETURN NUMBER: {{ return.getDisplayID() }}
 
 RETURNED ITEM:
-{{ return.item.description }} {{ return.item.price|price }}
+{{ return.item.description }} {{ return.item.listPrice|price }}
 
 EXCHANGE ITEM:
-{{ return.exchangeItem.description }} {{ return.exchangeItem.price|price }}
+{{ return.exchangeItem.description }} {{ return.exchangeItem.listPrice|price }}
 
 BALANCE DUE:
 {{ return.calculatedBalance|abs|price }}

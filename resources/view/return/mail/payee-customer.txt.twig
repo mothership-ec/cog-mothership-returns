@@ -5,7 +5,7 @@ We are happy to inform you that your returned item/s below have been refunded:
 RETURN NUMBER: {{ return.getDisplayID() }}
 
 REFUNDED ITEM:
-{{ return.item.description }} {{ return.item.price|price }}
+{{ return.item.description }} {{ return.item.listPrice|price }}
 
 REFUND DETAILS
 Your credit card / debit card has been credited {{ return.calculatedBalance|abs|price }}. Please allow 3-5 business days for your bank to process your refund.
