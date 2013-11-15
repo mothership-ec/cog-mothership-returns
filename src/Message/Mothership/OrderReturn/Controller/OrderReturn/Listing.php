@@ -26,7 +26,7 @@ class Listing extends Controller
 				$returns = $this->get('return.loader')->getPendingExchange();
 				break;
 			case 'completed':
-				$returns = $this->get('return.loader')->getCompleted();
+				$returns = $this->get('return.loader')->getByStatusCode(Statuses::RETURN_COMPLETED);
 				break;
 			case 'rejected':
 				$returns = $this->get('return.loader')->getRejected();

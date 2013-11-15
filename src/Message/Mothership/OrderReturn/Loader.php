@@ -147,20 +147,6 @@ class Loader extends Order\Entity\BaseLoader
 		return $returns;
 	}
 
-	public function getCompleted()
-	{
-		$result = $this->_query->run('
-			SELECT
-				return_id
-			FROM
-				order_item_return
-			WHERE
-				balance = 0
-		');
-
-		return $this->_load($result->flatten(), true);
-	}
-
 	public function getRejected()
 	{
 		$result = $this->_query->run('
