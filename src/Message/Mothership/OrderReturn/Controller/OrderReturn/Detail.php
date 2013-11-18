@@ -147,7 +147,7 @@ class Detail extends Controller
 					$return = $this->get('return.edit')->setBalance($return, 0);
 
 					// Inform the user the payment was sent successfully
-					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $result->user->getName()));
+					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $return->user->getName()));
 				}
 				catch (Exception $e) {
 					// If the payment failed, inform the user
