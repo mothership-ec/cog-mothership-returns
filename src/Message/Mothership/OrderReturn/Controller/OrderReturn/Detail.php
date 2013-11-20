@@ -99,7 +99,7 @@ class Detail extends Controller
 
 		// Clear the balance
 		if ($data['payee'] == 'none') {
-			$this->get('return.edit')->clearBalance($return);
+			$return = $this->get('return.edit')->clearBalance($return);
 		}
 
 		// Process refund to the customer
@@ -162,7 +162,17 @@ class Detail extends Controller
 
 		// Notify customer they owe the outstanding balance
 		elseif ($data['payee'] == 'client') {
-			$this->get('return.edit')->setBalance($return, 0 - $data['balance_amount']);
+			$return = $this->get('return.edit')->setBalance($return, 0 - $data['balance_amount']);
+		}
+
+		// Complete the returned item if it's balance has been completed, it's
+		// returned item has been processed and it is either a refund or the
+		// exchange item has been exchanged.
+		if ($return->hasBalance() and !$return->hasRemainingBalance() and
+			$return->isReturnedItemProcessed() and
+			($return->isRefundResolution() or $return->isExchanged())
+		) {
+			$this->get('order.item.edit')->updateStatus($return->item, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
 		}
 
 		// Send the message
@@ -240,8 +250,13 @@ class Detail extends Controller
 
 		$stockManager->commit();
 
-		// Complete the returned item
-		$this->get('order.item.edit')->updateStatus($return->item, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
+		// Complete the returned item if it's balance has been completed and it
+		// is either a refund or the exchange item has been exchanged.
+		if ($return->hasBalance() and !$return->hasRemainingBalance() and
+			($return->isRefundResolution() or $return->isExchanged())
+		) {
+			$this->get('order.item.edit')->updateStatus($return->item, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
+		}
 
 		return $this->redirect($viewURL);
 	}
