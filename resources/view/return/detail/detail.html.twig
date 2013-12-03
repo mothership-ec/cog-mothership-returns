@@ -1,29 +1,26 @@
 {% extends '::return:template' %}
 
 {% block returns %}
-
-	<section class="container-content">
-		<h1>Return {{ return.getDisplayID() }} <span class="updated-date">(Last updated: {{ return.authorship.updatedAt|date }})</span></h1>
-
+	<h1 class="title">Return {{ return.getDisplayID() }} <span class="updated-date">(Last updated: {{ return.authorship.updatedAt|date }})</span></h1>
+	<section class="container-content extended">
 		<div class="display-group">
 			<h2 class="title">
 				{<a href="{ url('ms.commerce.product.edit.details', {productID: return.item.productID}) }" data-live>{{ return.item.productName }}</a>}
 				{{ return.item.brand }} {{ return.item.productName }}
 			</h2>
 			<div class="container-details dual-column" id="return{{ return.id }}">
-
 				<div class="column">
+					
 					{# Show the received form if not yet set #}
 					{% if not return.isReceived %}
-						<h2>Returned Package</h2>
-						{{ form_start(received_form) }}
-							{{ form_row(received_form.received) }}
-							{{ form_row(received_form.received_date) }}
-							{{ form_row(received_form.message) }}
+					<h2>Returned Package</h2>
+					{{ form_start(received_form) }}
+						{{ form_row(received_form.received) }}
+						{{ form_row(received_form.received_date) }}
+						{{ form_row(received_form.message) }}
 
-							<button class="button save small">Notify Customer</button>
-						{{ form_end(received_form) }}
-
+						<button class="button save small">Notify Customer</button>
+					{{ form_end(received_form) }}
 					{% else %}
 						<h2>Returned Package</h2>
 						<ul class="order-details">
@@ -32,14 +29,13 @@
 
 						{# Show the accept / reject option if neither action has yet been taken #}
 						{% if not return.isAccepted and not return.isRejected %}
-							<h2>Accept / Reject</h2>
-							{{ form_start(accepted_form) }}
-								{{ form_row(accepted_form.accept_reject) }}
+						<h2>Accept / Reject</h2>
+						{{ form_start(accepted_form) }}
+							{{ form_row(accepted_form.accept_reject) }}
 
-								<button class="button save small">Update</button>
-							{{ form_end(accepted_form) }}
+							<button class="button save small">Update</button>
+						{{ form_end(accepted_form) }}
 						{% endif %}
-
 
 						{# Show refund / exchange forms if the return has been accepted #}
 						{% if return.isAccepted %}
