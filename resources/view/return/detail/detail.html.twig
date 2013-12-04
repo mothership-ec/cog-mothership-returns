@@ -1,7 +1,9 @@
 {% extends '::return:template' %}
 
 {% block returns %}
-	<h1 class="title">Return {{ return.getDisplayID() }} <span class="updated-date">(Last updated: {{ return.authorship.updatedAt|date }})</span></h1>
+<hgroup class="title">
+	<h1>Return {{ return.getDisplayID() }} <span>Returned: {{ return.authorship.createdAt|date }}</span></h1>
+</hgroup>
 	<section class="container-content extended">
 		<div class="display-group">
 			<h2 class="title">
@@ -10,7 +12,7 @@
 			</h2>
 			<div class="container-details dual-column" id="return{{ return.id }}">
 				<div class="column">
-					
+
 					{# Show the received form if not yet set #}
 					{% if not return.isReceived %}
 					<h2>Returned Package</h2>
