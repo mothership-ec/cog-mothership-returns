@@ -34,6 +34,11 @@ class Listing extends Controller
 			case 'pending-exchange':
 				$returns = $this->get('return.loader')->getPendingExchange();
 				break;
+
+			case 'pending-returned-item-processing':
+				$returns = $this->get('return.loader')->getPendingReturnedItemProcessing();
+				break;
+
 			case 'completed':
 				$returns = $this->get('return.loader')->getCompleted();
 				break;
