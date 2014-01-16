@@ -71,12 +71,22 @@ class OrderReturn implements EntityInterface
 		return $this->balance != 0;
 	}
 
+	/**
+	 * If the balance is owed by the client to be paid to the customer.
+	 *
+	 * @return bool
+	 */
 	public function payeeIsCustomer()
 	{
 		if ($this->hasBalance()) return $this->balance < 0;
 		return $this->calculatedBalance < 0;
 	}
 
+	/**
+	 * If the balance is owed by the customer to be paid to the client.
+	 *
+	 * @return bool
+	 */
 	public function payeeIsClient()
 	{
 		if ($this->hasBalance()) return $this->balance > 0;
