@@ -162,7 +162,7 @@ class Detail extends Controller
 
 		// Notify customer they owe the outstanding balance
 		elseif ($data['payee'] == 'client') {
-			$this->get('return.edit')->setBalance($return, 0 - $data['balance_amount']);
+			$this->get('return.edit')->setBalance($return, $data['balance_amount']);
 		}
 
 		// Send the message
