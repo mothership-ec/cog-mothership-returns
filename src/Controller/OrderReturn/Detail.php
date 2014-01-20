@@ -252,7 +252,8 @@ class Detail extends Controller
 
 		// Complete the returned item if it's balance has been completed and it
 		// is either a refund or the exchange item has been exchanged.
-		if ($return->hasBalance() and !$return->hasRemainingBalance() and
+		if (
+			! $return->hasRemainingBalance() and
 			($return->isRefundResolution() or $return->isExchanged())
 		) {
 			$this->get('order.item.edit')->updateStatus($return->item, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);

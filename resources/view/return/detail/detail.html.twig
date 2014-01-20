@@ -114,14 +114,24 @@
 							<h2>Returned Item</h2>
 
 							{% if not return.returnedItemProcessed %}
-								{{ form_start(returned_item_form) }}
-									{{ form_row(returned_item_form.stock_location) }}
+								{% if not return.hasRemainingBalance() and
+									(return.isRefundResolution() or return.isExchanged())
+								%}
+									{{ form_start(returned_item_form) }}
+										{{ form_row(returned_item_form.stock_location) }}
 
-									<button class="button save small">Process Returned Item</button>
-								{{ form_end(returned_item_form) }}
+										<button class="button save small">Process Returned Item</button>
+									{{ form_end(returned_item_form) }}
+								{% else %}
+									<ul class="order-details">
+										<li><span>Status</span>You must clear the balance and process the exchange
+											replacement item before completing the return.</li>
+									</ul>
+								{% endif %}
 							{% else %}
 								<ul class="order-details">
 									<li><span>Status</span>{{ return.item.status }}</li>
+								</ul>
 							{% endif %}
 
 
