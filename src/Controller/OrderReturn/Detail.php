@@ -168,7 +168,8 @@ class Detail extends Controller
 		// Complete the returned item if it's balance has been completed, it's
 		// returned item has been processed and it is either a refund or the
 		// exchange item has been exchanged.
-		if ($return->hasBalance() and !$return->hasRemainingBalance() and
+		if (
+			! $return->hasRemainingBalance() and
 			$return->isReturnedItemProcessed() and
 			($return->isRefundResolution() or $return->isExchanged())
 		) {
