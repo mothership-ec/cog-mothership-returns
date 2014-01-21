@@ -2,7 +2,7 @@
 
 {% block returns %}
 <hgroup class="title">
-	<h1>Return {{ return.getDisplayID() }} <span>Returned: {{ return.authorship.createdAt|date }}</span></h1>
+	<h1>Return {{ return.getDisplayID() }} <span>Last updated: {{ return.authorship.updatedAt|date }}</span></h1>
 </hgroup>
 	<div class="container-content tall">
 		<section class="dual-column">
@@ -186,8 +186,8 @@
 								<dt>Note</dt>
 									<dd>{{ return.note.note }}</dd>
 							{% endif %}
-							<dt>Created by{{ return.order.user.name }}</dt>
-							<dd>on {{ return.authorship.createdAt|date }}</dd>
+							<dt>Created by</dt>
+							<dd>{{ return.order.user.name }} on {{ return.authorship.createdAt|date }}</dd>
 							{% if not return.authorship.updatedAt is empty and not return.authorship.updatedBy is empty %}
 								<dt>Updated by</dt>
 									<dd>{{ return.authorship.updatedBy }} <span>at</span> {{ return.authorship.updatedAt|date }}</dd>
