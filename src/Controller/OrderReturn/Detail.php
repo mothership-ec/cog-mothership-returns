@@ -126,14 +126,21 @@ class Detail extends Controller
 				$method = $this->get('order.payment.methods')->get('card');
 			}
 
-			// Refund the return
-			$return = $this->get('return.edit')->refund($return, $method, $amount);
-
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
+				$payment = null;
+
 				// Get the payment against the order
 				foreach ($return->order->payments as $p) {
 					$payment = $p;
+				}
+
+				if (null === $payment) {
+					// If there are no payments to be refunded, inform the user
+					$this->addFlash('error', "There are no recorded payments for this order, please try refunding
+						manually");
+
+					return $this->redirect($viewURL);
 				}
 
 				try {
@@ -152,12 +159,17 @@ class Detail extends Controller
 				catch (Exception $e) {
 					// If the payment failed, inform the user
 					$this->addFlash('error', $e->getMessage());
+
+					return $this->redirect($viewURL);
 				}
 			}
 			else {
 				// If refunding manually, just set the balance to 0 without checking for a pyament
 				$return = $this->get('return.edit')->setBalance($return, 0);
 			}
+
+			// Refund the return
+			$return = $this->get('return.edit')->refund($return, $method, $amount);
 		}
 
 		// Notify customer they owe the outstanding balance
