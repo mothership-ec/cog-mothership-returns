@@ -32,9 +32,8 @@ class Payment extends Controller
 				gettype($balance), $balance));
 		}
 
-		// If in local mode then bypass the payment gateway
-		// The `useLocalPayments` config also needs to be true
-		if ($this->get('environment')->isLocal() and $this->get('cfg')->checkout->payment->useLocalPayments) {
+		// If local payments is turned on, skip the payment
+		if ($this->get('cfg')->checkout->payment->useLocalPayments) {
 			return $this->localPayment($order);
 		}
 
