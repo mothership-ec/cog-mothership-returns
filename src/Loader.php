@@ -33,7 +33,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -45,7 +45,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				(
 					accepted != 0 AND
@@ -63,14 +63,12 @@ class Loader extends Order\Entity\BaseLoader
 	{
 		$result = $this->_query->run('
 			SELECT
-				r.return_id,
-				s.status_code
+				return_id,
+				status_code
 			FROM
-				order_item_return r
-			RIGHT JOIN
-				order_item_status s ON r.item_id = s.item_id
+				return_item
 			ORDER BY
-				s.created_at DESC
+				created_at DESC
 		');
 
 		$unique = array();
@@ -96,7 +94,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				balance IS NOT NULL AND
 				balance < 0 AND
@@ -112,7 +110,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				balance IS NOT NULL AND
 				balance > 0 AND
@@ -126,9 +124,9 @@ class Loader extends Order\Entity\BaseLoader
 	{
 		$result = $this->_query->run('
 			SELECT
-				return_id, exchange_item_id
+				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				exchange_item_id > 0 AND
 				accepted = 1
@@ -153,7 +151,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				balance = 0
 		');
@@ -167,7 +165,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				accepted = 0
 		');
@@ -181,7 +179,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				order_id = ?i
 		', $order->id);
@@ -195,7 +193,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				item_id = ?i
 		', $item->id);
@@ -209,11 +207,9 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return oir
-			LEFT JOIN
-				order_summary os ON oir.order_id = os.order_id
+				return
 			WHERE
-				os.user_id = ?i
+				created_by = ?i
 		', $user->id);
 
 		return $this->_load($result->flatten(), true);
