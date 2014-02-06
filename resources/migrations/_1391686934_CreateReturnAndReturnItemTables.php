@@ -13,6 +13,7 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 		$this->run("
 			CREATE TABLE IF NOT EXISTS `return` (
 				`return_id`    int(11) unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+				`document_id`  int(11) unsigned NULL,
 				`created_at`   int(11) unsigned NOT NULL KEY,
 				`created_by`   int(11) unsigned DEFAULT NULL KEY,
 				`updated_at`   int(11) unsigned DEFAULT NULL,
