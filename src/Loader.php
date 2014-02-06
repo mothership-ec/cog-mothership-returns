@@ -229,7 +229,16 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				*
 			FROM
-				order_item_return
+				return
+			WHERE
+				return_id IN (?ij)
+		', array($ids));
+
+		$items = $this->_query->run('
+			SELECT
+				*
+			FROM
+				return_item
 			WHERE
 				return_id IN (?ij)
 		', array($ids));
@@ -239,6 +248,8 @@ class Loader extends Order\Entity\BaseLoader
 		}
 
 		$entities = $result->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
+		$items = $items->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturnItem');
+
 		$return = array();
 
 		foreach ($entities as $key => $entity) {
@@ -259,29 +270,47 @@ class Loader extends Order\Entity\BaseLoader
 				);
 			}
 
-			$entity->calculatedBalance = $result[$key]->calculated_balance;
+			foreach ($items as $item) {
+				if ($item->return_id == $entity->id) {
+					$entity->item = $this->_loadItem($item);
 
-			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
-			$entity->item = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->item_id);
+					break; // only load the first item
+				}
+			}
 
-			$entity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->exchange_item_id);
-
-			$entity->reason = $this->_reasons->get($result[$key]->reason);
-			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);
-
-			$entity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($entity->order);
-
-			$entity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($result[$key]->document_id);
-
-			$entity->note = $this->_orderLoader->getEntityLoader('notes')->getByID($result[$key]->note_id);
-
-			// Add the entity into the order
-			// $entity->order->addEntity($entity);
-
-			$return[$result[$key]->return_id] = $entities[$key];
+			$return[$entity->id] = $entity;
 		}
 
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
+	}
+
+	protected function _loadItem($item)
+	{
+		// Reformat under_score to camelCase
+		$item->calculatedBalance = $item->calculated_balance;
+
+		// Only load the order and refunds if one is attached to the return
+		if ($item->order_id) {
+			$item->order   = $this->_orderLoader->getByID($item->order_id);
+			$item->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($item->order);
+		}
+
+		// Only load item item if one is attached to the return item
+		if ($item->item_id) {
+			$item->item = $this->_orderLoader->getEntityLoader('items')->getByID($item->item_id);
+		}
+
+		// Only load the exchange item if one is attached to the return item
+		if ($item->exchange_item_id) {
+			$item->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($item->exchange_item_id);
+		}
+
+		$item->reason     = $this->_reasons->get($item->reason);
+		$item->resolution = $this->_resolutions->get($item->resolution);
+		$item->document   = $this->_orderLoader->getEntityLoader('documents')->getByID($item->document_id);
+		$item->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($item->note_id);
+
+		return $item;
 	}
 
 }
