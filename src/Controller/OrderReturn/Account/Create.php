@@ -347,6 +347,8 @@ class Create extends Controller
 			'choices' => $units
 		))->val()->optional();
 
+		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
+
 		return $form;
 	}
 
