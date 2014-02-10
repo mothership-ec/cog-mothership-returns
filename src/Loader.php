@@ -249,7 +249,8 @@ class Loader extends Order\Entity\BaseLoader
 				);
 			}
 
-			$entity->calculatedBalance = $result[$key]->calculated_balance;
+			$entity->balance           = (float) $result[$key]->balance;
+			$entity->calculatedBalance = (float) $result[$key]->calculated_balance;
 
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
 			$entity->item = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->item_id);
