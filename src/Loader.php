@@ -147,6 +147,29 @@ class Loader extends Order\Entity\BaseLoader
 		return $returns;
 	}
 
+	public function getPendingReturnedItemProcessing()
+	{
+		$result = $this->_query->run('
+			SELECT
+				return_id, item_id
+			FROM
+				order_item_return
+			WHERE
+				exchange_item_id > 0 AND
+				accepted = 1
+		');
+
+		$returns = $this->_load($result->flatten(), true);
+
+		foreach ($returns as $i => $return) {
+			if (Statuses::RETURN_COMPLETED <= $return->item->status->code) {
+				unset($returns[$i]);
+			}
+		}
+
+		return $returns;
+	}
+
 	public function getRejected()
 	{
 		$result = $this->_query->run('
