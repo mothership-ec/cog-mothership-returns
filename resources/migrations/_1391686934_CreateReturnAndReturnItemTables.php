@@ -34,6 +34,8 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				`exchange_item_id`         int(11) unsigned DEFAULT NULL KEY,
 				`note_id`                  int(11) unsigned DEFAULT NULL,
 				`status_id`                int(11) NOT NULL KEY,
+				`created_at`               int(11) unsigned DEFAULT NULL KEY,
+				`created_by`               int(11) unsigned DEFAULT NULL KEY,
 				`updated_at`               int(11) unsigned DEFAULT NULL KEY,
 				`updated_by`               int(11) unsigned DEFAULT NULL KEY,
 				`completed_at`             int(11) unsigned DEFAULT NULL KEY,
