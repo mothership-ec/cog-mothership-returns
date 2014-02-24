@@ -225,16 +225,16 @@ class Loader extends Order\Entity\BaseLoader
 			return $alwaysReturnArray ? array() : false;
 		}
 
-		$result = $this->_query->run('
+		$returnsResult = $this->_query->run('
 			SELECT
 				*
 			FROM
-				return
+				`return`
 			WHERE
 				return_id IN (?ij)
 		', array($ids));
 
-		$items = $this->_query->run('
+		$itemsResult = $this->_query->run('
 			SELECT
 				*
 			FROM
@@ -243,36 +243,36 @@ class Loader extends Order\Entity\BaseLoader
 				return_id IN (?ij)
 		', array($ids));
 
-		if (0 === count($result)) {
+		if (0 === count($returnsResult)) {
 			return $alwaysReturnArray ? array() : false;
 		}
 
-		$entities = $result->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
-		$items = $items->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturnItem');
+		$returnEntities = $returnsResult->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
+		$itemEntities   = $itemsResult->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturnItem');
 
 		$return = array();
 
-		foreach ($entities as $key => $entity) {
+		foreach ($returnEntities as $key => $entity) {
 
-			$entity->id = $result[$key]->return_id;
+			$entity->id = $returnsResult[$key]->return_id;
 
 			// Add created authorship
 			$entity->authorship->create(
-				new DateTimeImmutable(date('c', $result[$key]->created_at)),
-				$result[$key]->created_by
+				new DateTimeImmutable(date('c', $returnsResult[$key]->created_at)),
+				$returnsResult[$key]->created_by
 			);
 
 			// Add updated authorship
-			if ($result[$key]->updated_at) {
+			if ($returnsResult[$key]->updated_at) {
 				$entity->authorship->update(
-					new DateTimeImmutable(date('c', $result[$key]->updated_at)),
-					$result[$key]->updated_by
+					new DateTimeImmutable(date('c', $returnsResult[$key]->updated_at)),
+					$returnsResult[$key]->updated_by
 				);
 			}
 
-			foreach ($items as $item) {
-				if ($item->return_id == $entity->id) {
-					$entity->item = $this->_loadItem($item);
+			foreach ($itemsResult as $key => $itemResult) {
+				if ($itemResult->return_id == $entity->id) {
+					$entity->item = $this->_loadItem($itemResult, $itemEntities[$key]);
 
 					break; // only load the first item
 				}
@@ -284,33 +284,36 @@ class Loader extends Order\Entity\BaseLoader
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
 	}
 
-	protected function _loadItem($item)
+	protected function _loadItem($itemResult, $itemEntity)
 	{
 		// Reformat under_score to camelCase
-		$item->calculatedBalance = $item->calculated_balance;
+		$itemEntity->returnID = $itemResult->return_id;
+		$itemEntity->calculatedBalance = $itemResult->calculated_balance;
 
 		// Only load the order and refunds if one is attached to the return
-		if ($item->order_id) {
-			$item->order   = $this->_orderLoader->getByID($item->order_id);
-			$item->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($item->order);
+		if ($itemResult->order_id) {
+			$itemEntity->order   = $this->_orderLoader->getByID($itemResult->order_id);
+			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
 		}
 
 		// Only load item item if one is attached to the return item
-		if ($item->item_id) {
-			$item->item = $this->_orderLoader->getEntityLoader('items')->getByID($item->item_id);
+		if ($itemResult->item_id) {
+			$itemEntity->item = $this->_orderLoader->getEntityLoader('items')->getByID($itemResult->item_id, $itemEntity->order);
 		}
 
 		// Only load the exchange item if one is attached to the return item
-		if ($item->exchange_item_id) {
-			$item->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($item->exchange_item_id);
+		if ($itemResult->exchange_item_id) {
+			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemResult->exchange_item_id, $itemEntity->order);
 		}
 
-		$item->reason     = $this->_reasons->get($item->reason);
-		$item->resolution = $this->_resolutions->get($item->resolution);
-		$item->document   = $this->_orderLoader->getEntityLoader('documents')->getByID($item->document_id);
-		$item->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($item->note_id);
+		$itemEntity->reason     = $this->_reasons->get($itemResult->reason);
+		$itemEntity->resolution = $this->_resolutions->get($itemResult->resolution);
+		// $itemEntity->document   = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->document_id, $itemEntity->order);
+		$itemEntity->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($itemResult->note_id, $itemEntity->order);
 
-		return $item;
+		$itemEntity->status     = $this->_statuses->get($itemResult->status_code);
+
+		return $itemEntity;
 	}
 
 }
