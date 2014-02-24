@@ -15,12 +15,12 @@ class OrderReturnItem
 
 	// Related entities
 	public $order;
-	public $orderItem;
 	public $exchangeItem;
 	public $note;
 	public $document;
 	public $returnedStockLocation;
 
+	// Return Item
 	public $authorship;
 	public $status;
 	public $reason;
@@ -28,6 +28,27 @@ class OrderReturnItem
 	public $accepted;
 	public $balance;
 	public $calculatedBalance;
+
+	// Order Item
+	public $listPrice       = 0;
+	public $net             = 0;
+	public $discount        = 0;
+	public $tax             = 0;
+	public $gross           = 0;
+	public $rrp             = 0;
+	public $taxRate         = 0;
+	public $productTaxRate  = 0;
+	public $taxStrategy;
+
+	// Order Item Product
+	public $productID;
+	public $productName;
+	public $unitID;
+	public $unitRevision;
+	public $sku;
+	public $barcode;
+	public $options;
+	public $brand;
 
 	public function __construct()
 	{

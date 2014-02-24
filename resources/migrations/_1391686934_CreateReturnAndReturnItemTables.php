@@ -29,20 +29,42 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				item_id                  int(11) unsigned NULL,
 				exchange_item_id         int(11) unsigned NULL,
 				note_id                  int(11) unsigned NULL,
-				status_code              int(11) NOT NULL,
+
 				created_at               int(11) unsigned NULL,
 				created_by               int(11) unsigned NULL,
 				updated_at               int(11) unsigned NULL,
 				updated_by               int(11) unsigned NULL,
 				completed_at             int(11) unsigned NULL,
 				completed_by             int(11) unsigned NULL,
+
+				status_code              int(11) NOT NULL,
 				reason                   varchar(255) NOT NULL,
 				resolution               varchar(255) NOT NULL,
 				accepted                 tinyint(1) NULL,
 				balance                  decimal(10,2) NULL,
 				calculated_balance       decimal(10,2) NOT NULL,
 				returned_value           decimal(10,2) NOT NULL,
-				return_stock_location_id int(11) unsigned NULL
+				return_stock_location_id int(11) unsigned NULL,
+
+				list_price               decimal(10,2) unsigned NOT NULL,
+				net                      decimal(10,2) unsigned NOT NULL,
+				discount                 decimal(10,2) unsigned NOT NULL,
+				tax                      decimal(10,2) unsigned NOT NULL,
+				gross                    decimal(10,2) unsigned NOT NULL,
+				rrp                      decimal(10,2) unsigned DEFAULT NULL,
+				tax_rate                 decimal(4,2) unsigned NOT NULL,
+				product_tax_rate         decimal(4,2) unsigned NOT NULL,
+				tax_strategy             varchar(10) NOT NULL DEFAULT 'inclusive',
+
+				product_id               int(11) unsigned DEFAULT NULL,
+				product_name             varchar(255) DEFAULT NULL,
+				unit_id                  int(11) unsigned DEFAULT NULL,
+				unit_revision            int(11) unsigned DEFAULT NULL,
+				sku                      varchar(100) DEFAULT NULL,
+				barcode                  varchar(13) DEFAULT NULL,
+				options                  varchar(255) DEFAULT NULL,
+				brand                    varchar(255) DEFAULT NULL,
+				weight_grams             int(11) unsigned DEFAULT NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 		");
 
@@ -121,8 +143,25 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				accepted,
 				balance,
 				calculated_balance,
-				returned_value,
-				return_stock_location_id
+				return_stock_location_id,
+				list_price,
+				net,
+				discount,
+				tax,
+				gross,
+				rrp,
+				tax_rate,
+				product_tax_rate,
+				tax_strategy,
+				product_id,
+				product_name,
+				unit_id,
+				unit_revision,
+				sku,
+				barcode,
+				options,
+				brand,
+				weight_grams
 			)
 			SELECT
 				oir.return_id,
@@ -149,10 +188,31 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				oir.balance,
 				oir.calculated_balance,
 				oir.returned_value,
-				oir.return_to_stock_location_id
+				oir.return_to_stock_location_id,
+				oi.list_price,
+				oi.net,
+				oi.discount,
+				oi.tax,
+				oi.gross,
+				oi.rrp,
+				oi.tax_rate,
+				oi.product_tax_rate,
+				oi.tax_strategy,
+				oi.product_id,
+				oi.product_name,
+				oi.unit_id,
+				oi.unit_revision,
+				oi.sku,
+				oi.barcode,
+				oi.options,
+				oi.brand,
+				oi.weight_grams
 			FROM order_item_return oir
 			LEFT JOIN `return` r ON (
 				r.return_id = oir.return_id
+			)
+			LEFT JOIN order_item oi ON (
+				oi.item_id = oir.item_id
 			)
 		");
 
