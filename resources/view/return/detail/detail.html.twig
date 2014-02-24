@@ -141,7 +141,16 @@
 				<div class="column">
 					<h2>Return Details</h2>
 					<ul class="order-details">
-						<li><span>Order</span><a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">{{ returnItem.order.id }}</a></li>
+						{% if (returnItem.order) %}
+							<li>
+								<span>Order</span>
+								<a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">
+									{{ returnItem.order.id }}
+								</a>
+							</li>
+						{% else %}
+							<li><span>Order</span>Standalone</li>
+						{% endif %}
 						<li><span>Reason </span>{{ returnItem.reason }}</li>
 						<li>
 							<span>Resolution </span>{{ returnItem.resolution }}
