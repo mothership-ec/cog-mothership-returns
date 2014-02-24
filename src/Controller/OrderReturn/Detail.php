@@ -295,8 +295,8 @@ class Detail extends Controller
 		$form->setAction($this->generateUrl('ms.commerce.return.edit.balance', array('returnID' => $return->id)));
 
 		$payee = 'none';
-		if ($return->payeeIsClient()) $payee = 'client';
-		if ($return->payeeIsCustomer()) $payee = 'customer';
+		if ($return->item->payeeIsClient()) $payee = 'client';
+		if ($return->item->payeeIsCustomer()) $payee = 'customer';
 
 		$form->add('payee', 'choice', 'Payee', array(
 			'choices' => array(
@@ -313,7 +313,7 @@ class Detail extends Controller
 		$form->add('balance_amount', 'money', ' ', array(
 			'currency' => 'GBP',
 			'required' => false,
-			'data' => abs($return->calculatedBalance) // display the price as positive
+			'data' => abs($return->item->calculatedBalance) // display the price as positive
 		));
 
 		// payee == 'customer' || 'client'
@@ -333,7 +333,7 @@ class Detail extends Controller
 
 		$message = '';
 
-		if ($return->hasCalculatedBalance() and 'none' !== $payee) {
+		if ($return->item->hasCalculatedBalance() and 'none' !== $payee) {
 			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:mail:payee-' . $payee, array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,

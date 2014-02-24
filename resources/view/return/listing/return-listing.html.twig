@@ -20,17 +20,18 @@
 				<th><span>Balance</span></th>
 				<th><span>Payee</span></th>
 			</tr>
-			</thead>
+		</thead>
+		<thead>
 			<tbody>
 				{% for return in returns %}
 					<tr>
 						<td><a href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">{{ return.id }}</a></td>
-						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: return.order.id}) }}">{{ return.order.id }}</a></td>
-						<td>{{ return.item.productName }}</td>
+						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: return.item.order.id}) }}">{{ return.item.order.id }}</a></td>
+						<td>{{ return.item.item.productName }}</td>
 						<td>{{ return.authorship.createdAt|date }}</td>
-						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: return.order.user.id}) }}">{{ return.order.user.name }}</a></td>
-						<td>{{ return.resolution }}</td>
-						<td>{{ return.item.status }}</td>
+						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: return.item.order.user.id}) }}">{{ return.order.user.name }}</a></td>
+						<td>{{ return.item.resolution }}</td>
+						<td>{{ return.item.item.status }}</td>
 						<td>
 							{% if not return.hasBalance %}
 								{% if return.payeeIsClient %}

@@ -2,9 +2,16 @@
 
 namespace Message\Mothership\OrderReturn\Entity;
 
+use Message\Cog\ValueObject\Authorship;
+use Message\Mothership\Commerce\Order;
+
+use Message\Mothership\OrderReturn\Statuses;
+use Message\Mothership\OrderReturn\Resolutions;
+
 class OrderReturnItem
 {
 	public $id;
+	public $returnID;
 
 	// Related entities
 	public $order;
