@@ -56,6 +56,24 @@ class OrderReturnItem
 		$this->authorship->disableDelete();
 	}
 
+	/**
+	 * Get the item description.
+	 *
+	 * The item description is made up of the brand name; the product name and
+	 * the list of options. They are comma-separated, and if any of them are
+	 * not set or blank they are excluded.
+	 *
+	 * @return string The item description
+	 */
+	public function getDescription()
+	{
+		return implode(', ', array_filter(array(
+			$this->brand,
+			$this->productName,
+			$this->options,
+		)));
+	}
+
 	public function isReceived()
 	{
 		return $this->status->code >= Statuses::RETURN_RECEIVED;
