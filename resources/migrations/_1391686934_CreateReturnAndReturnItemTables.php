@@ -29,7 +29,7 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				item_id                  int(11) unsigned NULL,
 				exchange_item_id         int(11) unsigned NULL,
 				note_id                  int(11) unsigned NULL,
-				status_id                int(11) NOT NULL,
+				status_code              int(11) NOT NULL,
 				created_at               int(11) unsigned NULL,
 				created_by               int(11) unsigned NULL,
 				updated_at               int(11) unsigned NULL,
@@ -109,7 +109,7 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				item_id,
 				exchange_item_id,
 				note_id,
-				status_id,
+				status_code,
 				created_at,
 				created_by,
 				updated_at,
@@ -130,7 +130,13 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				oir.item_id,
 				oir.exchange_item_id,
 				oir.note_id,
-				oir.status_id,
+				(
+					SELECT ois.status_code
+					FROM order_item_status ois
+					WHERE ois.item_id = oir.item_id
+					ORDER BY created_at DESC
+					LIMIT 1
+				),
 				r.created_at,
 				r.created_by,
 				r.updated_at,
@@ -192,7 +198,7 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				KEY exchange_item_id (exchange_item_id),
 				KEY return_to_stock_location_id (return_to_stock_location_id),
 				KEY status_id (status_id)
-			) ENGINE=InnoDB AUTO_INCREMENT=20037 DEFAULT CHARSET=utf8;
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 		");
 
 		$this->run("

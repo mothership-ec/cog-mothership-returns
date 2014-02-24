@@ -91,7 +91,7 @@ class Create
 				order_item_id      = :orderItemID?in,
 				exchange_item_id   = :exchangeItemID?in,
 				note_id            = :noteID?in,
-				status_id          = :statusID?i,
+				status_code        = :statusCode?i,
 				reason             = :reason?s,
 				resolution         = :resolution?s,
 				calculated_balance = :balance?f
@@ -100,7 +100,7 @@ class Create
 			'orderItemID'    => ($return->item->orderItem) ? $return->item->orderItem->id : null,
 			'exchangeItemID' => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
 			'noteID'         => ($return->item->note) ? $return->note->id : null,
-			'statusID'       => $return->item->status,
+			'statusCode'     => $return->item->status,
 			'reason'         => $return->item->reason,
 			'resolution'     => $return->item->resolution,
 			'balance'        => $return->item->balance,
