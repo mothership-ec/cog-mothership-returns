@@ -236,7 +236,19 @@ class Loader extends Order\Entity\BaseLoader
 
 		$itemsResult = $this->_query->run('
 			SELECT
-				*
+				*,
+				return_item_id     AS returnItemID,
+				return_id          AS returnID,
+				calculated_balance AS calculatedBalance,
+				list_price         AS listPrice,
+				tax_rate           AS taxRate,
+				product_tax_rate   AS productTaxRate,
+				tax_strategy       AS taxStrategy,
+				product_id         AS productID,
+				product_name       AS productName,
+				unit_id            AS unitID,
+				unit_revision      AS unitRevision,
+				weight_grams       AS weight
 			FROM
 				return_item
 			WHERE
@@ -286,19 +298,20 @@ class Loader extends Order\Entity\BaseLoader
 
 	protected function _loadItem($itemResult, $itemEntity)
 	{
-		// Reformat under_score to camelCase
-		$itemEntity->returnID = $itemResult->return_id;
-		$itemEntity->calculatedBalance = $itemResult->calculated_balance;
+		// Cast decimals to float
+		$itemEntity->listPrice      = (float) $itemEntity->listPrice;
+		$itemEntity->net            = (float) $itemEntity->net;
+		$itemEntity->discount       = (float) $itemEntity->discount;
+		$itemEntity->tax            = (float) $itemEntity->tax;
+		$itemEntity->taxRate        = (float) $itemEntity->taxRate;
+		$itemEntity->productTaxRate = (float) $itemEntity->productTaxRate;
+		$itemEntity->gross          = (float) $itemEntity->gross;
+		$itemEntity->rrp            = (float) $itemEntity->rrp;
 
 		// Only load the order and refunds if one is attached to the return
 		if ($itemResult->order_id) {
 			$itemEntity->order   = $this->_orderLoader->getByID($itemResult->order_id);
 			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
-		}
-
-		// Only load item item if one is attached to the return item
-		if ($itemResult->item_id) {
-			$itemEntity->item = $this->_orderLoader->getEntityLoader('items')->getByID($itemResult->item_id, $itemEntity->order);
 		}
 
 		// Only load the exchange item if one is attached to the return item

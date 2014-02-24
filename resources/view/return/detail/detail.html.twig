@@ -10,8 +10,8 @@
 
 		<div class="display-group">
 			<h2 class="title">
-				{<a href="{ url('ms.commerce.product.edit.details', {productID: returnItem.item.productID}) }" data-live>{{ returnItem.item.productName }}</a>}
-				{{ returnItem.item.brand }} {{ returnItem.item.productName }}
+				{<a href="{ url('ms.commerce.product.edit.details', {productID: returnItem.productID}) }" data-live>{{ returnItem.productName }}</a>}
+				{{ returnItem.brand }} {{ returnItem.productName }}
 			</h2>
 			<div class="container-details dual-column" id="return{{ returnItem.id }}">
 
