@@ -15,6 +15,7 @@ class OrderReturnItem
 
 	// Related entities
 	public $order;
+	public $orderItem;
 	public $exchangeItem;
 	public $note;
 	public $document;
