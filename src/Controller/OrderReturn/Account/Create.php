@@ -211,10 +211,13 @@ class Create extends Controller
 		// Create the return
 		$return = new OrderReturn;
 
-		$return->order      = $orderItem->order;
-		$return->orderItem  = $orderItem;
-		$return->reason     = $reason->code;
-		$return->resolution = $resolution->code;
+		// @todo make this an array of items
+		$return->item = new OrderReturnItem;
+
+		$return->item->order      = $orderItem->order;
+		$return->item->orderItem  = $orderItem;
+		$return->item->reason     = $reason->code;
+		$return->item->resolution = $resolution->code;
 
 		if (isset($data['note']) and ! empty($data['note'])) {
 			// Add a note to the return
@@ -227,7 +230,7 @@ class Create extends Controller
 		}
 		elseif ('refund' == $resolution->code) {
 			// Set the balance as the list price of the returned item
-			$return->balance = 0 - $item->gross;
+			$return->item->balance = 0 - $orderItem->gross;
 		}
 
 		// Save the return object
@@ -353,7 +356,7 @@ class Create extends Controller
 
 		$note = $this->get('order.note.create')->create($note);
 
-		$return->note = $note;
+		$return->item->note = $note;
 	}
 
 	/**
@@ -377,12 +380,12 @@ class Create extends Controller
 		$exchangeItem->stockLocation = $this->get('stock.locations')->getRoleLocation($stockLocations::SELL_ROLE);
 		$exchangeItem->status        = clone $this->get('order.item.statuses')->get(OrderItemStatuses::HOLD);
 
-		$return->order->items->append($exchangeItem);
+		$return->item->order->items->append($exchangeItem);
 
-		$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
+		$return->item->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
 
 		// Set the balance as the difference in price between the exchanged and returned items
-		$return->balance = $return->exchangeItem->gross - $item->gross;
+		$return->item->balance = $return->item->exchangeItem->gross - $item->gross;
 	}
 
 	/**
@@ -400,7 +403,7 @@ class Create extends Controller
 
 		$stockManager->setNote(sprintf(
 			'Order #%s, return #%s. Replacement item requested.',
-			$return->order->id,
+			$return->item->order->id,
 			$return->id
 		));
 
