@@ -7,6 +7,7 @@ use Message\Cog\Controller\Controller;
 use Message\Mothership\OrderReturn\Reasons;
 use Message\Mothership\OrderReturn\Resolutions;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
+use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
 use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
 use Message\Mothership\Commerce\Order\Entity\Note\Note;
@@ -372,12 +373,14 @@ class Create extends Controller
 
 		// Create an exchange item
 		$exchangeItem = new Item;
-		$exchangeItem->order = $orderItem->order;
+		$exchangeItem->order = $return->item->order;
 
 		// Populate the item from the unit
 		$exchangeItem->populate($unit);
 
-		$exchangeItem->stockLocation = $this->get('stock.locations')->getRoleLocation($stockLocations::SELL_ROLE);
+		$stockLocations = $this->get('stock.locations');
+
+		$exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
 		$exchangeItem->status        = clone $this->get('order.item.statuses')->get(OrderItemStatuses::HOLD);
 
 		$return->item->order->items->append($exchangeItem);
@@ -385,7 +388,7 @@ class Create extends Controller
 		$return->item->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
 
 		// Set the balance as the difference in price between the exchanged and returned items
-		$return->item->balance = $return->item->exchangeItem->gross - $item->gross;
+		$return->item->balance = $return->item->exchangeItem->gross - $return->item->orderItem->gross;
 	}
 
 	/**
@@ -400,6 +403,7 @@ class Create extends Controller
 					 ->getByID($return->item->exchangeItem->unitID);
 
 		$stockManager = $this->get('stock.manager');
+		$stockLocations = $this->get('stock.locations');
 
 		$stockManager->setNote(sprintf(
 			'Order #%s, return #%s. Replacement item requested.',
@@ -416,7 +420,7 @@ class Create extends Controller
 		// Decrement from sell stock
 		$stockManager->decrement(
 			$unit,
-			$exchangeItem->stockLocation
+			$return->item->exchangeItem->stockLocation
 		);
 
 		// Increment in hold stock

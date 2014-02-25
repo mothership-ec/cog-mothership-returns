@@ -86,9 +86,11 @@ class Create
 			INSERT INTO
 				`return_item`
 			SET
+				created_at         = :createdAt?i,
+				created_by         = :createdBy?i,
 				return_id          = :returnID?i,
 				order_id           = :orderID?in,
-				order_item_id      = :orderItemID?in,
+				item_id            = :orderItemID?in,
 				exchange_item_id   = :exchangeItemID?in,
 				note_id            = :noteID?in,
 				status_code        = :statusCode?i,
@@ -96,11 +98,14 @@ class Create
 				resolution         = :resolution?s,
 				calculated_balance = :balance?f
 		", [
+			'createdAt'      => $return->authorship->createdAt(),
+			'createdBy'      => $return->authorship->createdBy(),
+			'returnID'       => $returnResult->id(),
 			'orderID'        => ($return->item->order) ? $return->item->order->id : null,
 			'orderItemID'    => ($return->item->orderItem) ? $return->item->orderItem->id : null,
 			'exchangeItemID' => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
-			'noteID'         => ($return->item->note) ? $return->note->id : null,
-			'statusCode'     => $return->item->status,
+			'noteID'         => ($return->item->note) ? $return->item->note->id : null,
+			'statusCode'     => Statuses::AWAITING_RETURN,
 			'reason'         => $return->item->reason,
 			'resolution'     => $return->item->resolution,
 			'balance'        => $return->item->balance,

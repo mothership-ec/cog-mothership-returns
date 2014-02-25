@@ -239,6 +239,10 @@ class Loader extends Order\Entity\BaseLoader
 				*,
 				return_item_id     AS returnItemID,
 				return_id          AS returnID,
+				order_id           AS orderID,
+				item_id            AS orderItemID,
+				exchange_item_id   AS exchangeItemID,
+				note_id            AS noteID,
 				calculated_balance AS calculatedBalance,
 				list_price         AS listPrice,
 				tax_rate           AS taxRate,
@@ -282,13 +286,7 @@ class Loader extends Order\Entity\BaseLoader
 				);
 			}
 
-			foreach ($itemsResult as $key => $itemResult) {
-				if ($itemResult->return_id == $entity->id) {
-					$entity->item = $this->_loadItem($itemResult, $itemEntities[$key]);
-
-					break; // only load the first item
-				}
-			}
+			$entity->item = $this->_loadItem($itemsResult[0], reset($itemEntities));
 
 			$return[$entity->id] = $entity;
 		}
@@ -309,20 +307,20 @@ class Loader extends Order\Entity\BaseLoader
 		$itemEntity->rrp            = (float) $itemEntity->rrp;
 
 		// Only load the order and refunds if one is attached to the return
-		if ($itemResult->order_id) {
-			$itemEntity->order   = $this->_orderLoader->getByID($itemResult->order_id);
+		if ($itemEntity->orderID) {
+			$itemEntity->order   = $this->_orderLoader->getByID($itemEntity->orderID);
 			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
 		}
 
 		// Only load the exchange item if one is attached to the return item
-		if ($itemResult->exchange_item_id) {
-			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemResult->exchange_item_id, $itemEntity->order);
+		if ($itemEntity->exchangeItemID) {
+			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, $itemEntity->order);
 		}
 
 		$itemEntity->reason     = $this->_reasons->get($itemResult->reason);
 		$itemEntity->resolution = $this->_resolutions->get($itemResult->resolution);
 		// $itemEntity->document   = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->document_id, $itemEntity->order);
-		$itemEntity->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($itemResult->note_id, $itemEntity->order);
+		$itemEntity->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
 
 		$itemEntity->status     = $this->_statuses->get($itemResult->status_code);
 

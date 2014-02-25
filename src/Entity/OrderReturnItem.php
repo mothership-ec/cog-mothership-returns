@@ -12,6 +12,10 @@ class OrderReturnItem
 {
 	public $id;
 	public $returnID;
+	public $orderID;
+	public $orderItemID;
+	public $exchangeItemID;
+	public $noteID;
 
 	// Related entities
 	public $order;
