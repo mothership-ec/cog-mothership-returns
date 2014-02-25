@@ -34,7 +34,7 @@ class Create extends Controller
 		// Redirect to view a return if this item has already been returned and the return was not rejected.
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
-				if (! $return->isRejected()) {
+				if (! $return->item->isRejected()) {
 					return $this->redirectToRoute('ms.user.return.detail', array(
 						'returnID' => $return->id
 					));
@@ -72,7 +72,7 @@ class Create extends Controller
 		// Redirect to view a return if this item has already been returned and the return was not rejected.
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
-				if (! $return->isRejected()) {
+				if (! $return->item->isRejected()) {
 					return $this->redirectToRoute('ms.user.return.detail', array(
 						'returnID' => $return->id
 					));
@@ -102,7 +102,7 @@ class Create extends Controller
 		// Redirect to view a return if this item has already been returned and the return was not rejected.
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
-				if (! $return->isRejected()) {
+				if (! $return->item->isRejected()) {
 					return $this->redirectToRoute('ms.user.return.detail', array(
 						'returnID' => $return->id
 					));
@@ -349,7 +349,7 @@ class Create extends Controller
 	{
 		$note = new Note;
 
-		$note->order            = $return->order;
+		$note->order            = $return->item->order;
 		$note->note             = $message;
 		$note->raisedFrom       = 'return';
 		$note->customerNotified = 0;
@@ -397,7 +397,7 @@ class Create extends Controller
 	{
 		$unit = $this->get('product.unit.loader')
 					 ->includeOutOfStock(true)
-					 ->getByID($return->exchangeItem->unitID);
+					 ->getByID($return->item->exchangeItem->unitID);
 
 		$stockManager = $this->get('stock.manager');
 
