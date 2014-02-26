@@ -277,13 +277,12 @@ class Detail extends Controller
 			'data' => new \DateTime()
 		));
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
-			'required' => false,
 			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:mail:received', array(
-				'return' => $return,
+				'return'      => $return,
 				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,
-				'email' => $this->get('cfg')->merchant->email,
+				'email'       => $this->get('cfg')->merchant->email,
 			))
-		));
+		))->val()->optional();
 
 		return $form;
 	}
@@ -342,9 +341,8 @@ class Detail extends Controller
 		}
 
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
-			'required' => false,
 			'data' => $message
-		));
+		))->val()->optional();
 
 		return $form;
 	}
