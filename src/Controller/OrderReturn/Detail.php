@@ -126,10 +126,10 @@ class Detail extends Controller
 				$method = $this->get('order.payment.methods')->get('card');
 			}
 
+			$payment = null;
+
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
-				$payment = null;
-
 				// Get the payment against the order
 				foreach ($return->order->payments as $p) {
 					$payment = $p;
@@ -147,9 +147,6 @@ class Detail extends Controller
 					// Send the refund payment
 					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
 
-					// Update the refund with the payment
-					$this->get('order.refund.edit')->setPayment($return->refund, $payment);
-
 					// Set the balance to 0 to indicate it has been fully refunded
 					$return = $this->get('return.edit')->setBalance($return, 0);
 
@@ -164,12 +161,12 @@ class Detail extends Controller
 				}
 			}
 			else {
-				// If refunding manually, just set the balance to 0 without checking for a pyament
+				// If refunding manually, just set the balance to 0 without checking for a payment
 				$return = $this->get('return.edit')->setBalance($return, 0);
 			}
 
 			// Refund the return
-			$return = $this->get('return.edit')->refund($return, $method, $amount);
+			$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
 		}
 
 		// Notify customer they owe the outstanding balance
