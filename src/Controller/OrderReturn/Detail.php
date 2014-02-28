@@ -60,32 +60,36 @@ class Detail extends Controller
 	 */
 	public function processReceived($returnID)
 	{
+		$return = $this->get('return.loader')->getByID($returnID);
+		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
+
 		try {
-			$return = $this->get('return.loader')->getByID($returnID);
 			$form = $this->_receivedForm($return);
 			$data = $form->getFilteredData();
-			$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 			if ($data['received']) {
 				$this->get('return.edit')->setAsReceived($return, $data['received_date']);
 			}
-
-			if ($data['message']) {
-				$message = $this->get('mail.message');
-				$message->setTo($return->order->user->email, $return->order->user->getName());
-				$message->setSubject('Your ' . $this->get('cfg')->app->defaultEmailFrom->name .' return has been received - ' . $return->getDisplayID());
-				$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-					'message' => $data['message']
-				));
-
-				$dispatcher = $this->get('mail.dispatcher');
-
-				$result = $dispatcher->send($message);
-			}
 		}
 		catch (RefundException $e) {
 			$this->addFlash('error', $e->getMessage());
+
+			return $this->redirect($viewURL);
 		}
+
+		if ($data['message']) {
+			$message = $this->get('mail.message');
+			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setSubject('Your ' . $this->get('cfg')->app->defaultEmailFrom->name . ' return has been received - ' . $return->getDisplayID());
+			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
+				'message' => $data['message']
+			));
+
+			$dispatcher = $this->get('mail.dispatcher');
+
+			$result = $dispatcher->send($message);
+		}
+
 
 		return $this->redirect($viewURL);
 	}
@@ -98,102 +102,118 @@ class Detail extends Controller
 	 */
 	public function processBalance($returnID)
 	{
-		try {
-			$return = $this->get('return.loader')->getByID($returnID);
-			$form = $this->_balanceForm($return);
-			$data = $form->getFilteredData();
-			$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
+		$return = $this->get('return.loader')->getByID($returnID);
+		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $returnID));
 
-			// Clear the balance
-			if ($data['payee'] == 'none') {
-				$this->get('return.edit')->clearBalance($return);
+		$form = $this->_balanceForm($return);
+		$data = $form->getFilteredData();
+
+		// Clear the balance
+		if ($data['payee'] == 'none') {
+			$this->get('return.edit')->clearBalance($return);
+		}
+		elseif ($data['payee'] == 'customer') {
+			// Process refund to the customer
+
+			// Ensure the amount has been approved
+			if ($data['refund_approve'] == false) {
+				$this->addFlash('error', 'You must approve the refund to enact it');
+				return $this->redirect($viewURL);
 			}
 
-			// Process refund to the customer
-			elseif ($data['payee'] == 'customer') {
-				// Ensure the amount has been approved
-				if ($data['refund_approve'] == false) {
-					$this->addFlash('error', 'You must approve the refund to enact it');
-					return $this->redirect($viewURL);
-				}
+			if (!isset($data['refund_method']) or !$data['refund_method']) {
+				$this->addFlash('error', 'You must select a refund method');
+				return $this->redirect($viewURL);
+			}
 
-				if (! isset($data['refund_method']) or ! $data['refund_method']) {
-					$this->addFlash('error', 'You must select a refund method');
-					return $this->redirect($viewURL);
-				}
+			// Get the balance amount
+			$amount = $data['balance_amount'];
 
-				// Get the balance amount
-				$amount = $data['balance_amount'];
+			// Get the refund method
+			if ($data['refund_method'] == 'manual') {
+				$method = $this->get('order.payment.methods')->get('manual');
+			}
+			else {
+				$method = $this->get('order.payment.methods')->get('card');
+			}
 
-				// Get the refund method
-				if ($data['refund_method'] == 'manual') {
-					$method = $this->get('order.payment.methods')->get('manual');
-				}
-				else {
-					$method = $this->get('order.payment.methods')->get('card');
-				}
-
-				// Refund the return
+			// Refund the return
+			try {
 				$return = $this->get('return.edit')->refund($return, $method, $amount);
+			}
+			catch (RefundException $e) {
+				$this->addFlash('error', $e->getMessage());
 
-				// If refunding automatically, process the payment
-				if ($data['refund_method'] == 'automatic') {
-					// Get the payment against the order
-					foreach ($return->order->payments as $p) {
-						$payment = $p;
-					}
+				return $this->redirect($viewURL);
+			}
 
-					try {
-
-						if (empty($payment)) {
-							throw new \InvalidArgumentException('Could not make payment: No payments found');
-						}
-
-
-						// Send the refund payment
-						$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
-
-						// Update the refund with the payment
-						$this->get('order.refund.edit')->setPayment($return->refund, $payment);
-
-						// Set the balance to 0 to indicate it has been fully refunded
-						$return = $this->get('return.edit')->setBalance($return, 0);
-
-						// Inform the user the payment was sent successfully
-						$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $return->user->getName()));
-					}
-					catch (\Exception $e) {
-						// If the payment failed, inform the user
-						$this->addFlash('error', $e->getMessage());
-					}
+			// If refunding automatically, process the payment
+			if ($data['refund_method'] == 'automatic') {
+				// Get the payment against the order
+				foreach ($return->order->payments as $p) {
+					$payment = $p;
 				}
-				else {
-					// If refunding manually, just set the balance to 0 without checking for a pyament
+
+				try {
+					if (empty($payment)) {
+						throw new RefundException('Could not make payment: No payments found');
+					}
+
+					// Send the refund payment
+					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
+
+					// Update the refund with the payment
+					$this->get('order.refund.edit')->setPayment($return->refund, $payment);
+
+					// Set the balance to 0 to indicate it has been fully refunded
+					$return = $this->get('return.edit')->setBalance($return, 0);
+
+					// Inform the user the payment was sent successfully
+					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $return->user->getName()));
+				}
+				catch (RefundException $e) {
+					$this->addFlash('error', $e->getMessage());
+
+					return $this->redirect($viewURL);
+				}
+
+			}
+			else {
+				try {
+				// If refunding manually, just set the balance to 0 without checking for a pyament
 					$return = $this->get('return.edit')->setBalance($return, 0);
 				}
-			}
+				catch (RefundException $e) {
+					$this->addFlash('error', $e->getMessage());
 
-			// Notify customer they owe the outstanding balance
-			elseif ($data['payee'] == 'client') {
-				$this->get('return.edit')->setBalance($return, abs($data['balance_amount']));
-			}
-
-			// Send the message
-			if ($data['message']) {
-				$message = $this->get('mail.message');
-				$message->setTo($return->order->user->email, $return->order->user->getName());
-				$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
-				$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-					'message' => $data['message']
-				));
-
-				$dispatcher = $this->get('mail.dispatcher');
-
-				$result = $dispatcher->send($message);
+					return $this->redirect($viewURL);
+				}
 			}
 		}
-		catch (RefundException $e) {
-			$this->addFlash('error', $e->getMessage());
+		elseif ($data['payee'] == 'client') {
+			// Notify customer they owe the outstanding balance
+			try {
+				$this->get('return.edit')->setBalance($return, abs($data['balance_amount']));
+			}
+			catch (RefundException $e) {
+				$this->addFlash('error', $e->getMessage());
+
+				return $this->redirect($viewURL);
+			}
+		}
+
+		// Send the message
+		if ($data['message']) {
+			$message = $this->get('mail.message');
+			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
+			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
+				'message' => $data['message']
+			));
+
+			$dispatcher = $this->get('mail.dispatcher');
+
+			$result = $dispatcher->send($message);
 		}
 
 		return $this->redirect($viewURL);
