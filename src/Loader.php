@@ -99,7 +99,7 @@ class Loader extends Order\Entity\BaseLoader
 				order_item_return
 			WHERE
 				balance IS NOT NULL AND
-				balance < 0 AND
+				balance > 0 AND
 				accepted = 1
 		');
 
@@ -114,9 +114,18 @@ class Loader extends Order\Entity\BaseLoader
 			FROM
 				order_item_return
 			WHERE
-				balance IS NOT NULL AND
-				balance > 0 AND
-				accepted = 1
+				accepted = 1 AND
+				(
+					(
+						balance IS NOT NULL AND
+						balance < 0
+					)
+					OR
+					(
+						balance IS NULL AND
+						calculated_balance < 0
+					)
+				)
 		');
 
 		return $this->_load($result->flatten(), true);

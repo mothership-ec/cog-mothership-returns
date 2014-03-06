@@ -19,7 +19,10 @@ class Listing extends Controller
 
 				// Filter out partially processed returns
 				$returns = array_filter($returns, function($return) {
-					return ! $return->hasBalance();
+					return !($return->hasBalance() or (
+						$return->isRefundResolution() and
+						$return->calculatedBalance < 0
+					));
 				});
 				break;
 
