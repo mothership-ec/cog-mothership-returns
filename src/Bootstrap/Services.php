@@ -17,7 +17,7 @@ class Services implements ServicesInterface
 			return new OrderReturn\OrderReturn();
 		});
 
-		$services['order.entities'] = $services->extend('order.entities', function($entities, $c) {
+		$services->extend('order.entities', function($entities, $c) {
 			$entities['returns'] = new Commerce\Order\Entity\CollectionOrderLoader(
 				new Commerce\Order\Entity\Collection,
 				new OrderReturn\Loader($c['db.query'], $c['return.reasons'], $c['return.resolutions'],
@@ -55,7 +55,7 @@ class Services implements ServicesInterface
 			return new OrderReturn\File\ReturnSlip($c);
 		});
 
-		$services['order.item.statuses'] = $services->extend('order.item.statuses', function($statuses) {
+		$services->extend('order.item.statuses', function($statuses) {
 			// Add basic item return statuses
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_RETURN, 'Awaiting Return'));
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_RECEIVED, 'Return Received'));
@@ -65,7 +65,7 @@ class Services implements ServicesInterface
 		});
 
 		// Extend stock movement reasons
-		$services['stock.movement.reasons'] = $services->extend('stock.movement.reasons', function($reasons) {
+		$services->extend('stock.movement.reasons', function($reasons) {
 			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('returned', 'Returned'));
 			$reasons->add(new Commerce\Product\Stock\Movement\Reason\Reason('exchange_item', 'Exchange Item'));
 			return $reasons;
