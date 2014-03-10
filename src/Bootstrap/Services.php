@@ -13,10 +13,6 @@ class Services implements ServicesInterface
 {
 	public function registerServices($services)
 	{
-		$services['return'] = $services->factory(function($c) {
-			return new OrderReturn\OrderReturn();
-		});
-
 		$services->extend('order.entities', function($entities, $c) {
 			$entities['returns'] = new Commerce\Order\Entity\CollectionOrderLoader(
 				new Commerce\Order\Entity\Collection,
