@@ -62,13 +62,7 @@
 								<h2>Balance Payment</h2>
 								{% for refund in return.refunds %}
 									<ul class="order-details">
-										<li>
-											{% if return.balance > 0 %}
-												<span>Payee</span>The customer paid
-											{% else %}
-												<span>Payee</span>You refunded the customer
-											{% endif %}
-										</li>
+										<li><span>Payee</span>You refunded the customer</li>
 										<li><span>Amount </span>{{ refund.amount|price }}</li>
 										<li><span>Method </span>{{ refund.method.getDisplayName() }}</li>
 										<li><span>Date </span>{{ refund.authorship.createdAt()|date }}</li>
