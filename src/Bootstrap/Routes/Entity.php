@@ -4,7 +4,7 @@ namespace Message\Mothership\OrderReturn\Bootstrap\Routes;
 
 use Message\Cog\Bootstrap\RoutesInterface;
 
-class Return implements RoutesInterface
+class Entity implements RoutesInterface
 {
 	public function registerRoutes($router)
 	{
