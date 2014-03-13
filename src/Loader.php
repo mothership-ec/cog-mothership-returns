@@ -286,6 +286,8 @@ class Loader extends Order\Entity\BaseLoader
 				);
 			}
 
+			// Load the first item into the return
+			// @todo Make this an array of items
 			$entity->item = $this->_loadItem($itemsResult[0], reset($itemEntities));
 
 			$return[$entity->id] = $entity;
