@@ -159,7 +159,7 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				unit_revision,
 				sku,
 				barcode,
-				options,
+				`options`,
 				brand,
 				weight_grams
 			)
@@ -175,7 +175,7 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 					WHERE ois.item_id = oir.item_id
 					ORDER BY created_at DESC
 					LIMIT 1
-				),
+				) as status_code,
 				r.created_at,
 				r.created_by,
 				r.updated_at,
@@ -187,7 +187,6 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				oir.accepted,
 				oir.balance,
 				oir.calculated_balance,
-				oir.returned_value,
 				oir.return_to_stock_location_id,
 				oi.list_price,
 				oi.net,
