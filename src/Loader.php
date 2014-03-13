@@ -310,6 +310,11 @@ class Loader extends Order\Entity\BaseLoader
 		if ($itemEntity->orderID) {
 			$itemEntity->order   = $this->_orderLoader->getByID($itemEntity->orderID);
 			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
+
+			// Grab the item from the order for easy access
+			if ($itemEntity->orderItemID) {
+				$itemEntity->orderItem = $itemEntity->order->items[$itemEntity->orderItemID];
+			}
 		}
 
 		// Only load the exchange item if one is attached to the return item
