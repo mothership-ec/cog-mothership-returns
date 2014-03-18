@@ -126,8 +126,7 @@ class Detail extends Controller
 				$method = $this->get('order.payment.methods')->get('card');
 			}
 
-			// Refund the return
-			$return = $this->get('return.edit')->refund($return, $method, $amount);
+			$payment = null;
 
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
@@ -136,28 +135,38 @@ class Detail extends Controller
 					$payment = $p;
 				}
 
+				if (null === $payment) {
+					// If there are no payments to be refunded, inform the user
+					$this->addFlash('error', "There are no recorded payments for this order, please try refunding
+						manually");
+
+					return $this->redirect($viewURL);
+				}
+
 				try {
 					// Send the refund payment
 					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
-
-					// Update the refund with the payment
-					$this->get('order.refund.edit')->setPayment($return->refund, $payment);
 
 					// Set the balance to 0 to indicate it has been fully refunded
 					$return = $this->get('return.edit')->setBalance($return, 0);
 
 					// Inform the user the payment was sent successfully
-					$this->addFlash($result->status, sprintf('%f was sent to %s', $result->amount, $return->user->getName()));
+					$this->addFlash('success', 'Return refunded');
 				}
 				catch (Exception $e) {
 					// If the payment failed, inform the user
 					$this->addFlash('error', $e->getMessage());
+
+					return $this->redirect($viewURL);
 				}
 			}
 			else {
-				// If refunding manually, just set the balance to 0 without checking for a pyament
+				// If refunding manually, just set the balance to 0 without checking for a payment
 				$return = $this->get('return.edit')->setBalance($return, 0);
 			}
+
+			// Refund the return
+			$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
 		}
 
 		// Notify customer they owe the outstanding balance
@@ -277,13 +286,12 @@ class Detail extends Controller
 			'data' => new \DateTime()
 		));
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
-			'required' => false,
 			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:mail:received', array(
-				'return' => $return,
+				'return'      => $return,
 				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,
-				'email' => $this->get('cfg')->merchant->email,
+				'email'       => $this->get('cfg')->merchant->email,
 			))
-		));
+		))->val()->optional();
 
 		return $form;
 	}
@@ -342,9 +350,8 @@ class Detail extends Controller
 		}
 
 		$form->add('message', 'textarea', 'Message to customer (optional)', array(
-			'required' => false,
 			'data' => $message
-		));
+		))->val()->optional();
 
 		return $form;
 	}
