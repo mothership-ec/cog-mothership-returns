@@ -102,14 +102,16 @@ class Edit
 		return $this->setBalance($return, 0);
 	}
 
-	public function refund(Entity\OrderReturn $return, $method, $amount)
+	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null)
 	{
 		// Create the refund
 		$refund = new Order\Entity\Refund\Refund;
-		$refund->method = $method;
-		$refund->amount = $amount;
-		$refund->reason = 'Returned Item: ' . $return->reason;
-		$refund->order = $return->order;
+		$refund->method  = $method;
+		$refund->amount  = $amount;
+		$refund->reason  = 'Returned Item: ' . $return->reason;
+		$refund->order   = $return->order;
+		$refund->payment = $payment;
+		$refund->return  = $return;
 		$refund = $this->_refundCreate->create($refund);
 
 		$return->refund = $refund;
