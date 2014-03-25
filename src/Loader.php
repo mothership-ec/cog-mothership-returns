@@ -292,7 +292,8 @@ class Loader extends Order\Entity\BaseLoader
 			$entity->reason = $this->_reasons->get($result[$key]->reason);
 			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);
 
-			$entity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($entity->order);
+			// @todo this should load a single refund against the `return_id` column in `order_refund`
+			// $entity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($entity->order);
 
 			$entity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($result[$key]->document_id);
 

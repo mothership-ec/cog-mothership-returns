@@ -5,6 +5,8 @@ namespace Message\Mothership\OrderReturn;
 use ReflectionClass;
 use InvalidArgumentException;
 
+use Message\User\UserInterface;
+
 use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
@@ -12,8 +14,6 @@ use Message\Mothership\Commerce\Order\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
 use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Ecommerce\OrderItemStatuses;
-
-use Message\User\UserInterface;
 
 /**
  * Order return creator.
@@ -23,18 +23,18 @@ use Message\User\UserInterface;
 class Create
 {
 	protected $_query;
-	protected $_user;
+	protected $_currentUser;
 	protected $_loader;
 	protected $_itemEdit;
 	protected $_reasons;
 	protected $_resolutions;
 	protected $_returnSlip;
 
-	public function __construct(DB\Query $query, UserInterface $user, Loader $loader, $itemEdit, Collection\Collection $reasons,
+	public function __construct(DB\Query $query, UserInterface $currentUser, Loader $loader, $itemEdit, Collection\Collection $reasons,
 		Collection\Collection $resolutions, $returnSlip)
 	{
 		$this->_query       = $query;
-		$this->_user        = $user;
+		$this->_currentUser = $currentUser;
 		$this->_loader      = $loader;
 		$this->_itemEdit    = $itemEdit;
 		$this->_reasons     = $reasons;
@@ -47,10 +47,10 @@ class Create
 		$this->_validate($return);
 
 		// Set create authorship data if not already set
-		if (! $return->authorship->createdAt()) {
+		if (!$return->authorship->createdAt()) {
 			$return->authorship->create(
 				new DateTimeImmutable,
-				$this->_user->id
+				$this->_currentUser->id
 			);
 		}
 
@@ -61,8 +61,8 @@ class Create
 			SET
 				order_id           = :orderID?i,
 				item_id            = :itemID?i,
-				created_at         = :createdAt?i,
-				created_by         = :createdBy?i,
+				created_at         = :createdAt?d,
+				created_by         = :createdBy?in,
 				reason             = :reason?s,
 				resolution         = :resolution?s,
 				exchange_item_id   = :exchangeItemID?i,
