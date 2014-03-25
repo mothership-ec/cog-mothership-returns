@@ -2,22 +2,22 @@
 
 {% block returns %}
 
-	<section class="container-content">
-		<h1>Return {{ return.getDisplayID() }} <span class="updated-date">(Last updated: {{ return.authorship.updatedAt|date }})</span></h1>
+{# @todo replace this with a loop #}
+{% set returnItem = return.item %}
 
-		{# @todo replace this with a loop #}
-		{% set returnItem = return.item %}
-
-		<div class="display-group">
+<hgroup class="title">
+	<h1>Return {{ return.getDisplayID() }} <span>Last updated: {{ return.authorship.updatedAt|date }}</span></h1>
+</hgroup>
+	<div class="container-content tall">
+		<section class="dual-column">
 			<h2 class="title">
 				{<a href="{ url('ms.commerce.product.edit.details', {productID: returnItem.productID}) }" data-live>{{ returnItem.productName }}</a>}
 				{{ returnItem.brand }} {{ returnItem.productName }}
 			</h2>
-			<div class="container-details dual-column" id="return{{ returnItem.id }}">
-
-				<div class="column">
-					{# Show the received form if not yet set #}
-					{% if not returnItem.isReceived %}
+				<div class="content">
+					<div class="column">
+						{# Show the received form if not yet set #}
+						{% if not returnItem.isReceived %}
 						<h2>Returned Package</h2>
 						{{ form_start(received_form) }}
 							{{ form_row(received_form.received) }}
@@ -26,15 +26,15 @@
 
 							<button class="button save small">Notify Customer</button>
 						{{ form_end(received_form) }}
+						{% else %}
+							<h2>Returned Package</h2>
+							<dl class="order-details">
+								<dt>Received</dt>
+									<dd>The customer has been notified that the package was received</dd>
+							</dl>
 
-					{% else %}
-						<h2>Returned Package</h2>
-						<ul class="order-details">
-							<li><span>Received</span>The customer has been notified that the package was received</li>
-						</ul>
-
-						{# Show the accept / reject option if neither action has yet been taken #}
-						{% if not returnItem.isAccepted and not returnItem.isRejected %}
+							{# Show the accept / reject option if neither action has yet been taken #}
+							{% if not returnItem.isAccepted and not returnItem.isRejected %}
 							<h2>Accept / Reject</h2>
 							{{ form_start(accepted_form) }}
 								{{ form_row(accepted_form.accept_reject) }}
@@ -64,26 +64,29 @@
 							{% else %}
 								<h2>Balance Payment</h2>
 								{% for refund in returnItem.refunds %}
-									<ul class="order-details">
-										<li>
-											{% if returnItem.balance > 0 %}
-												<span>Payee</span>The customer paid
-											{% else %}
-												<span>Payee</span>You refunded the customer
-											{% endif %}
-										</li>
-										<li><span>Amount </span>{{ refund.amount|price }}</li>
-										<li><span>Method </span>{{ refund.method.getDisplayName() }}</li>
-										<li><span>Date </span>{{ refund.authorship.createdAt()|date }}</li>
-									</ul>
-								{% else %}
-									<ul class="order-details">
-										{% if not returnItem.hasRemainingBalance %}
-											<li><span>Status</span>No outstanding balance or payments</li>
-										{% elseif returnItem.payeeIsClient %}
-											<li><span>Status</span>Awaiting customer's payment of {{ returnItem.balance|abs|price }}</li>
+									<dl class="order-details">
+										<dt>Payee</dt>
+										{% if returnItem.balance > 0 %}
+											<dd>The customer paid</dd>
+										{% else %}
+											<dd>You refunded the customer</dd>
 										{% endif %}
-									</ul>
+										<dt>Amount </dt>
+											<dd>{{ refund.amount|price }}</dd>
+										<dt>Method</dt>
+											<dd>{{ refund.method.getDisplayName() }}</dd>
+										<dt>Date</dt>
+											<dd>{{ refund.authorship.createdAt()|date }}</dd>
+									</dl>
+								{% else %}
+									<dl class="order-details">
+										<dt>Status</dt>
+										{% if not returnItem.hasRemainingBalance %}
+											<dd>No outstanding balance or payments</dd>
+										{% elseif returnItem.payeeIsClient %}
+											<dd>Awaiting customer's payment of {{ returnItem.balance|abs|price }}</dd>
+										{% endif %}
+									</dl>
 								{% endfor %}
 							{% endif %}
 
@@ -92,11 +95,12 @@
 							{% if returnItem.isExchangeResolution %}
 								<h2>Exchange</h2>
 
-								<ul class="order-details">
-									<li><span>Replacement Item</span>
-										<a href="{{ url('ms.commerce.product.edit.details', {productID: returnItem.exchangeItem.productID}) }}" data-live>{{ returnItem.exchangeItem.productName }} - {{ returnItem.exchangeItem.options }}</a>
-									</li>
-								</ul>
+								<dl class="order-details">
+									<dt>Replacement Item</dt>
+										<dd>
+											<a href="{{ url('ms.commerce.product.edit.details', {productID: returnItem.exchangeItem.productID}) }}" data-live>{{ returnItem.exchangeItem.productName }} - {{ returnItem.exchangeItem.options }}</a>
+										</dd>
+								</dl>
 
 								{# Show the exchanged form if not yet enacted #}
 								{% if not returnItem.isExchanged %}
@@ -106,9 +110,10 @@
 
 								{# else notify that the exchange has been made #}
 								{% else %}
-									<ul class="order-details">
-										<li><span>Status</span>{{ returnItem.exchangeItem.status }}</li>
-									</ul>
+									<dl class="order-details">
+										<dt>Status</dt>
+											<dd>{{ returnItem.exchangeItem.status }}</dd>
+									</dl>
 								{% endif %}
 							{% endif %}
 
@@ -123,16 +128,19 @@
 									<button class="button save small">Process Returned Item</button>
 								{{ form_end(returned_item_form) }}
 							{% else %}
-								<ul class="order-details">
-									<li><span>Status</span>{{ returnItem.status }}</li>
+								<dl class="order-details">
+									<dt>>Status</dt>
+										<dd>{{ returnItem.status }}</dd>
+								</dl>
 							{% endif %}
 
 
 						{# Show a message if the return has been rejected #}
 						{% elseif returnItem.isRejected %}
-							<ul class="order-details">
-								<li><span>Status </span>This return was <strong>rejected</strong></li>
-							</ul>
+							<dl class="order-details">
+								<dt>Status </dt>
+									<dd>This return was <strong>rejected</strong></dd>
+							</dl>
 						{% endif %}
 
 					{% endif %}
@@ -140,20 +148,22 @@
 
 				<div class="column">
 					<h2>Return Details</h2>
-					<ul class="order-details">
+					<dl class="order-details">
 						{% if (returnItem.order) %}
-							<li>
-								<span>Order</span>
-								<a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">
-									{{ returnItem.order.id }}
-								</a>
-							</li>
+							<dt>Order</dt>
+								<dd>
+									<a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">
+										{{ returnItem.order.id }}
+									</a>
+								</dd>
 						{% else %}
-							<li><span>Order</span>Standalone</li>
+							<dt>Order</dt>
+								<dd>Standalone</dd>
 						{% endif %}
-						<li><span>Reason </span>{{ returnItem.reason }}</li>
-						<li>
-							<span>Resolution </span>{{ returnItem.resolution }}
+						<dt>Reason </dt>
+							<dd>{{ returnItem.reason }}</dd>
+						<dt>Resolution </dt>
+							<dd>{{ returnItem.resolution }}
 							{% if returnItem.isExchangeResolution %}
 								{% if returnItem.exchangeItem %}
 									for <a href="{{ url('ms.commerce.product.edit.details', {productID: returnItem.exchangeItem.productID}) }}" data-live>{{ returnItem.exchangeItem.productName }} - {{ returnItem.exchangeItem.options }}</a>
@@ -161,35 +171,43 @@
 									{ERROR}
 								{% endif %}
 							{% endif %}
-						</li>
-						<li>
-							{% if not returnItem.hasBalance %}
-								{% if returnItem.payeeIsClient %}
-									<span>Customer Balance</span>{{ returnItem.calculatedBalance|abs|price }}
-								{% elseif returnItem.payeeIsCustomer %}
-									<span>Your Balance</span>{{ returnItem.calculatedBalance|abs|price }}
-								{% else %}
-									<span>Balance</span>None
-								{% endif %}
+							</dd>
+						{% if not returnItem.hasBalance %}
+							{% if returnItem.payeeIsClient %}
+								<dt>Customer Balance</dt>
+									<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
+							{% elseif returnItem.payeeIsCustomer %}
+								<dt>Your Balance</dt>
+									<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
 							{% else %}
-								{% if returnItem.payeeIsClient %}
-									<span>Customer Balance</span>{{ returnItem.balance|abs|price }}
-								{% elseif returnItem.payeeIsCustomer %}
-									<span>Your Balance</span>{{ returnItem.balance|abs|price }}
-								{% else %}
-									<span>Balance</span>Cleared
-								{% endif %}
+								<dt>Balance</dt>
+									<dd>None</dd>
 							{% endif %}
-						</li>
-						<li><span>Status </span>{{ returnItem.status }}</li>
+						{% else %}
+							{% if returnItem.payeeIsClient %}
+								<dt>Customer Balance</dt>
+									<dd>{{ returnItem.balance|abs|price }}</dd>
+							{% elseif returnItem.payeeIsCustomer %}
+								<dt>Your Balance</dt>
+									<dd>{{ returnItem.balance|abs|price }}</dd>
+							{% else %}
+								<dt>Balance</dt>
+									<dd>Cleared</dd>
+							{% endif %}
+						{% endif %}
+						<dt>Status </dt>
+							<dd>{{ returnItem.status }}</dd>
 						{% if returnItem.note %}
-							<li><span>Note</span>{{ returnItem.note.note }}</li>
+							<dt>Note</dt>
+								<dd>{{ returnItem.note.note }}</dd>
 						{% endif %}
-						<li><span>Created by</span>{{ returnItem.order.user.name }} on {{ returnItem.authorship.createdAt|date }}</li>
+						<dt>Created by</dt>
+						<dd>{{ returnItem.order.user.name }} on {{ returnItem.authorship.createdAt|date }}</dd>
 						{% if not returnItem.authorship.updatedAt is empty and not returnItem.authorship.updatedBy is empty %}
-							<li><span>Updated by</span> {{ returnItem.authorship.updatedBy }} <span>at</span> {{ returnItem.authorship.updatedAt|date }}</li>
+							<dt>Updated by</dt>
+								<dd>{{ returnItem.authorship.updatedBy }} <span>at</span> {{ returnItem.authorship.updatedAt|date }}</dd>
 						{% endif %}
-					</ul>
+					</dl>
 				</div>
 			</div>
 		</div>

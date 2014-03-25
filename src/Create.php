@@ -5,6 +5,8 @@ namespace Message\Mothership\OrderReturn;
 use ReflectionClass;
 use InvalidArgumentException;
 
+use Message\User\UserInterface;
+
 use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
@@ -12,8 +14,6 @@ use Message\Mothership\Commerce\Order\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Ecommerce\OrderItemStatuses;
-
-use Message\User\UserInterface;
 
 /**
  * Order return creator.
@@ -23,7 +23,7 @@ use Message\User\UserInterface;
 class Create
 {
 	protected $_query;
-	protected $_user;
+	protected $_currentUser;
 	protected $_loader;
 	protected $_itemEdit;
 	protected $_reasons;
@@ -41,7 +41,7 @@ class Create
 	)
 	{
 		$this->_query       = $query;
-		$this->_user        = $user;
+		$this->_currentUser = $currentUser;
 		$this->_loader      = $loader;
 		$this->_itemEdit    = $itemEdit;
 		$this->_reasons     = $reasons;
@@ -62,10 +62,10 @@ class Create
 		$this->_validate($return);
 
 		// Set create authorship data if not already set
-		if (! $return->authorship->createdAt()) {
+		if (!$return->authorship->createdAt()) {
 			$return->authorship->create(
 				new DateTimeImmutable,
-				$this->_user->id
+				$this->_currentUser->id
 			);
 		}
 
