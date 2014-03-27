@@ -24,7 +24,7 @@ class Listing extends Controller
 						or
 						( // An accepted refund resolution will be in pending-refund
 							$return->isRefundResolution() and
-							$return->isAccepted()
+							($return->isAccepted() or $return->isRejected())
 						)
 					);
 				});
