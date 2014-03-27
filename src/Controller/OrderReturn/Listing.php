@@ -19,7 +19,14 @@ class Listing extends Controller
 
 				// Filter out partially processed returns
 				$returns = array_filter($returns, function($return) {
-					return !$return->hasBalance();
+					return !(
+						$return->hasBalance()
+						or
+						( // An accepted refund resolution will be in pending-refund
+							$return->isRefundResolution() and
+							$return->isAccepted()
+						)
+					);
 				});
 				break;
 
