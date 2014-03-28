@@ -164,14 +164,16 @@ class Loader extends Order\Entity\BaseLoader
 			FROM
 				order_item_return
 			WHERE
-				exchange_item_id > 0 AND
-				accepted = 1
+				accepted = 1 AND (
+					exchange_item_id > 0 OR
+					balance = 0
+				)
 		');
 
 		$returns = $this->_load($result->flatten(), true);
 
 		foreach ($returns as $i => $return) {
-			if (Statuses::RETURN_COMPLETED <= $return->item->status->code) {
+			if ($return->item->status->code != Statuses::RETURN_RECEIVED) {
 				unset($returns[$i]);
 			}
 		}
