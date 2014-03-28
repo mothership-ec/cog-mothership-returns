@@ -99,7 +99,7 @@ class Loader extends Order\Entity\BaseLoader
 				order_item_return
 			WHERE
 				balance IS NOT NULL AND
-				balance < 0 AND
+				balance > 0 AND
 				accepted = 1
 		');
 
@@ -114,9 +114,18 @@ class Loader extends Order\Entity\BaseLoader
 			FROM
 				order_item_return
 			WHERE
-				balance IS NOT NULL AND
-				balance > 0 AND
-				accepted = 1
+				accepted = 1 AND
+				(
+					(
+						balance IS NOT NULL AND
+						balance < 0
+					)
+					OR
+					(
+						balance IS NULL AND
+						calculated_balance < 0
+					)
+				)
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -147,18 +156,29 @@ class Loader extends Order\Entity\BaseLoader
 		return $returns;
 	}
 
-	public function getCompleted()
+	public function getPendingReturnedItemProcessing()
 	{
 		$result = $this->_query->run('
 			SELECT
-				return_id
+				return_id, item_id
 			FROM
 				order_item_return
 			WHERE
-				balance = 0
+				accepted = 1 AND (
+					exchange_item_id > 0 OR
+					balance = 0
+				)
 		');
 
-		return $this->_load($result->flatten(), true);
+		$returns = $this->_load($result->flatten(), true);
+
+		foreach ($returns as $i => $return) {
+			if ($return->item->status->code != Statuses::RETURN_RECEIVED) {
+				unset($returns[$i]);
+			}
+		}
+
+		return $returns;
 	}
 
 	public function getRejected()
@@ -263,7 +283,8 @@ class Loader extends Order\Entity\BaseLoader
 				);
 			}
 
-			$entity->calculatedBalance = $result[$key]->calculated_balance;
+			$entity->balance           = ($result[$key]->balance !== null)            ? (float) $result[$key]->balance            : null;
+			$entity->calculatedBalance = ($result[$key]->calculated_balance !== null) ? (float) $result[$key]->calculated_balance : null;
 
 			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
 			$entity->item = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->item_id);
