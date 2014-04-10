@@ -288,7 +288,12 @@ class Loader extends Order\Entity\BaseLoader
 
 			// Load the first item into the return
 			// @todo Make this an array of items
-			$entity->item = $this->_loadItem($itemsResult[0], reset($itemEntities));
+			foreach ($itemEntities as $itemKey => $item) {
+				if ($item->returnID == $entity->id) {
+					$entity->item = $this->_loadItem($itemsResult[$itemKey], $item);
+					break;
+				}
+			}
 
 			$return[$entity->id] = $entity;
 		}
