@@ -32,7 +32,7 @@ class Create
 
 	public function __construct(
 		DB\Query $query,
-		UserInterface $user,
+		UserInterface $currentUser,
 		Loader $loader,
 		$itemEdit,
 		Collection\Collection $reasons,
