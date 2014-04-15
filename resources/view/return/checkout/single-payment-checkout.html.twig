@@ -12,10 +12,10 @@
 			{% for return in returns %}
 				<dl>
 					<dt>Item</dt>
-					<dd>{{ return.item.productName }} - {{ return.item.options }}</dd>
+					<dd>{{ return.item.description }}</dd>
 
 					<dt>Amount</dt>
-					<dd>{{ return.balance|abs|price }}</dd>
+					<dd>{{ return.item.balance|abs|price }}</dd>
 				</dl>
 			{% endfor %}
 

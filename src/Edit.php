@@ -40,17 +40,16 @@ class Edit
 
 	public function accept(Entity\OrderReturn $return)
 	{
-		$return->accepted = true;
+		$return->item->accepted = true;
 
 		$this->_query->run('
 			UPDATE
-				order_item_return
+				return_item
 			SET
-				accepted = :accepted
+				accepted = 1
 			WHERE
 				return_id = :returnID?i
 		', array(
-			'accepted' => $return->accepted,
 			'returnID' => $return->id
 		));
 
@@ -59,17 +58,16 @@ class Edit
 
 	public function reject(Entity\OrderReturn $return)
 	{
-		$return->accepted = false;
+		$return->item->accepted = false;
 
 		$this->_query->run('
 			UPDATE
-				order_item_return
+				return_item
 			SET
-				accepted = :accepted
+				accepted = 0
 			WHERE
 				return_id = :returnID?i
 		', array(
-			'accepted' => $return->accepted,
 			'returnID' => $return->id
 		));
 
@@ -78,13 +76,13 @@ class Edit
 
 	public function setBalance(Entity\OrderReturn $return, $balance)
 	{
-		$return->balance = $balance;
+		$return->item->balance = $balance;
 
 		$this->_validate($return);
 
 		$this->_query->run('
 			UPDATE
-				order_item_return
+				return_item
 			SET
 				balance = :balance?f
 			WHERE
@@ -102,14 +100,18 @@ class Edit
 		return $this->setBalance($return, 0);
 	}
 
+	/**
+	 * @todo Throw an exception if there is no associated order.
+	 */
 	public function refund(Entity\OrderReturn $return, $method, $amount)
 	{
 		// Create the refund
 		$refund = new Order\Entity\Refund\Refund;
 		$refund->method = $method;
 		$refund->amount = $amount;
-		$refund->reason = 'Returned Item: ' . $return->reason;
-		$refund->order = $return->order;
+		$refund->reason = 'Returned Item: ' . $return->item->reason;
+		$refund->order = $return->item->order;
+
 		$refund = $this->_refundCreate->create($refund);
 
 		$return->refund = $refund;

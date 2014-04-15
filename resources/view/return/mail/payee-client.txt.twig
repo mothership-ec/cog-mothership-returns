@@ -13,4 +13,4 @@ EXCHANGE ITEM:
 BALANCE DUE:
 {{ return.calculatedBalance|abs|price }}
 
-To pay your remaining balance please log in then visit this link: {{ url('ms.ecom.return.payment', {orderID: return.order.id}) }}
+To pay your remaining balance please log in then visit this link: {{ url('ms.ecom.return.payment', {returnID: return.id}) }}

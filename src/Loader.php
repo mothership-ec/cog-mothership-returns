@@ -33,7 +33,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -45,7 +45,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				(
 					accepted != 0 AND
@@ -63,14 +63,12 @@ class Loader extends Order\Entity\BaseLoader
 	{
 		$result = $this->_query->run('
 			SELECT
-				r.return_id,
-				s.status_code
+				return_id,
+				status_code
 			FROM
-				order_item_return r
-			RIGHT JOIN
-				order_item_status s ON r.item_id = s.item_id
+				return_item
 			ORDER BY
-				s.created_at DESC
+				created_at DESC
 		');
 
 		$unique = array();
@@ -96,7 +94,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				balance IS NOT NULL AND
 				balance < 0 AND
@@ -112,7 +110,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				balance IS NOT NULL AND
 				balance > 0 AND
@@ -126,9 +124,9 @@ class Loader extends Order\Entity\BaseLoader
 	{
 		$result = $this->_query->run('
 			SELECT
-				return_id, exchange_item_id
+				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				exchange_item_id > 0 AND
 				accepted = 1
@@ -153,7 +151,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				balance = 0
 		');
@@ -167,7 +165,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				accepted = 0
 		');
@@ -181,7 +179,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				order_id = ?i
 		', $order->id);
@@ -195,7 +193,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				item_id = ?i
 		', $item->id);
@@ -209,11 +207,9 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return oir
-			LEFT JOIN
-				order_summary os ON oir.order_id = os.order_id
+				return
 			WHERE
-				os.user_id = ?i
+				created_by = ?i
 		', $user->id);
 
 		return $this->_load($result->flatten(), true);
@@ -229,63 +225,118 @@ class Loader extends Order\Entity\BaseLoader
 			return $alwaysReturnArray ? array() : false;
 		}
 
-		$result = $this->_query->run('
+		$returnsResult = $this->_query->run('
 			SELECT
 				*
 			FROM
-				order_item_return
+				`return`
 			WHERE
 				return_id IN (?ij)
 		', array($ids));
 
-		if (0 === count($result)) {
+		$itemsResult = $this->_query->run('
+			SELECT
+				*,
+				return_item_id     AS returnItemID,
+				return_id          AS returnID,
+				order_id           AS orderID,
+				item_id            AS orderItemID,
+				exchange_item_id   AS exchangeItemID,
+				note_id            AS noteID,
+				calculated_balance AS calculatedBalance,
+				list_price         AS listPrice,
+				tax_rate           AS taxRate,
+				product_tax_rate   AS productTaxRate,
+				tax_strategy       AS taxStrategy,
+				product_id         AS productID,
+				product_name       AS productName,
+				unit_id            AS unitID,
+				unit_revision      AS unitRevision,
+				weight_grams       AS weight
+			FROM
+				return_item
+			WHERE
+				return_id IN (?ij)
+		', array($ids));
+
+		if (0 === count($returnsResult)) {
 			return $alwaysReturnArray ? array() : false;
 		}
 
-		$entities = $result->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
+		$returnEntities = $returnsResult->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
+		$itemEntities   = $itemsResult->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturnItem');
+
 		$return = array();
 
-		foreach ($entities as $key => $entity) {
+		foreach ($returnEntities as $key => $entity) {
 
-			$entity->id = $result[$key]->return_id;
+			$entity->id = $returnsResult[$key]->return_id;
 
 			// Add created authorship
 			$entity->authorship->create(
-				new DateTimeImmutable(date('c', $result[$key]->created_at)),
-				$result[$key]->created_by
+				new DateTimeImmutable(date('c', $returnsResult[$key]->created_at)),
+				$returnsResult[$key]->created_by
 			);
 
 			// Add updated authorship
-			if ($result[$key]->updated_at) {
+			if ($returnsResult[$key]->updated_at) {
 				$entity->authorship->update(
-					new DateTimeImmutable(date('c', $result[$key]->updated_at)),
-					$result[$key]->updated_by
+					new DateTimeImmutable(date('c', $returnsResult[$key]->updated_at)),
+					$returnsResult[$key]->updated_by
 				);
 			}
 
-			$entity->calculatedBalance = $result[$key]->calculated_balance;
+			// Load the first item into the return
+			// @todo Make this an array of items
+			foreach ($itemEntities as $itemKey => $item) {
+				if ($item->returnID == $entity->id) {
+					$entity->item = $this->_loadItem($itemsResult[$itemKey], $item);
+					break;
+				}
+			}
 
-			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
-			$entity->item = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->item_id);
-
-			$entity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->exchange_item_id);
-
-			$entity->reason = $this->_reasons->get($result[$key]->reason);
-			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);
-
-			$entity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($entity->order);
-
-			$entity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($result[$key]->document_id);
-
-			$entity->note = $this->_orderLoader->getEntityLoader('notes')->getByID($result[$key]->note_id);
-
-			// Add the entity into the order
-			// $entity->order->addEntity($entity);
-
-			$return[$result[$key]->return_id] = $entities[$key];
+			$return[$entity->id] = $entity;
 		}
 
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
+	}
+
+	protected function _loadItem($itemResult, $itemEntity)
+	{
+		// Cast decimals to float
+		$itemEntity->listPrice      = (float) $itemEntity->listPrice;
+		$itemEntity->net            = (float) $itemEntity->net;
+		$itemEntity->discount       = (float) $itemEntity->discount;
+		$itemEntity->tax            = (float) $itemEntity->tax;
+		$itemEntity->taxRate        = (float) $itemEntity->taxRate;
+		$itemEntity->productTaxRate = (float) $itemEntity->productTaxRate;
+		$itemEntity->gross          = (float) $itemEntity->gross;
+		$itemEntity->rrp            = (float) $itemEntity->rrp;
+
+		// Only load the order and refunds if one is attached to the return
+		if ($itemEntity->orderID) {
+			$itemEntity->order   = $this->_orderLoader->getByID($itemEntity->orderID);
+			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
+
+			// Grab the item from the order for easy access
+			if ($itemEntity->orderItemID) {
+				$itemEntity->orderItem = $itemEntity->order->items[$itemEntity->orderItemID];
+			}
+		}
+
+		// Only load the exchange item if one is attached to the return item
+		if ($itemEntity->exchangeItemID) {
+			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, $itemEntity->order);
+		}
+
+		$itemEntity->reason     = $this->_reasons->get($itemResult->reason);
+		$itemEntity->resolution = $this->_resolutions->get($itemResult->resolution);
+		// $itemEntity->document   = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->document_id, $itemEntity->order);
+		$itemEntity->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
+
+		$itemEntity->status     = $this->_statuses->get($itemResult->status_code);
+
+		return $itemEntity;
 	}
 
 }
