@@ -71,7 +71,7 @@ class Collection implements \IteratorAggregate, \Countable
 	public function get($code)
 	{
 		if (!$this->exists($code)) {
-			throw new \InvalidArgumentException(sprintf('Item code `%i` not set on collection', $code));
+			throw new \InvalidArgumentException(sprintf('Code `%s` not set on this collection.', $code));
 		}
 
 		return $this->_items[$code];
