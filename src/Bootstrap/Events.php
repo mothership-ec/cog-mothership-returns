@@ -20,7 +20,7 @@ class Events implements EventsInterface, ContainerAwareInterface
 
 	public function registerEvents($dispatcher)
 	{
-		$dispatcher->addSubscriber(new EventListener);
+		$dispatcher->addSubscriber(new OrderReturn\EventListener);
 		$dispatcher->addSubscriber(new OrderReturn\Transaction\CreateListener);
 	}
 }

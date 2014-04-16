@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Bootstrap;
+namespace Message\Mothership\OrderReturn;
 
 use Message\Cog\Event\SubscriberInterface;
 use Message\Cog\Event\Event;
@@ -10,7 +10,7 @@ use Message\Mothership\Commerce\Order\Events as OrderEvents;
 use Message\Mothership\Commerce\Order\Event\BuildOrderTabsEvent;
 
 /**
- * Event listener for the OrderReturn component.
+ * Event listener for building the OrderReturn's menu.
  *
  * @author Laurence Roberts <laurence@message.co.uk>
  */

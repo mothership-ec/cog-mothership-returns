@@ -23,21 +23,21 @@ class CreateListener extends BaseListener implements SubscriberInterface
 	 */
 	static public function getSubscribedEvents()
 	{
-		return array(
-			OrderEvents::ENTITY_CREATE => array(
-				array('entityCreated'),
-			),
-		);
+		return [
+		OrderEvents::ENTITY_CREATE => [
+				['entityCreated',],
+			],
+		];
 	}
 
 	public function entityCreated(Event\EntityEvent $event)
 	{
 		$return = $event->getEntity();
-		if($return instanceof OrderReturn) {
+		if ($return instanceof OrderReturn) {
 			$transaction = new Transaction;
 			$transaction->addRecord($return);
 
-			if($return->refund) {
+			if ($return->refund) {
 				$transaction->addRecord($return->refund);
 			}
 

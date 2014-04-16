@@ -13,6 +13,7 @@ class Services implements ServicesInterface
 {
 	public function registerServices($services)
 	{
+
 		$services->extend('order.entities', function($entities, $c) {
 			$entities['returns'] = new Commerce\Order\Entity\CollectionOrderLoader(
 				new Commerce\Order\Entity\Collection,
@@ -39,8 +40,16 @@ class Services implements ServicesInterface
 		// Register decorators
 
 		$services['return.create'] = $services->factory(function($c) {
-			return new OrderReturn\Create($c['db.query'], $c['user.current'], $c['return.loader'], $c['order.item.edit'],
-				$c['return.reasons'], $c['return.resolutions'], $c['file.return_slip']);
+			return new OrderReturn\Create(
+				$c['db.transaction'],
+				$c['user.current'],
+				$c['return.loader'],
+				$c['order.item.edit'],
+				$c['return.reasons'],
+				$c['return.resolutions'],
+				$c['event.dispatcher'],
+				$c['file.return_slip']
+			);
 		});
 
 		$services['return.edit'] = $services->factory(function($c) {
@@ -52,13 +61,26 @@ class Services implements ServicesInterface
 			return new OrderReturn\File\ReturnSlip($c);
 		});
 
+		// Add basic item return statuses
 		$services->extend('order.item.statuses', function($statuses) {
-			// Add basic item return statuses
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::AWAITING_RETURN, 'Awaiting Return'));
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_RECEIVED, 'Return Received'));
 			$statuses->add(new Commerce\Order\Status\Status(OrderReturn\Statuses::RETURN_COMPLETED, 'Return Completed'));
 
 			return $statuses;
+		});
+
+		// Add transaction types & loaders
+		$services->extend('order.transaction.types', function($types) {
+			$types[OrderReturn\Transaction\Types::ORDER_RETURN] = 'Return';
+
+			return $types;
+		});
+
+		$services->extend('order.transaction.loader', function($loader, $c) {
+			$loader->addRecordLoader(OrderReturn\Entity\OrderReturn::RECORD_TYPE, $c['return.loader']);
+
+			return $loader;
 		});
 
 		// Extend stock movement reasons
