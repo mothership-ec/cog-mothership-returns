@@ -143,22 +143,50 @@ class Detail extends Controller
 					return $this->redirect($viewURL);
 				}
 
-				try {
-					// Send the refund payment
-					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
+				$stageParams = [
+					'returnID' => $return->id,
+					'hash'     => $this->get('checkout.hash')->encrypt(
+						$return->id,
+						$this->get('cfg')->payment->salt
+					);
+				];
 
-					// Set the balance to 0 to indicate it has been fully refunded
-					$return = $this->get('return.edit')->setBalance($return, 0);
+				return $this->forward($this->get('gateway')->getRefundControllerReference(), [
+					'payable'   => $return,
+					'reference' => $payment->reference,
+					'stages'    => new Gateway\StagesConfig([
+						'cancelRoute' => [
+							'route'  => 'ms.ecom.return.refund.unsuccessful',
+							'params' => $stageParams,
+						],
+						'failureRoute' => [
+							'route'  => 'ms.ecom.return.refund.unsuccessful',
+							'params' => $stageParams,
+						],
+						'successRoute' => [
+							'route'  => 'ms.ecom.return.refund.successful',
+							'params' => $stageParams,
+						],
+						'completeReference' => 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund#complete'
+					]),
+				]);
 
-					// Inform the user the payment was sent successfully
-					$this->addFlash('success', 'Return refunded');
-				}
-				catch (Exception $e) {
-					// If the payment failed, inform the user
-					$this->addFlash('error', $e->getMessage());
+				// try {
+				// 	// Send the refund payment
+				// 	$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
 
-					return $this->redirect($viewURL);
-				}
+				// 	// Set the balance to 0 to indicate it has been fully refunded
+				// 	$return = $this->get('return.edit')->setBalance($return, 0);
+
+				// 	// Inform the user the payment was sent successfully
+				// 	$this->addFlash('success', 'Return refunded');
+				// }
+				// catch (Exception $e) {
+				// 	// If the payment failed, inform the user
+				// 	$this->addFlash('error', $e->getMessage());
+
+				// 	return $this->redirect($viewURL);
+				// }
 			}
 			else {
 				// If refunding manually, just set the balance to 0 without checking for a payment

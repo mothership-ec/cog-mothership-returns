@@ -20,9 +20,9 @@
 
 			<dt>Your balance</dt>
 			{% if return.payeeIsClient() %}
-				<dd>{{ return.getPayableAmount() }}</dd>
+				<dd>{{ return.getPayableAmount()|price }} remaining</dd>
 			{% else %}
-				<dd><strong>You have no remaining balance to pay</strong></dd>
+				<dd>You have no remaining balance to pay</dd>
 			{% endif %}
 		</dl>
 

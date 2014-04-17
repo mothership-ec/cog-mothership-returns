@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Balance;
+namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Balance;
 
 use Message\Cog\Controller\Controller;
 
@@ -22,14 +22,18 @@ class Confirm extends Controller
 	{
 		$user   = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
-
-		if ($return->user->id != $user->id) {
+		if ($return->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
 
+		$form = $this->get('form')->setMethod('POST');
+		$form->setAction($this->generateUrl('ms.ecom.return.balance.process', array(
+			'returnID' => $return->id
+		)));
+
 		return $this->render('::return:balance:balance', array(
+			'form'    => $form,
 			'return'  => $return,
-			'form'    => $this->_getPaymentForm($order),
 			'amount'  => $return->getPayableAmount(),
 		));
 	}
@@ -46,18 +50,18 @@ class Confirm extends Controller
 		$user   = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
 
-		if ($return->user->id != $user->id) {
+		if ($return->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
 
-		// Forward the request to the gateway refund reference
-		return $this->forward($gateway->getRefundControllerReference(), [
-			'payable' => $return,
-			'stages'  => [
-				'cancelRoute'       => 'ms.ecom.return.payment.unsuccessful',
-				'failureRoute'      => 'ms.ecom.return.payment.unsuccessful',
-				'successRoute'      => 'ms.ecom.return.payment.successful',
-				'completeReference' => 'Message:Mothership:OrderReturn::Controller:Balance:Complete#complete'
+		// Forward the request to the gateway payment reference
+		return $this->forward($this->get('gateway')->getPurchaseControllerReference(), [
+			'payable'   => $return,
+			'stages'    => [
+				'cancelRoute'       => 'ms.ecom.return.balance.unsuccessful',
+				'failureRoute'      => 'ms.ecom.return.balance.unsuccessful',
+				'successRoute'      => 'ms.ecom.return.balance.successful',
+				'completeReference' => 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Complete#complete'
 			],
 		]);
 	}

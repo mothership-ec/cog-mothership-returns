@@ -1,8 +1,13 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Balance;
+namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Balance;
 
 use Message\Cog\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Message\Mothership\Commerce\Payable\PayableInterface;
+use Message\Mothership\Commerce\Order\Entity\Payment\Payment;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Message\Mothership\Commerce\Order\Entity\Payment\MethodInterface;
 use Message\Mothership\Ecommerce\Controller\Gateway\CompleteControllerInterface;
 
 /**
@@ -22,12 +27,25 @@ class Complete extends Controller implements CompleteControllerInterface
 	public function complete(PayableInterface $payable, $reference, array $stages, MethodInterface $method)
 	{
 		// Adjust the return's balance
+		$newBalance = ($payable->balance > 0)
+			? $payable->balance - $payable->getPayableAmount()
+			: $payable->balance + $payable->getPayableAmount();
+
+		$this->get('return.edit')->setBalance($payable, $newBalance);
 
 		// Append a new payment to the return's order
+		$payment            = new Payment;
+		$payment->method    = $method;
+		$payment->amount    = $payable->getPayableAmount();
+		$payment->reference = $reference;
 
+		$payable->order->payments->append($payment);
+
+		$salt = $this->get('cfg')->payment->salt;
 		$successUrl = $this->generateUrl('ms.ecom.return.balance.success', array(
 			'returnID' => $payable->id,
-		), true);
+			'hash'     => $this->get('checkout.hash')->encrypt($payable->id, $salt)
+		), UrlGeneratorInterface::ABSOLUTE_URL);
 
 		// Create json response with the success url
 		$response = new JsonResponse;
@@ -43,8 +61,15 @@ class Complete extends Controller implements CompleteControllerInterface
 	 *
 	 * @return \Message\Cog\HTTP\Response
 	 */
-	public function unsuccessful()
+	public function unsuccessful($returnID, $hash)
 	{
+		$salt = $this->get('cfg')->payment->salt;
+		$checkHash = $this->get('checkout.hash')->encrypt($returnID, $salt);
+
+		if ($hash != $checkHash) {
+			throw $this->createNotFoundException();
+		}
+
 		$this->render('Message:Mothership:OrderReturn::return:balance:error');
 	}
 
@@ -53,8 +78,19 @@ class Complete extends Controller implements CompleteControllerInterface
 	 *
 	 * @return \Message\Cog\HTTP\Response
 	 */
-	public function successful($returnID)
+	public function successful($returnID, $hash)
 	{
-		return $this->render('Message:Mothership:OrderReturn::return:balance:success');
+		$salt = $this->get('cfg')->payment->salt;
+		$checkHash = $this->get('checkout.hash')->encrypt($returnID, $salt);
+
+		if ($hash != $checkHash) {
+			throw $this->createNotFoundException();
+		}
+
+		$return = $this->get('return.loader')->getByID($returnID);
+
+		return $this->render('Message:Mothership:OrderReturn::return:balance:success', [
+			'return' => $return
+		]);
 	}
 }
