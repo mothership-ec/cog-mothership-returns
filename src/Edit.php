@@ -116,6 +116,9 @@ class Edit
 
 		$return->refund = $refund;
 
+		// Set the new balance of the return
+		$this->setBalance($return, $return->balance + $amount);
+
 		return $return;
 	}
 

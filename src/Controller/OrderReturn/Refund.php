@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Balance;
+namespace Message\Mothership\OrderReturn\Controller\OrderReturn;
 
 use Message\Cog\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,52 +22,39 @@ class Refund extends Controller implements CompleteControllerInterface
 	 *
 	 * {@inheritDoc}
 	 */
-	public function complete(PayableInterface $payable, $reference, array $stages, MethodInterface $method)
+	public function success(PayableInterface $payable, $reference, MethodInterface $method)
 	{
-		foreach ($payable->order->payments as $payment) {
+		$payment = null;
+
+		foreach ($payable->order->payments as $p) {
+			$payment = $p;
 			break;
 		}
 
 		$this->get('return.edit')->refund($payable, $method, $payable->getPayableAmount(), $payment);
 
-		$salt = $this->get('cfg')->payment->salt;
-		$successUrl = $this->generateUrl('ms.ecom.return.refund.success', array(
+		$successUrl = $this->generateUrl('ms.commerce.return.view', array(
 			'returnID' => $payable->id,
-			'hash'     => $this->get('checkout.hash')->encrypt($payable->id, $salt)
 		), UrlGeneratorInterface::ABSOLUTE_URL);
 
 		// Create json response with the success url
 		$response = new JsonResponse;
 		$response->setData([
-			'successUrl' => $successUrl,
+			'url' => $successUrl,
 		]);
 
 		return $response;
 	}
 
-	/**
-	 * Add an error message and redirect back to the return detail view.
-	 *
-	 * @return \Message\Cog\HTTP\Response
-	 */
-	public function unsuccessful($returnID)
+	public function cancel(PayableInterface $payable)
 	{
-		$return = $this->get('return.loader')->getByID($returnID);
-
-		$this->render('Message:Mothership:OrderReturn::return:balance:error');
+		return $this->failure($payable);
 	}
 
-	/**
-	 * Add a success message and redirect back to the return detail view.
-	 *
-	 * @return \Message\Cog\HTTP\Response
-	 */
-	public function successful($returnID)
+	public function failure(PayableInterface $payable)
 	{
-		$return = $this->get('return.loader')->getByID($returnID);
-
-		return $this->render('Message:Mothership:OrderReturn::return:balance:success', [
-			'return' => $return
+		return $this->redirectToRoute('ms.commerce.return.view', [
+			'returnID' => $payable->id
 		]);
 	}
 }

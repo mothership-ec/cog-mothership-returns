@@ -24,7 +24,7 @@ class Complete extends Controller implements CompleteControllerInterface
 	 *
 	 * {@inheritDoc}
 	 */
-	public function complete(PayableInterface $payable, $reference, array $stages, MethodInterface $method)
+	public function success(PayableInterface $payable, $reference, MethodInterface $method)
 	{
 		// Adjust the return's balance
 		$newBalance = ($payable->balance > 0)
@@ -41,36 +41,44 @@ class Complete extends Controller implements CompleteControllerInterface
 
 		$payable->order->payments->append($payment);
 
+		// Generate the confirmation url
 		$salt = $this->get('cfg')->payment->salt;
-		$successUrl = $this->generateUrl('ms.ecom.return.balance.success', array(
-			'returnID' => $payable->id,
-			'hash'     => $this->get('checkout.hash')->encrypt($payable->id, $salt)
-		), UrlGeneratorInterface::ABSOLUTE_URL);
+		$hash = $this->get('checkout.hash')->encrypt($payable->id, $salt);
 
-		// Create json response with the success url
+		$confirmation = $this->generateUrl('ms.ecom.return.balance.confirmation', [
+			'returnID' => $payable->id,
+			'hash'     => $hash,
+		], UrlGeneratorInterface::ABSOLUTE_URL);
+
+		// Return a JSON response with the confirmation url
 		$response = new JsonResponse;
 		$response->setData([
-			'successUrl' => $successUrl,
+			'url' => $confirmation,
 		]);
 
 		return $response;
 	}
 
 	/**
-	 * Show the error page for an unsuccessful balance payment.
-	 *
-	 * @return \Message\Cog\HTTP\Response
+	 * {@inheritDoc}
 	 */
-	public function unsuccessful($returnID, $hash)
+	public function cancel(PayableInterface $payable)
+	{
+		return $this->failure($payable);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function failure(PayableInterface $payable)
 	{
 		$salt = $this->get('cfg')->payment->salt;
-		$checkHash = $this->get('checkout.hash')->encrypt($returnID, $salt);
+		$hash = $this->get('checkout.hash')->encrypt($return->id, $salt);
 
-		if ($hash != $checkHash) {
-			throw $this->createNotFoundException();
-		}
-
-		$this->render('Message:Mothership:OrderReturn::return:balance:error');
+		return $this->redirectToRoute('ms.ecom.return.balance.error', [
+			'returnID' => $payable->id,
+			'hash'     => $hash,
+		]);
 	}
 
 	/**
@@ -78,7 +86,7 @@ class Complete extends Controller implements CompleteControllerInterface
 	 *
 	 * @return \Message\Cog\HTTP\Response
 	 */
-	public function successful($returnID, $hash)
+	public function confirmation($returnID, $hash)
 	{
 		$salt = $this->get('cfg')->payment->salt;
 		$checkHash = $this->get('checkout.hash')->encrypt($returnID, $salt);
@@ -92,5 +100,22 @@ class Complete extends Controller implements CompleteControllerInterface
 		return $this->render('Message:Mothership:OrderReturn::return:balance:success', [
 			'return' => $return
 		]);
+	}
+
+	/**
+	 * Show the error page for an unsuccessful balance payment.
+	 *
+	 * @return \Message\Cog\HTTP\Response
+	 */
+	public function error($returnID, $hash)
+	{
+		$salt = $this->get('cfg')->payment->salt;
+		$checkHash = $this->get('checkout.hash')->encrypt($returnID, $salt);
+
+		if ($hash != $checkHash) {
+			throw $this->createNotFoundException();
+		}
+
+		$this->render('Message:Mothership:OrderReturn::return:balance:error');
 	}
 }

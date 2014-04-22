@@ -55,13 +55,13 @@ class Confirm extends Controller
 		}
 
 		// Forward the request to the gateway payment reference
+		$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Complete';
 		return $this->forward($this->get('gateway')->getPurchaseControllerReference(), [
 			'payable'   => $return,
 			'stages'    => [
-				'cancelRoute'       => 'ms.ecom.return.balance.unsuccessful',
-				'failureRoute'      => 'ms.ecom.return.balance.unsuccessful',
-				'successRoute'      => 'ms.ecom.return.balance.successful',
-				'completeReference' => 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Complete#complete'
+				'cancel'   => $controller . '#cancel',
+				'failure'  => $controller . '#failure',
+				'success'  => $controller . '#success',
 			],
 		]);
 	}

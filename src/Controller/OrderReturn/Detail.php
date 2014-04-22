@@ -137,38 +137,25 @@ class Detail extends Controller
 
 				if (null === $payment) {
 					// If there are no payments to be refunded, inform the user
-					$this->addFlash('error', "There are no recorded payments for this order, please try refunding
-						manually");
+					$this->addFlash('error', "There are no recorded payments for
+						this order, please try refunding manually");
 
 					return $this->redirect($viewURL);
 				}
 
-				$stageParams = [
-					'returnID' => $return->id,
-					'hash'     => $this->get('checkout.hash')->encrypt(
-						$return->id,
-						$this->get('cfg')->payment->salt
-					);
-				];
+				// Set the return's balance
+				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
 
+				// Forward to the refund controller
+				$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
 				return $this->forward($this->get('gateway')->getRefundControllerReference(), [
 					'payable'   => $return,
 					'reference' => $payment->reference,
-					'stages'    => new Gateway\StagesConfig([
-						'cancelRoute' => [
-							'route'  => 'ms.ecom.return.refund.unsuccessful',
-							'params' => $stageParams,
-						],
-						'failureRoute' => [
-							'route'  => 'ms.ecom.return.refund.unsuccessful',
-							'params' => $stageParams,
-						],
-						'successRoute' => [
-							'route'  => 'ms.ecom.return.refund.successful',
-							'params' => $stageParams,
-						],
-						'completeReference' => 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund#complete'
-					]),
+					'stages'    => [
+						'cancel'  => $controller . '#cancel',
+						'failure' => $controller . '#failure',
+						'success' => $controller . '#success',
+					],
 				]);
 
 				// try {
@@ -191,10 +178,10 @@ class Detail extends Controller
 			else {
 				// If refunding manually, just set the balance to 0 without checking for a payment
 				$return = $this->get('return.edit')->setBalance($return, 0);
-			}
 
-			// Refund the return
-			$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
+				// Refund the return
+				$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
+			}
 		}
 
 		// Notify customer they owe the outstanding balance
