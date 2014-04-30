@@ -78,5 +78,9 @@ class Services implements ServicesInterface
 				$c['cfg']
 			);
 		});
+
+		$services['order.item.specification.returnable'] = function($c) {
+			return new OrderReturn\Specification\ItemIsReturnableSpecification;
+		};
 	}
 }
