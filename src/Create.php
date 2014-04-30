@@ -34,7 +34,7 @@ class Create implements DB\TransactionalInterface
 	protected $_resolutions;
 	protected $_eventDispatcher;
 	protected $_returnSlip;
-	protected $_transOverriden = false;
+	protected $_transOverridden = false;
 
 	public function __construct(
 		DB\Transaction $query,
@@ -57,7 +57,7 @@ class Create implements DB\TransactionalInterface
 	}
 
 	/**
-	 * Sets transaction and sets $_transOverriden to true
+	 * Sets transaction and sets $_transOverridden to true
 	 *
 	 * @param  DB\Transaction $trans transaction
 	 * @return Create                $this for chainability
@@ -65,7 +65,7 @@ class Create implements DB\TransactionalInterface
 	public function setTransaction(DB\Transaction $trans)
 	{
 		$this->_query = $trans;
-		$this->_transOverriden = true;
+		$this->_transOverridden = true;
 
 		return $this;
 	}
@@ -106,8 +106,6 @@ class Create implements DB\TransactionalInterface
 
 		$this->_query->setIDVariable('RETURN_ID');
 		$return->id = '@RETURN_ID';
-
-		de($return);
 
 		// Get the values for the return item
 		$returnItemValues = [
@@ -195,7 +193,7 @@ class Create implements DB\TransactionalInterface
 			$event
 		)->getReturn();
 
-		if (!$this->_transOverriden) {
+		if (!$this->_transOverridden) {
 			$this->_query->commit();
 
 			// Re-load the return to ensure it is ready to be passed to the return

@@ -4,9 +4,8 @@ namespace Message\Mothership\OrderReturn\Transaction;
 
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\Commerce\Order\Transaction\Transaction;
-use Message\Mothership\Commerce\Order\Events as OrderEvents;
-use Message\Mothership\Commerce\Order\Event;
-
+use Message\Mothership\OrderReturn\Events as Events;
+use Message\Mothership\OrderReturn\Event;
 use Message\Cog\Event\EventListener as BaseListener;
 
 use Message\Cog\Event\SubscriberInterface;
@@ -24,26 +23,20 @@ class CreateListener extends BaseListener implements SubscriberInterface
 	static public function getSubscribedEvents()
 	{
 		return [
-		OrderEvents::ENTITY_CREATE => [
-				['entityCreated',],
+		Events::CREATE_END => [
+				['returnCreated',],
 			],
 		];
 	}
 
-	public function entityCreated(Event\EntityEvent $event)
+	public function returnCreated(Event $event)
 	{
-		$return = $event->getEntity();
-		if ($return instanceof OrderReturn) {
-			$transaction = new Transaction;
-			$transaction->addRecord($return);
+		$return = $event->getReturn();
+		$transaction = new Transaction;
+		$transaction->addRecord($return);
 
-			if ($return->refund) {
-				$transaction->addRecord($return->refund);
-			}
+		$transaction->type = Types::ORDER_RETURN;
 
-			$transaction->type = 'return';
-
-			$this->get('order.transaction.create')->create($transaction);
-		}
+		$this->get('order.transaction.create')->create($transaction);
 	}
 }
