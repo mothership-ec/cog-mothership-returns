@@ -7,7 +7,7 @@ use Message\Cog\DB;
 use Message\Mothership\Commerce\Order;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
-class Loader extends Order\Entity\BaseLoader
+class Loader extends Order\Entity\BaseLoader implements Order\Transaction\RecordLoaderInterface
 {
 	protected $_query;
 	protected $_reasons;
@@ -26,6 +26,11 @@ class Loader extends Order\Entity\BaseLoader
 	{
 		return $this->_load($id, false);
 	}
+
+	public function getByRecordID($id)
+	{
+		return $this->getByID($id);
+	}	
 
 	public function getAll()
 	{
@@ -338,5 +343,4 @@ class Loader extends Order\Entity\BaseLoader
 
 		return $itemEntity;
 	}
-
 }

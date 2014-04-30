@@ -8,6 +8,7 @@ use Message\Cog\Bootstrap\EventsInterface;
 use Message\Cog\Service\ContainerInterface;
 use Message\Cog\Service\ContainerAwareInterface;
 
+
 class Events implements EventsInterface, ContainerAwareInterface
 {
 	protected $_services;
@@ -19,6 +20,7 @@ class Events implements EventsInterface, ContainerAwareInterface
 
 	public function registerEvents($dispatcher)
 	{
-		$dispatcher->addSubscriber(new EventListener);
+		$dispatcher->addSubscriber(new OrderReturn\EventListener);
+		$dispatcher->addSubscriber(new OrderReturn\Transaction\CreateListener);
 	}
 }

@@ -8,9 +8,11 @@ use InvalidArgumentException;
 use Message\User\UserInterface;
 
 use Message\Cog\DB;
+use Message\Cog\Event\Dispatcher;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
 use Message\Mothership\Commerce\Order\Order;
+use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Ecommerce\OrderItemStatuses;
@@ -19,8 +21,10 @@ use Message\Mothership\Ecommerce\OrderItemStatuses;
  * Order return creator.
  *
  * @author Laurence Roberts <laurence@message.co.uk>
+ *
+ * @todo ADD CREATE FOR EXCHANGE ITEM!!
  */
-class Create
+class Create implements DB\TransactionalInterface
 {
 	protected $_query;
 	protected $_currentUser;
@@ -28,25 +32,42 @@ class Create
 	protected $_itemEdit;
 	protected $_reasons;
 	protected $_resolutions;
+	protected $_eventDispatcher;
 	protected $_returnSlip;
+	protected $_transOverriden = false;
 
 	public function __construct(
-		DB\Query $query,
+		DB\Transaction $query,
 		UserInterface $currentUser,
 		Loader $loader,
-		$itemEdit,
+		OrderItemEdit $itemEdit,
 		Collection\Collection $reasons,
 		Collection\Collection $resolutions,
+		Dispatcher $eventDispatcher,
 		$returnSlip
-	)
+	) {
+		$this->_query           = $query;
+		$this->_currentUser     = $currentUser;
+		$this->_loader          = $loader;
+		$this->_itemEdit        = $itemEdit;
+		$this->_reasons         = $reasons;
+		$this->_resolutions     = $resolutions;
+		$this->_eventDispatcher = $eventDispatcher;
+		$this->_returnSlip      = $returnSlip;
+	}
+
+	/**
+	 * Sets transaction and sets $_transOverriden to true
+	 *
+	 * @param  DB\Transaction $trans transaction
+	 * @return Create                $this for chainability
+	 */
+	public function setTransaction(DB\Transaction $trans)
 	{
-		$this->_query       = $query;
-		$this->_currentUser = $currentUser;
-		$this->_loader      = $loader;
-		$this->_itemEdit    = $itemEdit;
-		$this->_reasons     = $reasons;
-		$this->_resolutions = $resolutions;
-		$this->_returnSlip  = $returnSlip;
+		$this->_query = $trans;
+		$this->_transOverriden = true;
+
+		return $this;
 	}
 
 	/**
@@ -69,8 +90,10 @@ class Create
 			);
 		}
 
+		$statusCode = ($return->item->status) ? $return->item->status->code : Statuses::AWAITING_RETURN;
+
 		// Create the return
-		$returnResult = $this->_query->run("
+		$this->_query->run("
 			INSERT INTO
 				`return`
 			SET
@@ -81,18 +104,23 @@ class Create
 			'createdBy' => $return->authorship->createdBy(),
 		]);
 
+		$this->_query->setIDVariable('RETURN_ID');
+		$return->id = '@RETURN_ID';
+
+		de($return);
+
 		// Get the values for the return item
 		$returnItemValues = [
 			'createdAt'      => $return->authorship->createdAt(),
 			'createdBy'      => $return->authorship->createdBy(),
-			'returnID'       => $returnResult->id(),
+			'returnID'       => $return->id,
 			'orderID'        => ($return->item->order) ? $return->item->order->id : null,
 			'orderItemID'    => ($return->item->orderItem) ? $return->item->orderItem->id : null,
 			'exchangeItemID' => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
 			'noteID'         => ($return->item->note) ? $return->item->note->id : null,
-			'statusCode'     => Statuses::AWAITING_RETURN,
-			'reason'         => $return->item->reason,
-			'resolution'     => $return->item->resolution,
+			'statusCode'     => $statusCode,
+			'reason'         => $return->item->reason->code,
+			'resolution'     => $return->item->resolution->code,
 			'balance'        => $return->item->balance,
 		];
 
@@ -106,7 +134,10 @@ class Create
 		];
 
 		foreach ($orderItemFields as $field) {
-			if ($return->item->orderItem and (!property_exists($return->item, $field) or !$return->item->$field)) {
+			if ($return->item->orderItem
+				and (!property_exists($return->item, $field)
+					or !$return->item->$field)) {
+
 				$returnItemValues[$field] = $return->item->orderItem->$field;
 			} else {
 				$returnItemValues[$field] = $return->item->$field;
@@ -149,24 +180,42 @@ class Create
 				weight_grams       = :weight?i
 		", $returnItemValues);
 
-		// Re-load the return to ensure it is ready to be passed to the return
-		// slip file factory, and to be returned from the method.
-		$return = $this->_loader->getByID($returnResult->id());
-
-		// Create the return slip and attach it to the return item
-		$document = $this->_returnSlip->save($return);
-		$this->_query->run("
-			UPDATE
-				`return`
-			SET
-				document_id = :documentID?i
-		", [
-			'documentID' => $document->id
-		]);
-
-		// If there is a related order item update it's status
+		// If there is a related order item update its status
 		if ($return->item->orderItem) {
-			$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::AWAITING_RETURN);
+			$this->_itemEdit
+				->setTransaction($this->_query)
+				->updateStatus($return->item->orderItem, $statusCode);
+		}
+
+		$event = new Event($return);
+		$event->setTransaction($this->_query);
+
+		$return = $this->_eventDispatcher->dispatch(
+			Events::CREATE_END,
+			$event
+		)->getReturn();
+
+		if (!$this->_transOverriden) {
+			$this->_query->commit();
+
+			// Re-load the return to ensure it is ready to be passed to the return
+			// slip file factory, and to be returned from the method.
+			$return = $this->_loader->getByID($this->_query->getIDVariable('RETURN_ID'));
+
+			// This should probably be moved to an event ?
+			// Create the return slip and attach it to the return item
+			$document = $this->_returnSlip->save($return);
+			$this->_query->run("
+				UPDATE
+					`return`
+				SET
+					document_id = :documentID?i
+				WHERE
+					return_id = :returnID?i
+			", [
+				'documentID' => $document->id,
+				'returnID'   => $return->id,
+			]);
 		}
 
 		return $return;
@@ -183,28 +232,27 @@ class Create
 	protected function _validate(Entity\OrderReturn $return)
 	{
 		// Ensure an item has been set for the return
-		if ($return->item->orderItem and ! $return->item->orderItem instanceof OrderItem) {
+		if (! $return->item->orderItem or ! $return->item->orderItem instanceof OrderItem) {
 			throw new InvalidArgumentException('Could not create return item: order item is not set or invalid');
 		}
 
-		if ($return->item->order and ! $return->item->order instanceof Order) {
+		if (! $return->item->order or ! $return->item->order instanceof Order) {
 			throw new InvalidArgumentException('Could not create return item: order is not set or invalid');
 		}
 
 		// Check the reason has been set and is valid
-		if (! $this->_reasons->exists($return->item->reason)) {
+		if (! $this->_reasons->exists($return->item->reason->code)) {
 			throw new InvalidArgumentException('Could not create return item: reason is not set or invalid');
 		}
 
 		// Check the resolution has been set and is valid
-		if (! $this->_resolutions->exists($return->item->resolution)) {
+		if (! $this->_resolutions->exists($return->item->resolution->code)) {
 			throw new InvalidArgumentException('Could not create return item: resolution is not set or invalid');
 		}
 
 		// If this is an exchange, check an exchange unit has been set
-		if ($return->item->resolution == 'exchange' and ! $return->item->exchangeItem) {
+		if ('exchange' == $return->item->resolution->code and ! $return->item->exchangeItem) {
 			throw new InvalidArgumentException('Could not create return item: exchange item required');
 		}
 	}
-
 }
