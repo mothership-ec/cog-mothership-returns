@@ -21,9 +21,12 @@ class Edit
 	protected $_itemEdit;
 	protected $_refundCreate;
 
-	public function __construct(DB\Query $query, UserInterface $user, Order\Entity\Item\Edit $itemEdit,
-		Order\Entity\Refund\Create $refundCreate)
-	{
+	public function __construct(
+		DB\Query $query,
+		UserInterface $user,
+		Order\Entity\Item\Edit $itemEdit,
+		Order\Entity\Refund\Create $refundCreate
+	) {
 		$this->_query = $query;
 		$this->_user  = $user;
 		$this->_itemEdit = $itemEdit;
