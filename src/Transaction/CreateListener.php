@@ -33,7 +33,7 @@ class CreateListener extends BaseListener implements SubscriberInterface
 	{
 		$return = $event->getReturn();
 		$transaction = new Transaction;
-		$transaction->addRecord($return);
+		$transaction->records->add($return);
 
 		$transaction->type = Types::ORDER_RETURN;
 
