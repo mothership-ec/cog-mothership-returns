@@ -37,6 +37,8 @@ class CreateListener extends BaseListener implements SubscriberInterface
 
 		$transaction->type = Types::ORDER_RETURN;
 
-		$this->get('order.transaction.create')->create($transaction);
+		$this->get('order.transaction.create')
+			->setDbTransaction($event->getTransaction())
+			->create($transaction);
 	}
 }
