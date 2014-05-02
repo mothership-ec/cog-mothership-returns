@@ -33,9 +33,23 @@ class CreateListener extends BaseListener implements SubscriberInterface
 	{
 		$return = $event->getReturn();
 		$transaction = new Transaction;
+		$transaction->type = Types::ORDER_RETURN;
+
 		$transaction->records->add($return);
 
-		$transaction->type = Types::ORDER_RETURN;
+		$payments = $return->item->order->payments->all();
+		foreach ($payments as $payment) {
+			if ($payment->return === $return) {
+				$transaction->records->add($payment);
+			}
+		}
+
+		$refunds = $return->item->order->refunds->all();
+		foreach ($refunds as $refund) {
+			if ($refund->return === $return) {
+				$transaction->records->add($refund);
+			}
+		}
 
 		$this->get('order.transaction.create')
 			->setDbTransaction($event->getTransaction())
