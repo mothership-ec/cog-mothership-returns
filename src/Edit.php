@@ -117,7 +117,7 @@ class Edit
 
 		$refund = $this->_refundCreate->create($refund);
 
-		$return->refund = $refund;
+		$return->item->order->refunds->append($refund);
 
 		return $return;
 	}
