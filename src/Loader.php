@@ -295,7 +295,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			// @todo Make this an array of items
 			foreach ($itemEntities as $itemKey => $item) {
 				if ($item->returnID == $entity->id) {
-					$entity->item = $this->_loadItem($itemsResult[$itemKey], $item);
+					$entity->item = $this->_loadItem($itemsResult[$itemKey], $item, $entity);
 					break;
 				}
 			}
@@ -306,7 +306,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
 	}
 
-	protected function _loadItem($itemResult, $itemEntity)
+	protected function _loadItem($itemResult, $itemEntity, $return)
 	{
 		// Cast decimals to float
 		$itemEntity->listPrice      = (float) $itemEntity->listPrice;
@@ -322,6 +322,11 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		if ($itemEntity->orderID) {
 			$itemEntity->order   = $this->_orderLoader->getByID($itemEntity->orderID);
 			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
+
+			// add return entity to refunds
+			foreach ($itemEntity->refunds as $refund) {
+				$refund->return = $return;
+			}
 
 			// Grab the item from the order for easy access
 			if ($itemEntity->orderItemID) {
