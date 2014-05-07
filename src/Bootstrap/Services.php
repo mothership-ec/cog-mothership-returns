@@ -111,12 +111,12 @@ class Services implements ServicesInterface
 				->add(new Commerce\Product\Stock\Movement\Reason\Reason(
 					'returned',
 					'Returned'
-				));
+				))
 				->add(new Commerce\Product\Stock\Movement\Reason\Reason(
 					'exchange_item',
 					'Exchange Item'
 				));
-				
+
 			return $reasons;
 		});
 
