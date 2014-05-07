@@ -41,19 +41,19 @@ class Complete extends Controller implements CompleteControllerInterface
 
 		$payable->order->payments->append($payment);
 
-		// Generate the confirmation url
+		// Generate the successful url
 		$salt = $this->get('cfg')->payment->salt;
 		$hash = $this->get('checkout.hash')->encrypt($payable->id, $salt);
 
-		$confirmation = $this->generateUrl('ms.ecom.return.balance.confirmation', [
+		$successful = $this->generateUrl('ms.ecom.return.balance.successful', [
 			'returnID' => $payable->id,
 			'hash'     => $hash,
 		], UrlGeneratorInterface::ABSOLUTE_URL);
 
-		// Return a JSON response with the confirmation url
+		// Return a JSON response with the successful url
 		$response = new JsonResponse;
 		$response->setData([
-			'url' => $confirmation,
+			'url' => $successful,
 		]);
 
 		return $response;
@@ -86,7 +86,7 @@ class Complete extends Controller implements CompleteControllerInterface
 	 *
 	 * @return \Message\Cog\HTTP\Response
 	 */
-	public function confirmation($returnID, $hash)
+	public function successful($returnID, $hash)
 	{
 		$salt = $this->get('cfg')->payment->salt;
 		$checkHash = $this->get('checkout.hash')->encrypt($returnID, $salt);
@@ -107,7 +107,7 @@ class Complete extends Controller implements CompleteControllerInterface
 	 *
 	 * @return \Message\Cog\HTTP\Response
 	 */
-	public function error($returnID, $hash)
+	public function unsuccessful($returnID, $hash)
 	{
 		$salt = $this->get('cfg')->payment->salt;
 		$checkHash = $this->get('checkout.hash')->encrypt($returnID, $salt);

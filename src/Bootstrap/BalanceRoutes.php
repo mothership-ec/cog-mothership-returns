@@ -14,7 +14,7 @@ class BalanceRoutes implements RoutesInterface
 			->setMethod('POST');
 		$router['ms.ecom.return']->add('ms.ecom.return.balance', '/{returnID}', 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Confirm#index');
 
-		$router['ms.ecom.return']->add('ms.ecom.return.balance.confirmation', '/{returnID}/confirmation/{hash}', 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Complete#confirmation');
-		$router['ms.ecom.return']->add('ms.ecom.return.balance.error', '/{returnID}/error/{hash}', 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Complete#error');
+		$router['ms.ecom.return']->add('ms.ecom.return.balance.successful', '/{returnID}/successful/{hash}', 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Complete#successful');
+		$router['ms.ecom.return']->add('ms.ecom.return.balance.unsuccessful', '/{returnID}/unsuccessful/{hash}', 'Message:Mothership:OrderReturn::Controller:OrderReturn:Balance:Complete#unsuccessful');
 	}
 }
