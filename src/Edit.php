@@ -113,7 +113,8 @@ class Edit
 		$refund->method = $method;
 		$refund->amount = $amount;
 		$refund->reason = 'Returned Item: ' . $return->item->reason;
-		$refund->order = $return->item->order;
+		$refund->order  = $return->item->order;
+		$refund->return = $return;
 
 		$refund = $this->_refundCreate->create($refund);
 
