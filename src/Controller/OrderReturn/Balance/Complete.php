@@ -73,9 +73,9 @@ class Complete extends Controller implements CompleteControllerInterface
 	public function failure(PayableInterface $payable)
 	{
 		$salt = $this->get('cfg')->payment->salt;
-		$hash = $this->get('checkout.hash')->encrypt($return->id, $salt);
+		$hash = $this->get('checkout.hash')->encrypt($payable->id, $salt);
 
-		return $this->redirectToRoute('ms.ecom.return.balance.error', [
+		return $this->redirectToRoute('ms.ecom.return.balance.unsuccessful', [
 			'returnID' => $payable->id,
 			'hash'     => $hash,
 		]);
@@ -116,6 +116,6 @@ class Complete extends Controller implements CompleteControllerInterface
 			throw $this->createNotFoundException();
 		}
 
-		$this->render('Message:Mothership:OrderReturn::return:balance:error');
+		return $this->render('Message:Mothership:OrderReturn::return:balance:error');
 	}
 }
