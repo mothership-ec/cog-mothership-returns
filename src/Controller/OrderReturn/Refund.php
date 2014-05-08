@@ -31,7 +31,7 @@ class Refund extends Controller implements CompleteControllerInterface
 			break;
 		}
 
-		$this->get('return.edit')->refund($payable, $method, $payable->getPayableAmount(), $payment);
+		$this->get('return.edit')->refund($payable, $method, $payable->getPayableAmount(), $payment, $reference);
 
 		$successUrl = $this->generateUrl('ms.commerce.return.view', array(
 			'returnID' => $payable->id,
