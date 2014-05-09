@@ -2,14 +2,12 @@
 
 {% block order_content %}
 	<section class="container-content">
-
-			{% if not returns is empty %}
-				{% for return in returns %}
-					{{ render(controller('Message:Mothership:OrderReturn::Controller:OrderReturn:Order:Detail#view', { 'returnID' : return.id } )) }}
-				{% endfor %}
-			{% else %}
-				<p>{{ 'ms.commerce.return.none'|trans }}</p>
-			{% endif %}
-
+		{% if not returns is empty %}
+			{% for return in returns %}
+				{{ render(controller('Message:Mothership:OrderReturn::Controller:OrderReturn:Order:Detail#view', { 'returnID' : return.id } )) }}
+			{% endfor %}
+		{% else %}
+			<p>{{ 'ms.commerce.return.none'|trans }}</p>
+		{% endif %}
 	</section>
 {% endblock %}
