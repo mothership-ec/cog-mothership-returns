@@ -152,7 +152,6 @@ class Create implements DB\TransactionalInterface
 				note_id            = :noteID?in,
 				status_code        = :statusCode?i,
 				reason             = :reason?s,
-				resolution         = :resolution?s,
 				calculated_balance = :balance?f,
 				list_price         = :listPrice?f,
 				net                = :net?f,
@@ -237,11 +236,6 @@ class Create implements DB\TransactionalInterface
 		// Check the reason has been set and is valid
 		if (! $this->_reasons->exists($return->item->reason->code)) {
 			throw new InvalidArgumentException('Could not create return item: reason is not set or invalid');
-		}
-
-		// Check the resolution has been set and is valid
-		if (! $this->_resolutions->exists($return->item->resolution->code)) {
-			throw new InvalidArgumentException('Could not create return item: resolution is not set or invalid');
 		}
 	}
 }

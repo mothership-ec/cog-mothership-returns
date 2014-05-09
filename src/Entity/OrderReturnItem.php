@@ -6,7 +6,6 @@ use Message\Cog\ValueObject\Authorship;
 use Message\Mothership\Commerce\Order;
 
 use Message\Mothership\OrderReturn\Statuses;
-use Message\Mothership\OrderReturn\Resolutions;
 
 class OrderReturnItem
 {
@@ -29,7 +28,6 @@ class OrderReturnItem
 	public $authorship;
 	public $status;
 	public $reason;
-	public $resolution;
 	public $accepted;
 	public $balance;
 	public $calculatedBalance;

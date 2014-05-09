@@ -4,8 +4,6 @@ namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Account;
 
 use Message\Cog\Controller\Controller;
 
-use Message\Mothership\OrderReturn\Reasons;
-use Message\Mothership\OrderReturn\Resolutions;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
 use Message\Mothership\Commerce\Order;
@@ -271,16 +269,11 @@ class Create extends Controller
 	 */
 	protected function _createForm($item)
 	{
-		$reasons = $resolutions = $units = array();
+		$reasons = $units = array();
 
 		foreach ($this->get('return.reasons') as $reason) {
 			$reasons[$reason->code] = $reason->name;
 		}
-
-		$resolutions = [
-			'exchange' => 'Exchange',
-			'refund'   => 'Refund',
-		];
 
 		foreach ($this->get('product.loader')->getAll() as $product) {
 			$productUnits = $this->get('product.unit.loader')->getByProduct($product);
@@ -301,7 +294,10 @@ class Create extends Controller
 		));
 
 		$form->add('resolution', 'choice', 'Do you require an exchange or refund?', array(
-			'choices' => $resolutions,
+			'choices' => [
+				'exchange' => 'Exchange',
+				'refund'   => 'Refund',
+			],
 			'empty_value' => '-- Please select a resolution --'
 		));
 

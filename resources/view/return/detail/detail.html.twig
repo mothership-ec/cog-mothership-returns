@@ -163,15 +163,13 @@
 						<dt>Reason </dt>
 							<dd>{{ returnItem.reason }}</dd>
 						<dt>Resolution </dt>
-							<dd>{{ returnItem.resolution }}
-							{% if returnItem.isExchangeResolution %}
-								{% if returnItem.exchangeItem %}
-									for <a href="{{ url('ms.commerce.product.edit.details', {productID: returnItem.exchangeItem.productID}) }}" data-live>{{ returnItem.exchangeItem.productName }} - {{ returnItem.exchangeItem.options }}</a>
-								{% else %}
-									{ERROR}
-								{% endif %}
+							{% if return.isExchangeResolution %}
+								<dd>
+									Exchange for <a href="{{ url('ms.commerce.product.edit.details', {productID: returnItem.exchangeItem.productID}) }}" data-live>{{ returnItem.exchangeItem.productName }} - {{ returnItem.exchangeItem.options }}</a>
+								</dd>
+							{% else %}
+								<dd>Refund</dd>
 							{% endif %}
-							</dd>
 						{% if not returnItem.hasBalance %}
 							{% if returnItem.payeeIsClient %}
 								<dt>Customer Balance</dt>
