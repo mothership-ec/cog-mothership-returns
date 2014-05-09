@@ -144,6 +144,8 @@ class OrderReturnItem
 
 	public function isExchanged()
 	{
+		if (! $this->isExchangeResolution()) return false;
+
 		return $this->exchangeItem->status->code >= Order\Statuses::AWAITING_DISPATCH;
 	}
 
