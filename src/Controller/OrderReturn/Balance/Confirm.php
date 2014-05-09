@@ -22,6 +22,11 @@ class Confirm extends Controller
 	{
 		$user   = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
+
+		if (! $return) {
+			throw $this->createNotFoundException();
+		}
+
 		if ($return->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
