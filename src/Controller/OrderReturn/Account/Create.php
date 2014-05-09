@@ -207,7 +207,6 @@ class Create extends Controller
 		$data = $this->get('http.session')->get('return.data');
 
 		$reason     = $this->get('return.reasons')->get($data['reason']);
-		$resolution = $this->get('return.resolutions')->get($data['resolution']);
 
 		// Create the return
 		$return = new OrderReturn;
@@ -218,26 +217,26 @@ class Create extends Controller
 		$return->item->order      = $orderItem->order;
 		$return->item->orderItem  = $orderItem;
 		$return->item->reason     = $reason->code;
-		$return->item->resolution = $resolution->code;
 
 		if (isset($data['note']) and ! empty($data['note'])) {
 			// Add a note to the return
 			$this->_addNote($return, $data['note']);
 		}
 
-		if ('exchange' == $resolution->code) {
+		if ($data['exchangeUnit']) {
 			// Add an exchange item to the return
 			$this->_addExchangeItem($return, $data['exchangeUnit']);
 		}
-		elseif ('refund' == $resolution->code) {
+		else {
 			// Set the balance as the list price of the returned item
+			// for the refund
 			$return->item->balance = 0 - $orderItem->gross;
 		}
 
 		// Save the return object
 		$return = $this->get('return.create')->create($return);
 
-		if ('exchange' == $resolution->code) {
+		if ($return->item->exchangeItem) {
 			// Create a stock movement for the return exchange
 			$this->_moveStock($return);
 		}
@@ -278,9 +277,10 @@ class Create extends Controller
 			$reasons[$reason->code] = $reason->name;
 		}
 
-		foreach ($this->get('return.resolutions') as $resolution) {
-			$resolutions[$resolution->code] = $resolution->name;
-		}
+		$resolutions = [
+			'exchange' => 'Exchange',
+			'refund'   => 'Refund',
+		];
 
 		foreach ($this->get('product.loader')->getAll() as $product) {
 			$productUnits = $this->get('product.unit.loader')->getByProduct($product);

@@ -31,7 +31,6 @@ class Create implements DB\TransactionalInterface
 	protected $_loader;
 	protected $_itemEdit;
 	protected $_reasons;
-	protected $_resolutions;
 	protected $_eventDispatcher;
 	protected $_returnSlip;
 	protected $_transOverridden = false;
@@ -42,7 +41,6 @@ class Create implements DB\TransactionalInterface
 		Loader $loader,
 		OrderItemEdit $itemEdit,
 		Collection\Collection $reasons,
-		Collection\Collection $resolutions,
 		Dispatcher $eventDispatcher,
 		$returnSlip
 	) {
@@ -51,7 +49,6 @@ class Create implements DB\TransactionalInterface
 		$this->_loader          = $loader;
 		$this->_itemEdit        = $itemEdit;
 		$this->_reasons         = $reasons;
-		$this->_resolutions     = $resolutions;
 		$this->_eventDispatcher = $eventDispatcher;
 		$this->_returnSlip      = $returnSlip;
 	}
@@ -118,7 +115,6 @@ class Create implements DB\TransactionalInterface
 			'noteID'         => ($return->item->note) ? $return->item->note->id : null,
 			'statusCode'     => $statusCode,
 			'reason'         => $return->item->reason->code,
-			'resolution'     => $return->item->resolution->code,
 			'balance'        => $return->item->balance,
 		];
 
@@ -246,11 +242,6 @@ class Create implements DB\TransactionalInterface
 		// Check the resolution has been set and is valid
 		if (! $this->_resolutions->exists($return->item->resolution->code)) {
 			throw new InvalidArgumentException('Could not create return item: resolution is not set or invalid');
-		}
-
-		// If this is an exchange, check an exchange unit has been set
-		if ('exchange' == $return->item->resolution->code and ! $return->item->exchangeItem) {
-			throw new InvalidArgumentException('Could not create return item: exchange item required');
 		}
 	}
 }

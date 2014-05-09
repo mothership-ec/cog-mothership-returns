@@ -97,12 +97,12 @@ class OrderReturnItem
 
 	public function isRefundResolution()
 	{
-		return $this->resolution->code == 'refund';
+		return null === $this->exchangeItemID;
 	}
 
 	public function isExchangeResolution()
 	{
-		return $this->resolution->code == 'exchange';
+		return null !== $this->exchangeItemID;
 	}
 
 	public function hasBalance()
