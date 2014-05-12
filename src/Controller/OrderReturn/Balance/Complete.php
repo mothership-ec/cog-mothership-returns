@@ -26,17 +26,21 @@ class Complete extends Controller implements CompleteControllerInterface
 	 */
 	public function success(PayableInterface $payable, $reference, MethodInterface $method)
 	{
+		// Get the amount before adjusting the balance to ensure we can use it
+		// afterwards
+		$amount = $payable->getPayableAmount();
+
 		// Adjust the return's balance
 		$newBalance = ($payable->balance > 0)
-			? $payable->balance - $payable->getPayableAmount()
-			: $payable->balance + $payable->getPayableAmount();
+			? $payable->balance - $amount
+			: $payable->balance + $amount;
 
 		$this->get('return.edit')->setBalance($payable, $newBalance);
 
 		// Append a new payment to the return's order
 		$payment            = new Payment;
 		$payment->method    = $method;
-		$payment->amount    = $payable->getPayableAmount();
+		$payment->amount    = $amount;
 		$payment->reference = $reference;
 
 		$payable->order->payments->append($payment);
