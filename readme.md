@@ -1,32 +1,17 @@
 # Mothership Returns
 
-_n.b. Namespaces and classes are called `OrderReturn` due to PHP having `return` as a reserved word._
+_description_
 
 ## Installation
 
-Install this package using [Composer](http://getcomposer.org/). The package name is `message/cog-mothership-returns`.
+Add `"message/cog-mothership-returns": "1.0.*"` to your `composer.json`.
 
-You will need to add Message's private package server to the `repositories` key in `composer.json`:
 
-```
-{
-	"repositories": [
-		{
-			"type": "composer",
-			"url" : "http://packages.message.co.uk"
-		}
-	],
-	"require": {
-		"message/cog-mothership-returns": "1.0.*"
-	}
-}
-```
+## Assembler
 
-## Todo
+_assembler usage_
 
-- ~~Exchange integration with dispatches~~ (changed to use default item dispatch status)
-- Email notifications
-- Payment integration (requires testing)
-- Order view tab
-- ~~Front end~~
-- ~~Stock integration~~
+
+## Notes
+
+Namespaces and classes are called `OrderReturn` due to PHP having `return` as a reserved word.
