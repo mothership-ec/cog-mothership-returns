@@ -33,7 +33,13 @@
 						<td>{{ returnItem.productName }}</td>
 						<td>{{ return.authorship.createdAt|date }}</td>
 						<td><a href="{#{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }#}">{{ return.authorship.createdUser.name }}</a></td>
-						<td>{{ returnItem.resolution }}</td>
+						<td>
+							{% if returnItem.isExchangeResolution %}
+								Exchange
+							{% else %}
+								Refund
+							{% endif %}
+						</td>
 						<td>{{ returnItem.status }}</td>
 						<td>
 							{% if not returnItem.hasBalance %}

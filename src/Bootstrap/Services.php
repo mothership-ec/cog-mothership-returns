@@ -20,7 +20,6 @@ class Services implements ServicesInterface
 				new OrderReturn\Loader(
 					$c['db.query'],
 					$c['return.reasons'],
-					$c['return.resolutions'],
 					$c['order.item.statuses']
 				)
 			);
@@ -36,11 +35,6 @@ class Services implements ServicesInterface
 			return new Collection\Collection(array());
 		};
 
-		// Register empty resolutions collection
-		$services['return.resolutions'] = function($c) {
-			return new Collection\Collection(array());
-		};
-
 		// Register decorators
 
 		$services['return.create'] = $services->factory(function($c) {
@@ -50,7 +44,6 @@ class Services implements ServicesInterface
 				$c['return.loader'],
 				$c['order.item.edit'],
 				$c['return.reasons'],
-				$c['return.resolutions'],
 				$c['event.dispatcher'],
 				$c['file.return_slip']
 			);

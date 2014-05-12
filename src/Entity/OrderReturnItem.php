@@ -6,7 +6,6 @@ use Message\Cog\ValueObject\Authorship;
 use Message\Mothership\Commerce\Order;
 
 use Message\Mothership\OrderReturn\Statuses;
-use Message\Mothership\OrderReturn\Resolutions;
 
 class OrderReturnItem
 {
@@ -29,7 +28,6 @@ class OrderReturnItem
 	public $authorship;
 	public $status;
 	public $reason;
-	public $resolution;
 	public $accepted;
 	public $balance;
 	public $calculatedBalance;
@@ -97,12 +95,12 @@ class OrderReturnItem
 
 	public function isRefundResolution()
 	{
-		return $this->resolution->code == 'refund';
+		return null === $this->exchangeItemID;
 	}
 
 	public function isExchangeResolution()
 	{
-		return $this->resolution->code == 'exchange';
+		return null !== $this->exchangeItemID;
 	}
 
 	public function hasBalance()
@@ -146,6 +144,8 @@ class OrderReturnItem
 
 	public function isExchanged()
 	{
+		if (! $this->isExchangeResolution()) return false;
+
 		return $this->exchangeItem->status->code >= Order\Statuses::AWAITING_DISPATCH;
 	}
 

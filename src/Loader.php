@@ -11,15 +11,13 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 {
 	protected $_query;
 	protected $_reasons;
-	protected $_resolutions;
 	protected $_statuses;
 
-	public function __construct(DB\Query $query, $reasons, $resolutions, $statuses)
+	public function __construct(DB\Query $query, $reasons, $statuses)
 	{
-		$this->_query          = $query;
-		$this->_reasons        = $reasons;
-		$this->_resolutions    = $resolutions;
-		$this->_statuses       = $statuses;
+		$this->_query    = $query;
+		$this->_reasons  = $reasons;
+		$this->_statuses = $statuses;
 	}
 
 	public function getByID($id)
@@ -30,7 +28,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 	public function getByRecordID($id)
 	{
 		return $this->getByID($id);
-	}	
+	}
 
 	public function getAll()
 	{
@@ -340,7 +338,6 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		}
 
 		$itemEntity->reason     = $this->_reasons->get($itemResult->reason);
-		$itemEntity->resolution = $this->_resolutions->get($itemResult->resolution);
 		// $itemEntity->document   = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->document_id, $itemEntity->order);
 		$itemEntity->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
 
