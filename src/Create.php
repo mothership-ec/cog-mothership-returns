@@ -70,6 +70,9 @@ class Create implements DB\TransactionalInterface
 	/**
 	 * Save a return entity into the database.
 	 *
+	 * @todo   Create an order when an exchange item is added to a standalone
+	 *         return.
+	 * @todo   Handle moving stock for returned item and exchange item.
 	 * @todo   Update to handle multiple return items.
 	 *
 	 * @param  Entity\OrderReturn $return
@@ -87,7 +90,9 @@ class Create implements DB\TransactionalInterface
 			);
 		}
 
-		$statusCode = ($return->item->status) ? $return->item->status->code : Statuses::AWAITING_RETURN;
+		$statusCode = ($return->item->status)
+			? $return->item->status->code
+			: Statuses::AWAITING_RETURN;
 
 		// Create the return
 		$this->_query->run("
@@ -103,6 +108,12 @@ class Create implements DB\TransactionalInterface
 
 		$this->_query->setIDVariable('RETURN_ID');
 		$return->id = '@RETURN_ID';
+
+		// Create the related note if there is one
+		if ($return->item->note) {
+			$this->_noteCreate->setTransaction($this->_query);
+			$this->_noteCreate->create($return->item->note);
+		}
 
 		// Get the values for the return item
 		$returnItemValues = [

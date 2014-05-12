@@ -204,43 +204,31 @@ class Create extends Controller
 
 		$data = $this->get('http.session')->get('return.data');
 
-		$reason       = $this->get('return.reasons')->get($data['reason']);
-		$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
+		$reason = $this->get('return.reasons')->get($data['reason']);
 
-		$return = $this->get('return.factory')
+		$assembler = $this->get('return.assembler')
 			->setReturnItem($orderItem)
-			->setReason($reason)
-			->setExchangeItem($exchangeUnit)
-			->getReturn();
-
-
-		// Create the return
-		$return = new OrderReturn;
-
-		// @todo make this an array of items
-		$return->item = new OrderReturnItem;
-
-		$return->item->order      = $orderItem->order;
-		$return->item->orderItem  = $orderItem;
-		$return->item->reason     = $reason->code;
-
-		if (isset($data['note']) and ! empty($data['note'])) {
-			// Add a note to the return
-			$this->_addNote($return, $data['note']);
-		}
+			->setReason($reason);
 
 		if ($data['exchangeUnit']) {
-			// Add an exchange item to the return
-			$this->_addExchangeItem($return, $data['exchangeUnit']);
-		}
-		else {
-			// Set the balance as the list price of the returned item
-			// for the refund
-			$return->item->balance = 0 - $orderItem->gross;
+			$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
+			$assembler->setExchangeItem($exchangeUnit)
 		}
 
-		// Save the return object
+		if (isset($data['note']) and ! empty($data['note'])) {
+			$note = new Note;
+			$note->note = $data['note'];
+
+			$assembler->setNote($note);
+		}
+
+		$return = $assembler->getReturn();
+
 		$return = $this->get('return.create')->create($return);
+
+		return $this->redirect($this->generateUrl('ms.user.return.complete', [
+			'returnID' => $return->id
+		]));
 
 		if ($return->item->exchangeItem) {
 			// Create a stock movement for the return exchange
@@ -347,26 +335,6 @@ class Create extends Controller
 	}
 
 	/**
-	 * Add a note to the return.
-	 *
-	 * @param OrderReturn $return
-	 * @param string      $message
-	 */
-	protected function _addNote($return, $message)
-	{
-		$note = new Note;
-
-		$note->order            = $return->item->order;
-		$note->note             = $message;
-		$note->raisedFrom       = 'return';
-		$note->customerNotified = 0;
-
-		$note = $this->get('order.note.create')->create($note);
-
-		$return->item->note = $note;
-	}
-
-	/**
 	 * Add an exchange item to the return.
 	 *
 	 * @param OrderReturn $return
@@ -374,16 +342,6 @@ class Create extends Controller
 	 */
 	protected function _addExchangeItem($return, $unitID)
 	{
-		// Get the exchanged unit
-		$unit = $this->get('product.unit.loader')->getByID($unitID);
-
-		// Create an exchange item
-		$exchangeItem = new Item;
-		$exchangeItem->order = $return->item->order;
-
-		// Populate the item from the unit
-		$exchangeItem->populate($unit);
-
 		$stockLocations = $this->get('stock.locations');
 
 		$exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
@@ -392,9 +350,6 @@ class Create extends Controller
 		$return->item->order->items->append($exchangeItem);
 
 		$return->item->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
-
-		// Set the balance as the difference in price between the exchanged and returned items
-		$return->item->balance = $return->item->exchangeItem->gross - $return->item->orderItem->gross;
 	}
 
 	/**

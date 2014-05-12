@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Factory;
+namespace Message\Mothership\OrderReturn;
 
 use LogicException;
 use InvalidArgumentException;
@@ -12,14 +12,11 @@ use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Note\Note as OrderNote;
 
 /**
- * Factory for creating returns.
- *
- * @todo Should this be renamed to Assembler since it's not technically a
- *       factory and has no create() method?
+ * Assembler for creating returns.
  *
  * @author Laurence Roberts <laurence@message.co.uk>
  */
-class Factory
+class Assembler
 {
 	const NOTE_RAISED_FROM_RETURN = 'return';
 
@@ -94,6 +91,8 @@ class Factory
 	/**
 	 * Set the return item from an OrderItem.
 	 *
+	 * @todo   Verify how the returnedValue should be calculated.
+	 *
 	 * @param  OrderItem $item
 	 * @return Factory
 	 */
@@ -104,9 +103,7 @@ class Factory
 		$returnItem->order = $item->order;
 		$returnItem->orderItem = $item;
 
-		// @todo Verify how this value should be calculated
 		$returnItem->returnedValue = $item->gross;
-
 		$returnItem->calculatedBalance = 0 - $item->gross;
 
 		$this->_returnItem = $returnItem;
@@ -118,6 +115,8 @@ class Factory
 	/**
 	 * Set the return item from a ProductUnit.
 	 *
+	 * @todo   Get the correct currency id from somewhere.
+	 *
 	 * @param  ProductUnit $unit
 	 * @return Factory
 	 */
@@ -125,7 +124,8 @@ class Factory
 	{
 		$returnItem = new OrderReturnItem;
 
-		// @todo Get the correct currency id from somewhere
+		$currencyID = null;
+
 		$returnItem->listPrice         = $unit->getPrice('retail', $currencyID);
 		$returnItem->rrp               = $unit->getPrice('rrp', $currencyID);
 
@@ -202,27 +202,26 @@ class Factory
 	public function setExchangeItem(ProductUnit $unit)
 	{
 		if (! $this->_returnItem) {
-			throw new LogicException("You must first call setReturnItem() before setExchangeItem()");
+			throw new LogicException("You can not set the exchange item without having previously set the return item");
 		}
 
-		// @todo Add standalone logic for creating the order
-
 		$item = new OrderItem;
+
+		if ($this->_returnItem->order) {
+			$this->_returnItem->order->append($item);
+		}
+
 		$item->populate($unit);
 
 		$item->status = null;
 		$item->stockLocation = null;
 
-		// @todo Append exchange item to order
-
-		// @todo Create exchange item?
-
 		$balance = 0 - ($item->gross - $this->_returnItem->calculatedBalance);
 
 		$this->_returnItem->calculatedBalance = $balance;
 
-		$this->_exchangeItem = $exchangeItem;
-		$this->_returnItem->exchangeItem = $exchangeItem;
+		$this->_exchangeItem = $item;
+		$this->_returnItem->exchangeItem = $item;
 
 		return $this;
 	}
