@@ -21,8 +21,9 @@ use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 class Factory
 {
 	protected $_return;
-	protected $_exchangeItem;
 	protected $_returnItem;
+	protected $_exchangeItem;
+	protected $_note;
 
 	/**
 	 * Set the return to use in the factory.
@@ -106,8 +107,21 @@ class Factory
 	{
 		$returnItem = new OrderReturnItem;
 
-		// $returnItem->order = $item->order;
-		// $returnItem->orderItem = $item;
+		// @todo Get the correct currency id from somewhere
+		$returnItem->listPrice = $unit->getPrice('retail', $currencyID);
+		$returnItem->rrp       = $unit->getPrice('rrp', $currencyID);
+
+		$returnItem->productTaxRate = (float) $unit->product->taxRate;
+		$returnItem->taxStrategy    = $unit->product->taxStrategy;
+		$returnItem->productID      = $unit->product->id;
+		$returnItem->productName    = $unit->product->name;
+		$returnItem->unitID         = $unit->id;
+		$returnItem->unitRevision   = $unit->revisionID;
+		$returnItem->sku            = $unit->sku;
+		$returnItem->barcode        = $unit->barcode;
+		$returnItem->options        = implode($unit->options, ', ');
+		$returnItem->brand          = $unit->product->brand;
+		$returnItem->weight         = (int) $unit->weight;
 
 		$returnItem->returnedValue = null;
 		$returnItem->calculatedBalance = null;
@@ -171,7 +185,7 @@ class Factory
 		$this->_returnItem->calculatedBalance = $balance;
 
 		$this->_exchangeItem = $exchangeItem;
-		$this->_return->item->exchangeItem = $exchangeItem;
+		$this->_returnItem->exchangeItem = $exchangeItem;
 
 		return $this;
 	}
