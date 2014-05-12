@@ -41,6 +41,8 @@ class Complete extends Controller implements CompleteControllerInterface
 
 		$payable->order->payments->append($payment);
 
+		$this->get('order.payment.create')->create($payment);
+
 		// Generate the successful url
 		$salt = $this->get('cfg')->payment->salt;
 		$hash = $this->get('checkout.hash')->encrypt($payable->id, $salt);
