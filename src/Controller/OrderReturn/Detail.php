@@ -157,23 +157,6 @@ class Detail extends Controller
 						'success' => $controller . '#success',
 					],
 				]);
-
-				// try {
-				// 	// Send the refund payment
-				// 	$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
-
-				// 	// Set the balance to 0 to indicate it has been fully refunded
-				// 	$return = $this->get('return.edit')->setBalance($return, 0);
-
-				// 	// Inform the user the payment was sent successfully
-				// 	$this->addFlash('success', 'Return refunded');
-				// }
-				// catch (Exception $e) {
-				// 	// If the payment failed, inform the user
-				// 	$this->addFlash('error', $e->getMessage());
-
-				// 	return $this->redirect($viewURL);
-				// }
 			}
 			else {
 				// If refunding manually, just set the balance to 0 without checking for a payment
