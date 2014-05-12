@@ -204,7 +204,15 @@ class Create extends Controller
 
 		$data = $this->get('http.session')->get('return.data');
 
-		$reason     = $this->get('return.reasons')->get($data['reason']);
+		$reason       = $this->get('return.reasons')->get($data['reason']);
+		$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
+
+		$return = $this->get('return.factory')
+			->setReturnItem($orderItem)
+			->setReason($reason)
+			->setExchangeItem($exchangeUnit)
+			->getReturn();
+
 
 		// Create the return
 		$return = new OrderReturn;
