@@ -63,18 +63,20 @@ class Create implements DB\TransactionalInterface
 		StockLocations $stockLocations,
 		StockMovementReasonCollection $stockMovementReasons
 	) {
-		$this->_query           = $query;
-		$this->_currentUser     = $currentUser;
-		$this->_eventDispatcher = $eventDispatcher;
+		$this->_query                = $query;
+		$this->_currentUser          = $currentUser;
+		$this->_eventDispatcher      = $eventDispatcher;
 
-		$this->_loader          = $loader;
-		$this->_unitLoader      = $unitLoader;
+		$this->_loader               = $loader;
+		$this->_unitLoader           = $unitLoader;
 
-		$this->_returnReasons   = $returnReasons;
-		$this->_returnSlip      = $returnSlip;
+		$this->_orderItemEdit        = $orderItemEdit;
 
-		$this->_stockManager    = $stockManager;
-		$this->_stockLocations  = $stockLocations;
+		$this->_returnReasons        = $returnReasons;
+		$this->_returnSlip           = $returnSlip;
+
+		$this->_stockManager         = $stockManager;
+		$this->_stockLocations       = $stockLocations;
 		$this->_stockMovementReasons = $stockMovementReasons;
 	}
 
