@@ -37,6 +37,12 @@ class Services implements ServicesInterface
 
 		// Register decorators
 
+		$services['return.assembler'] = $services->factory(function($c) {
+			return new OrderReturn\Assembler(
+				$c['order.item.statuses']
+			);
+		});
+
 		$services['return.create'] = $services->factory(function($c) {
 			return new OrderReturn\Create(
 				$c['db.transaction'],

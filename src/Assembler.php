@@ -4,12 +4,15 @@ namespace Message\Mothership\OrderReturn;
 
 use LogicException;
 use InvalidArgumentException;
-use Message\Mothership\OrderReturn\Collection;
+use Message\Mothership\Commerce\Refund\Refund;
+use Message\Mothership\Commerce\Payment\Payment;
+use Message\Mothership\OrderReturn\ReturnStatuses;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
 use Message\Mothership\Commerce\Product\Unit\Unit as ProductUnit;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Note\Note as OrderNote;
+use Message\Mothership\Commerce\Order\Status\Collection as StatusCollection;
 
 /**
  * Assembler for creating returns.
@@ -42,10 +45,29 @@ class Assembler
 	protected $_exchangeItem;
 
 	/**
+	 * The list of payments made by the customer on this return.
+	 *
+	 * @var Payment
+	 */
+	protected $_payments;
+
+	/**
+	 * The list of refunds made by the seller on this return.
+	 *
+	 * @var Refund
+	 */
+	protected $_refunds;
+
+	public function __construct(StatusCollection $statuses)
+	{
+		$this->_statuses = $statuses;
+	}
+
+	/**
 	 * Set the return to use in the factory.
 	 *
 	 * @param  OrderReturn $return
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function setReturn(OrderReturn $return)
 	{
@@ -57,7 +79,7 @@ class Assembler
 	/**
 	 * Get the return being built.
 	 *
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function getReturn()
 	{
@@ -68,7 +90,7 @@ class Assembler
 	 * Set the return item from either an OrderItem or ProductUnit.
 	 *
 	 * @param  OrderItem|ProductUnit $item
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function setReturnItem($item)
 	{
@@ -94,7 +116,7 @@ class Assembler
 	 * @todo   Verify how the returnedValue should be calculated.
 	 *
 	 * @param  OrderItem $item
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function setReturnItemFromOrderItem(OrderItem $item)
 	{
@@ -118,7 +140,7 @@ class Assembler
 	 * @todo   Get the correct currency id from somewhere.
 	 *
 	 * @param  ProductUnit $unit
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function setReturnItemFromProductUnit(ProductUnit $unit)
 	{
@@ -154,7 +176,7 @@ class Assembler
 	 * Set the reason for the return onto the return item.
 	 *
 	 * @param  Collection\Item $reason
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function setReason(Collection\Item $reason)
 	{
@@ -172,7 +194,7 @@ class Assembler
 	 * standalone return and apply the default values.
 	 *
 	 * @param  OrderNote $note
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function setNote(OrderNote $note)
 	{
@@ -197,7 +219,7 @@ class Assembler
 	 * Set the exchange item from a ProductUnit.
 	 *
 	 * @param  ProductUnit $unit
-	 * @return Factory
+	 * @return Assembler
 	 */
 	public function setExchangeItem(ProductUnit $unit)
 	{
@@ -222,6 +244,120 @@ class Assembler
 
 		$this->_exchangeItem = $item;
 		$this->_returnItem->exchangeItem = $item;
+
+		return $this;
+	}
+
+	/**
+	 * Add a payment to the return.
+	 *
+	 * @param  Payment $payment
+	 * @return Assembler
+	 */
+	public function addPayment(Payment $payment)
+	{
+		$this->_payments[] = $payment;
+
+		return $this;
+	}
+
+	/**
+	 * Clear out and reset the payments to a given list.
+	 *
+	 * @param  array[Payment] $payments
+	 * @return Assembler
+	 */
+	public function setPayments(array $payments)
+	{
+		$this->clearPayments();
+
+		foreach ($payments as $payment) {
+			$this->addPayment($payment);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Clear out the list of payments.
+	 *
+	 * @return Assembler
+	 */
+	public function clearPayments()
+	{
+		$this->_payments = [];
+
+		return $this;
+	}
+
+	/**
+	 * Add a refund to the return.
+	 *
+	 * @param  Refund $refund
+	 * @return Assembler
+	 */
+	public function addRefund(Refund $refund)
+	{
+		$this->_refunds[] = $refund;
+
+		return $this;
+	}
+
+	/**
+	 * Clear out and reset the refunds to a given list.
+	 *
+	 * @param  array[Refund] $refunds
+	 * @return Assembler
+	 */
+	public function setRefunds(array $refunds)
+	{
+		$this->clearRefund();
+
+		foreach ($refunds as $refund) {
+			$this->addRefund($refund);
+		}
+
+		return $this;
+	}
+
+	/**
+	 * Clear out the list of refunds.
+	 *
+	 * @return Assembler
+	 */
+	public function clearRefunds()
+	{
+		$this->_refunds = [];
+
+		return $this;
+	}
+
+	/**
+	 * Set the return's accepted status.
+	 *
+	 * @param  bool|null $accepted
+	 * @return Assembler
+	 */
+	public function setAccepted($accepted = true)
+	{
+		$this->_returnItem->accepted = $accepted;
+
+		return $this;
+	}
+
+	/**
+	 * Complete the return by accepting it and changing the return item status
+	 * to completed.
+	 *
+	 * @return Assembler
+	 */
+	public function setCompleted()
+	{
+		$this->setAccepted(true);
+
+		$status = $this->_statuses->get(ReturnStatuses::RETURN_COMPLETED);
+
+		$this->_returnItem->status = $status;
 
 		return $this;
 	}
