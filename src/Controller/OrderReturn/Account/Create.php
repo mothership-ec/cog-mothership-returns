@@ -229,13 +229,6 @@ class Create extends Controller
 		return $this->redirect($this->generateUrl('ms.user.return.complete', [
 			'returnID' => $return->id
 		]));
-
-		if ($return->item->exchangeItem) {
-			// Create a stock movement for the return exchange
-			$this->_moveStock($return);
-		}
-
-		return $this->redirect($this->generateUrl('ms.user.return.complete', array('returnID' => $return->id)));
 	}
 
 	/**

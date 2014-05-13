@@ -7,50 +7,75 @@ use InvalidArgumentException;
 
 use Message\User\UserInterface;
 
-use Message\Cog\DB;
-use Message\Cog\Event\Dispatcher;
 use Message\Cog\ValueObject\DateTimeImmutable;
+use Message\Cog\DB\Transaction as DBTransaction;
+use Message\Cog\Event\Dispatcher as EventDispatcher;
 
 use Message\Mothership\Commerce\Order\Order;
-use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
-use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Product\Unit\Unit;
-use Message\Mothership\Ecommerce\OrderItemStatuses;
+use Message\Mothership\Commerce\Product\Unit\Unit\Loader;
+use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
+use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
+
+use Message\Mothership\OrderReturn\File\ReturnSlip;
+use Message\Mothership\OrderReturn\Loader as ReturnLoader;
+use Message\Mothership\OrderReturn\Collection\Collection as ReasonsCollection;
 
 /**
  * Order return creator.
  *
  * @author Laurence Roberts <laurence@message.co.uk>
- *
- * @todo ADD CREATE FOR EXCHANGE ITEM!!
  */
 class Create implements DB\TransactionalInterface
 {
 	protected $_query;
 	protected $_currentUser;
-	protected $_loader;
-	protected $_itemEdit;
-	protected $_reasons;
 	protected $_eventDispatcher;
+
+	protected $_returnLoader;
+	protected $_unitLoader;
+
+	protected $_orderItemEdit;
+
+	protected $_reasons;
 	protected $_returnSlip;
+
+	protected $_stockManager;
+	protected $_stockLocations;
+	protected $_stockMovementReasons;
+
 	protected $_transOverridden = false;
 
 	public function __construct(
-		DB\Transaction $query,
+		DBTransaction $query,
 		UserInterface $currentUser,
-		Loader $loader,
-		OrderItemEdit $itemEdit,
-		Collection\Collection $reasons,
-		Dispatcher $eventDispatcher,
-		$returnSlip
+		EventDispatcher $eventDispatcher,
+
+		ReturnLoader $loader,
+		UnitLoader $unitLoader,
+
+		OrderItemEdit $orderItemEdit,
+
+		ReasonsCollection $returnReasons,
+		ReturnSlip $returnSlip,
+
+		StockManager $stockManager,
+		StockLocations $stockLocations,
+		StockMovementReasonCollection $stockMovementReasons
 	) {
 		$this->_query           = $query;
 		$this->_currentUser     = $currentUser;
-		$this->_loader          = $loader;
-		$this->_itemEdit        = $itemEdit;
-		$this->_reasons         = $reasons;
 		$this->_eventDispatcher = $eventDispatcher;
+
+		$this->_loader          = $loader;
+		$this->_unitLoader      = $unitLoader;
+
+		$this->_returnReasons   = $returnReasons;
 		$this->_returnSlip      = $returnSlip;
+
+		$this->_stockManager    = $stockManager;
+		$this->_stockLocations  = $stockLocations;
+		$this->_stockMovementReasons = $stockMovementReasons;
 	}
 
 	/**
@@ -72,10 +97,11 @@ class Create implements DB\TransactionalInterface
 	 *
 	 * @todo   Create an order when an exchange item is added to a standalone
 	 *         return.
-	 * @todo   Handle moving stock for returned item and exchange item.
 	 * @todo   Update to handle multiple return items.
 	 * @todo   Create payments.
 	 * @todo   Create refunds.
+	 * @todo   Break this up into either events or smaller classes handling
+	 *         each separate responsibility.
 	 *
 	 * @param  Entity\OrderReturn $return
 	 * @return Entity\OrderReturn
@@ -191,6 +217,40 @@ class Create implements DB\TransactionalInterface
 			$this->_itemEdit
 				->setTransaction($this->_query)
 				->updateStatus($return->item->orderItem, $statusCode);
+		}
+
+		// If there is an exchange item, move it's stock
+		if ($return->item->exchangeItem) {
+			$unit = $this->_unitLoader
+				->includeOutOfStock(true)
+				->getByID($return->item->exchangeItem->unitID);
+
+			$this->_stockManager->setNote(sprintf(
+				'Order #%s, return #%s. Replacement item requested.',
+				$return->item->order->id,
+				$return->id
+			));
+
+			$this->_stockManager->setReason(
+				$this->_stockMovementReasons->get('exchange_item')
+			);
+
+			$this->_stockManager->setAutomated(true);
+
+			// Decrement from sell stock
+			$this->_stockManager->decrement(
+				$unit,
+				$return->item->exchangeItem->stockLocation
+			);
+
+			// Increment in hold stock
+			$stockLocations = $this->_stockLocations;
+			$this->_stockManager->increment(
+				$unit,
+				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
+			);
+
+			$this->_stockManager->commit();
 		}
 
 		$event = new Event($return);
