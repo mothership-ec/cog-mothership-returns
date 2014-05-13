@@ -16,6 +16,8 @@ use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Commerce\Product\Unit\Unit\Loader;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
+use Message\Mothership\Commerce\Order\Entity\Item\Create as OrderItemCreate;
+use Message\Mothership\Commerce\Order\Status\Collection as OrderItemStatuses;
 
 use Message\Mothership\OrderReturn\File\ReturnSlip;
 use Message\Mothership\OrderReturn\Loader as ReturnLoader;
@@ -35,7 +37,9 @@ class Create implements DB\TransactionalInterface
 	protected $_returnLoader;
 	protected $_unitLoader;
 
+	protected $_orderItemCreate;
 	protected $_orderItemEdit;
+	protected $_orderItemStatuses;
 
 	protected $_reasons;
 	protected $_returnSlip;
@@ -54,7 +58,9 @@ class Create implements DB\TransactionalInterface
 		ReturnLoader $loader,
 		UnitLoader $unitLoader,
 
+		OrderItemCreate $orderItemCreate,
 		OrderItemEdit $orderItemEdit,
+		OrderItemStatuses $orderItemStatuses,
 
 		ReasonsCollection $returnReasons,
 		ReturnSlip $returnSlip,
@@ -145,6 +151,49 @@ class Create implements DB\TransactionalInterface
 			$this->_noteCreate->create($return->item->note);
 		}
 
+		// Create the related exchange item, set the status and move it's stock
+		if ($return->item->exchangeItem) {
+			$stockLocations = $this->_stockLocations;
+
+			$this->_stockManager->setTransaction($this->_query);
+			$this->_stockManager->setAutomated(true);
+
+			$return->item->exchangeItem->status        = clone $this->_orderItemStatuses->get(OrderItemStatuses::HOLD);
+			$return->item->exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
+
+			$return->item->order->items->append($return->item->exchangeItem);
+
+			$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
+
+			$unit = $this->_unitLoader
+				->includeOutOfStock(true)
+				->getByID($return->item->exchangeItem->unitID);
+
+			$this->_stockManager->setNote(sprintf(
+				'Order #%s, return #%s. Replacement item requested.',
+				$return->item->order->id,
+				$return->id
+			));
+
+			$this->_stockManager->setReason(
+				$this->_stockMovementReasons->get('exchange_item')
+			);
+
+			// Decrement from sell stock
+			$this->_stockManager->decrement(
+				$unit,
+				$return->item->exchangeItem->stockLocation
+			);
+
+			// Increment in hold stock
+			$this->_stockManager->increment(
+				$unit,
+				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
+			);
+
+			$this->_stockManager->commit();
+		}
+
 		// Get the values for the return item
 		$returnItemValues = [
 			'createdAt'      => $return->authorship->createdAt(),
@@ -219,40 +268,6 @@ class Create implements DB\TransactionalInterface
 			$this->_itemEdit
 				->setTransaction($this->_query)
 				->updateStatus($return->item->orderItem, $statusCode);
-		}
-
-		// If there is an exchange item, move it's stock
-		if ($return->item->exchangeItem) {
-			$unit = $this->_unitLoader
-				->includeOutOfStock(true)
-				->getByID($return->item->exchangeItem->unitID);
-
-			$this->_stockManager->setNote(sprintf(
-				'Order #%s, return #%s. Replacement item requested.',
-				$return->item->order->id,
-				$return->id
-			));
-
-			$this->_stockManager->setReason(
-				$this->_stockMovementReasons->get('exchange_item')
-			);
-
-			$this->_stockManager->setAutomated(true);
-
-			// Decrement from sell stock
-			$this->_stockManager->decrement(
-				$unit,
-				$return->item->exchangeItem->stockLocation
-			);
-
-			// Increment in hold stock
-			$stockLocations = $this->_stockLocations;
-			$this->_stockManager->increment(
-				$unit,
-				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
-			);
-
-			$this->_stockManager->commit();
 		}
 
 		$event = new Event($return);

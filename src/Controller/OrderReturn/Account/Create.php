@@ -344,45 +344,4 @@ class Create extends Controller
 
 		$return->item->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
 	}
-
-	/**
-	 * Create a stock movement for the return item and exchange item.
-	 *
-	 * @param  OrderReturn $return
-	 */
-	protected function _moveStock($return)
-	{
-		$unit = $this->get('product.unit.loader')
-					 ->includeOutOfStock(true)
-					 ->getByID($return->item->exchangeItem->unitID);
-
-		$stockManager = $this->get('stock.manager');
-		$stockLocations = $this->get('stock.locations');
-
-		$stockManager->setNote(sprintf(
-			'Order #%s, return #%s. Replacement item requested.',
-			$return->item->order->id,
-			$return->id
-		));
-
-		$stockManager->setReason(
-			$this->get('stock.movement.reasons')->get('exchange_item')
-		);
-
-		$stockManager->setAutomated(true);
-
-		// Decrement from sell stock
-		$stockManager->decrement(
-			$unit,
-			$return->item->exchangeItem->stockLocation
-		);
-
-		// Increment in hold stock
-		$stockManager->increment(
-			$unit,
-			$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
-		);
-
-		$stockManager->commit();
-	}
 }
