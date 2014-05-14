@@ -137,36 +137,34 @@ class Detail extends Controller
 
 				if (null === $payment) {
 					// If there are no payments to be refunded, inform the user
-					$this->addFlash('error', "There are no recorded payments for this order, please try refunding
-						manually");
+					$this->addFlash('error', "There are no recorded payments for
+						this order, please try refunding manually");
 
 					return $this->redirect($viewURL);
 				}
 
-				try {
-					// Send the refund payment
-					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
+				// Set the return's balance
+				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
 
-					// Set the balance to 0 to indicate it has been fully refunded
-					$return = $this->get('return.edit')->setBalance($return, 0);
-
-					// Inform the user the payment was sent successfully
-					$this->addFlash('success', 'Return refunded');
-				}
-				catch (Exception $e) {
-					// If the payment failed, inform the user
-					$this->addFlash('error', $e->getMessage());
-
-					return $this->redirect($viewURL);
-				}
+				// Forward to the refund controller
+				$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
+				return $this->forward($this->get('gateway')->getRefundControllerReference(), [
+					'payable'   => $return,
+					'reference' => $payment->reference,
+					'stages'    => [
+						'cancel'  => $controller . '#cancel',
+						'failure' => $controller . '#failure',
+						'success' => $controller . '#success',
+					],
+				]);
 			}
 			else {
 				// If refunding manually, just set the balance to 0 without checking for a payment
 				$return = $this->get('return.edit')->setBalance($return, 0);
-			}
 
-			// Refund the return
-			$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
+				// Refund the return
+				$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
+			}
 		}
 
 		// Notify customer they owe the outstanding balance

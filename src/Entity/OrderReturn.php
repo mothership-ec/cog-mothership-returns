@@ -5,11 +5,12 @@ namespace Message\Mothership\OrderReturn\Entity;
 use Message\Cog\ValueObject\Authorship;
 use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Order\Entity\EntityInterface;
+use Message\Mothership\Commerce\Payable\PayableInterface;
 
 use Message\Mothership\OrderReturn\Statuses;
 use Message\Mothership\OrderReturn\Resolutions;
 
-class OrderReturn implements EntityInterface
+class OrderReturn implements EntityInterface, PayableInterface
 {
 	public $id;
 	public $balance;
@@ -107,5 +108,37 @@ class OrderReturn implements EntityInterface
 	{
 		return $this->item->status->code < Statuses::AWAITING_RETURN or
 			   $this->item->status->code > Statuses::RETURN_RECEIVED;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableAmount()
+	{
+		return abs($this->balance);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableCurrency()
+	{
+		return $this->order->currencyID;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableAddress($type)
+	{
+		return $this->order->getPayableAddress($type);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableTransactionID()
+	{
+		return 'RETURN-' . $this->id;
 	}
 }
