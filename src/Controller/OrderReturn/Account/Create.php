@@ -264,7 +264,6 @@ class Create extends Controller
 			$reasons[$reason->code] = $reason->name;
 		}
 
-		/*
 		foreach ($this->get('product.loader')->getAll() as $product) {
 			$productUnits = $this->get('product.unit.loader')->getByProduct($product);
 			if ($productUnits and count($productUnits)) {
@@ -273,7 +272,6 @@ class Create extends Controller
 				}
 			}
 		}
-		*/
 
 		$form = $this->get('form');
 
