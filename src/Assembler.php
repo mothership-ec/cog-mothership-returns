@@ -4,15 +4,19 @@ namespace Message\Mothership\OrderReturn;
 
 use LogicException;
 use InvalidArgumentException;
+
 use Message\Mothership\Commerce\Refund\Refund;
 use Message\Mothership\Commerce\Payment\Payment;
-use Message\Mothership\OrderReturn\ReturnStatuses;
-use Message\Mothership\OrderReturn\Entity\OrderReturn;
-use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
+use Message\Mothership\Commerce\OrderItemStatuses;
 use Message\Mothership\Commerce\Product\Unit\Unit as ProductUnit;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Note\Note as OrderNote;
+use Message\Mothership\Commerce\Product\Stock\Location as StockLocation;
 use Message\Mothership\Commerce\Order\Status\Collection as StatusCollection;
+
+use Message\Mothership\OrderReturn\ReturnStatuses;
+use Message\Mothership\OrderReturn\Entity\OrderReturn;
+use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
 
 /**
  * Assembler for creating returns.
@@ -215,13 +219,20 @@ class Assembler
 		return $this;
 	}
 
+	public function setReturnedStockLocation(StockLocation $location)
+	{
+		$this->_returnItem->returnedStockLocation = $location;
+
+		return $this;
+	}
+
 	/**
 	 * Set the exchange item from a ProductUnit.
 	 *
 	 * @param  ProductUnit $unit
 	 * @return Assembler
 	 */
-	public function setExchangeItem(ProductUnit $unit)
+	public function setExchangeItem(ProductUnit $unit, StockLocation $stockLocation = null)
 	{
 		if (! $this->_returnItem) {
 			throw new LogicException("You can not set the exchange item without having previously set the return item");
@@ -235,8 +246,7 @@ class Assembler
 
 		$item->populate($unit);
 
-		$item->status = null;
-		$item->stockLocation = null;
+		$item->stockLocation = $stockLocation;
 
 		$balance = 0 - ($item->gross - $this->_returnItem->calculatedBalance);
 
@@ -358,6 +368,10 @@ class Assembler
 		$status = $this->_statuses->get(ReturnStatuses::RETURN_COMPLETED);
 
 		$this->_returnItem->status = $status;
+
+		if ($this->_exchangeItem) {
+			$this->_exchangeItem->status = OrderItemStatuses::DISPATCHED;
+		}
 
 		return $this;
 	}

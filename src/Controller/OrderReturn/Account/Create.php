@@ -212,7 +212,7 @@ class Create extends Controller
 
 		if ($data['exchangeUnit']) {
 			$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
-			$assembler->setExchangeItem($exchangeUnit)
+			$assembler->setExchangeItem($exchangeUnit);
 		}
 
 		if (isset($data['note']) and ! empty($data['note'])) {
@@ -264,6 +264,7 @@ class Create extends Controller
 			$reasons[$reason->code] = $reason->name;
 		}
 
+		/*
 		foreach ($this->get('product.loader')->getAll() as $product) {
 			$productUnits = $this->get('product.unit.loader')->getByProduct($product);
 			if ($productUnits and count($productUnits)) {
@@ -272,6 +273,7 @@ class Create extends Controller
 				}
 			}
 		}
+		*/
 
 		$form = $this->get('form');
 

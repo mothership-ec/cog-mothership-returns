@@ -12,12 +12,13 @@ use Message\Cog\DB\Transaction as DBTransaction;
 use Message\Cog\Event\Dispatcher as EventDispatcher;
 
 use Message\Mothership\Commerce\Order\Order;
+use Message\Mothership\Commerce\OrderItemStatuses;
 use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Commerce\Product\Unit\Unit\Loader;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
 use Message\Mothership\Commerce\Order\Entity\Item\Create as OrderItemCreate;
-use Message\Mothership\Commerce\Order\Status\Collection as OrderItemStatuses;
+use Message\Mothership\Commerce\Order\Status\Collection as OrderItemStatusCollection;
 
 use Message\Mothership\OrderReturn\File\ReturnSlip;
 use Message\Mothership\OrderReturn\Loader as ReturnLoader;
@@ -60,7 +61,7 @@ class Create implements DB\TransactionalInterface
 
 		OrderItemCreate $orderItemCreate,
 		OrderItemEdit $orderItemEdit,
-		OrderItemStatuses $orderItemStatuses,
+		OrderItemStatusCollection $orderItemStatusCollection,
 
 		ReasonsCollection $returnReasons,
 		ReturnSlip $returnSlip,
@@ -76,7 +77,9 @@ class Create implements DB\TransactionalInterface
 		$this->_loader               = $loader;
 		$this->_unitLoader           = $unitLoader;
 
+		$this->_orderItemCreate      = $orderItemCreate;
 		$this->_orderItemEdit        = $orderItemEdit;
+		$this->_orderItemStatusCollection = $orderItemStatusCollection;
 
 		$this->_returnReasons        = $returnReasons;
 		$this->_returnSlip           = $returnSlip;
@@ -141,11 +144,6 @@ class Create implements DB\TransactionalInterface
 		$this->_query->setIDVariable('RETURN_ID');
 		$return->id = '@RETURN_ID';
 
-		// Get the return item status
-		$statusCode = ($return->item->status)
-			? $return->item->status->code
-			: Statuses::AWAITING_RETURN;
-
 		// Create the related note if there is one
 		if ($return->item->note) {
 			$this->_noteCreate->setTransaction($this->_query);
@@ -156,13 +154,22 @@ class Create implements DB\TransactionalInterface
 		if ($return->item->exchangeItem) {
 			$stockLocations = $this->_stockLocations;
 
+			// If there is an order related to this return, attach the
+			// exchangeItem to this order
+			if ($return->item->order) {
+				$return->item->order->items->append($return->item->exchangeItem);
+			}
+
+			if (! $return->item->exchangeItem->status) {
+				$return->item->exchangeItem->status = clone $this->_orderItemStatusCollection->get(OrderItemStatuses::HOLD);
+			}
+
+			if (! $return->item->exchangeItem->stockLocation) {
+				$return->item->exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
+			}
+
 			$this->_stockManager->setTransaction($this->_query);
 			$this->_stockManager->setAutomated(true);
-
-			$return->item->exchangeItem->status        = clone $this->_orderItemStatuses->get(OrderItemStatuses::HOLD);
-			$return->item->exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
-
-			$return->item->order->items->append($return->item->exchangeItem);
 
 			$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
 
@@ -195,18 +202,24 @@ class Create implements DB\TransactionalInterface
 			$this->_stockManager->commit();
 		}
 
+		// Get the return item status
+		$statusCode = ($return->item->status)
+			? $return->item->status->code
+			: Statuses::AWAITING_RETURN;
+
 		// Get the values for the return item
 		$returnItemValues = [
-			'createdAt'      => $return->authorship->createdAt(),
-			'createdBy'      => $return->authorship->createdBy(),
-			'returnID'       => $return->id,
-			'orderID'        => ($return->item->order) ? $return->item->order->id : null,
-			'orderItemID'    => ($return->item->orderItem) ? $return->item->orderItem->id : null,
-			'exchangeItemID' => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
-			'noteID'         => ($return->item->note) ? $return->item->note->id : null,
-			'statusCode'     => $statusCode,
-			'reason'         => $return->item->reason->code,
-			'balance'        => $return->item->balance,
+			'createdAt'               => $return->authorship->createdAt(),
+			'createdBy'               => $return->authorship->createdBy(),
+			'returnID'                => $return->id,
+			'orderID'                 => ($return->item->order) ? $return->item->order->id : null,
+			'orderItemID'             => ($return->item->orderItem) ? $return->item->orderItem->id : null,
+			'exchangeItemID'          => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
+			'noteID'                  => ($return->item->note) ? $return->item->note->id : null,
+			'statusCode'              => $statusCode,
+			'reason'                  => $return->item->reason->code,
+			'balance'                 => $return->item->balance,
+			'returnedStockLocationID' => $return->item->returnedStockLocation->id,
 		];
 
 		// Merge in the order item fields, from the orderItem if it is set or
@@ -244,6 +257,7 @@ class Create implements DB\TransactionalInterface
 				status_code        = :statusCode?i,
 				reason             = :reason?s,
 				calculated_balance = :balance?f,
+				returned_value     = :returnedValue?f,
 				list_price         = :listPrice?f,
 				net                = :net?f,
 				discount           = :discount?f,
