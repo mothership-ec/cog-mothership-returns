@@ -126,10 +126,6 @@ class Create implements DB\TransactionalInterface
 			);
 		}
 
-		$statusCode = ($return->item->status)
-			? $return->item->status->code
-			: Statuses::AWAITING_RETURN;
-
 		// Create the return
 		$this->_query->run("
 			INSERT INTO
@@ -144,6 +140,11 @@ class Create implements DB\TransactionalInterface
 
 		$this->_query->setIDVariable('RETURN_ID');
 		$return->id = '@RETURN_ID';
+
+		// Get the return item status
+		$statusCode = ($return->item->status)
+			? $return->item->status->code
+			: Statuses::AWAITING_RETURN;
 
 		// Create the related note if there is one
 		if ($return->item->note) {
