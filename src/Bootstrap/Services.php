@@ -47,11 +47,17 @@ class Services implements ServicesInterface
 			return new OrderReturn\Create(
 				$c['db.transaction'],
 				$c['user.current'],
-				$c['return.loader'],
-				$c['order.item.edit'],
-				$c['return.reasons'],
 				$c['event.dispatcher'],
+				$c['return.loader'],
+				$c['product.unit.loader'],
+				$c['order.item.create'],
+				$c['order.item.edit'],
+				$c['order.item.statuses'],
+				$c['return.reasons'],
 				$c['file.return_slip']
+				$c['stock.manager'],
+				$c['stock.locations'],
+				$c['stock.movement.reasons']
 			);
 		});
 
