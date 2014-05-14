@@ -315,15 +315,6 @@ class Create implements DB\TransactionalInterface
 	 */
 	protected function _validate(Entity\OrderReturn $return)
 	{
-		// Ensure an item has been set for the return
-		if (! $return->item->orderItem or ! $return->item->orderItem instanceof OrderItem) {
-			throw new InvalidArgumentException('Could not create return item: order item is not set or invalid');
-		}
-
-		if (! $return->item->order or ! $return->item->order instanceof Order) {
-			throw new InvalidArgumentException('Could not create return item: order is not set or invalid');
-		}
-
 		// Check the reason has been set and is valid
 		if (! $this->_reasons->exists($return->item->reason->code)) {
 			throw new InvalidArgumentException('Could not create return item: reason is not set or invalid');
