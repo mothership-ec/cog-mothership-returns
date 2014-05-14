@@ -164,11 +164,11 @@ class Assembler
 	 */
 	public function setReason(Collection\Item $reason)
 	{
-		if (! $this->_returnItem) {
+		if (! $this->_return->item) {
 			throw new LogicException("You can not set a reason without having previously set a return item");
 		}
 
-		$this->_returnItem->reason = $reason;
+		$this->_return->item->reason = $reason;
 
 		return $this;
 	}
@@ -327,7 +327,7 @@ class Assembler
 	 */
 	public function setAccepted($accepted = true)
 	{
-		$this->_returnItem->accepted = $accepted;
+		$this->_return->item->accepted = $accepted;
 
 		return $this;
 	}
@@ -344,8 +344,8 @@ class Assembler
 
 		$status = $this->_statuses->get(ReturnStatuses::RETURN_COMPLETED);
 
-		$this->_returnItem->status = $status;
-		$this->_returnItem->remainingBalance = 0;
+		$this->_return->item->status = $status;
+		$this->_return->item->remainingBalance = 0;
 
 		if ($this->_return->item->exchangeItem) {
 			$this->_return->item->exchangeItem = OrderItemStatuses::DISPATCHED;
