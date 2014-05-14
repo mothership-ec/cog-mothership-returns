@@ -211,6 +211,8 @@ class Create implements DB\TransactionalInterface
 		$returnItemValues = [
 			'createdAt'               => $return->authorship->createdAt(),
 			'createdBy'               => $return->authorship->createdBy(),
+			'completedAt'             => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdAt() : null,
+			'createdBy'               => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdBy() : null,
 			'returnID'                => $return->id,
 			'orderID'                 => ($return->item->order) ? $return->item->order->id : null,
 			'orderItemID'             => ($return->item->orderItem) ? $return->item->orderItem->id : null,
@@ -249,6 +251,8 @@ class Create implements DB\TransactionalInterface
 			SET
 				created_at         = :createdAt?i,
 				created_by         = :createdBy?i,
+				completed_at       = :completedAt?i,
+				completed_by       = :completedBy?i,
 				return_id          = :returnID?i,
 				order_id           = :orderID?in,
 				item_id            = :orderItemID?in,
