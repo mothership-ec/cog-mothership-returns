@@ -326,22 +326,4 @@ class Create extends Controller
 
 		return $form;
 	}
-
-	/**
-	 * Add an exchange item to the return.
-	 *
-	 * @param OrderReturn $return
-	 * @param int         $unitID
-	 */
-	protected function _addExchangeItem($return, $unitID)
-	{
-		$stockLocations = $this->get('stock.locations');
-
-		$exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
-		$exchangeItem->status        = clone $this->get('order.item.statuses')->get(OrderItemStatuses::HOLD);
-
-		$return->item->order->items->append($exchangeItem);
-
-		$return->item->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
-	}
 }
