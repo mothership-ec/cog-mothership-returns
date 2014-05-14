@@ -16,7 +16,7 @@ class _1399565209_RemoveResolutionFromReturnItem extends Migration
 	{
 		$this->run("
 			ALTER TABLE `return_item`
-			ADD varchar(255) NOT NULL
+			ADD `resolution` varchar(255) NOT NULL
 		");
 	}
 }
