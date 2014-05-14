@@ -35,20 +35,6 @@ class Assembler
 	protected $_return;
 
 	/**
-	 * The return item instance being added to the return.
-	 *
-	 * @var OrderReturnItem
-	 */
-	protected $_returnItem;
-
-	/**
-	 * The exchange item instance being added to the return item.
-	 *
-	 * @var OrderItem
-	 */
-	protected $_exchangeItem;
-
-	/**
 	 * The list of payments made by the customer on this return.
 	 *
 	 * @var Payment
@@ -124,16 +110,13 @@ class Assembler
 	 */
 	public function setReturnItemFromOrderItem(OrderItem $item)
 	{
-		$returnItem = new OrderReturnItem;
+		$this->_return->item = $returnItem = new OrderReturnItem;
 
 		$returnItem->order = $item->order;
 		$returnItem->orderItem = $item;
 
 		$returnItem->returnedValue = $item->gross;
 		$returnItem->calculatedBalance = 0 - $item->gross;
-
-		$this->_returnItem = $returnItem;
-		$this->_return->item = $returnItem;
 
 		return $this;
 	}
@@ -148,7 +131,7 @@ class Assembler
 	 */
 	public function setReturnItemFromProductUnit(ProductUnit $unit)
 	{
-		$returnItem = new OrderReturnItem;
+		$this->_return->item = $returnItem = new OrderReturnItem;
 
 		$currencyID = null;
 
@@ -169,9 +152,6 @@ class Assembler
 
 		$returnItem->returnedValue     = null;
 		$returnItem->calculatedBalance = null;
-
-		$this->_returnItem = $returnItem;
-		$this->_return->item = $returnItem;
 
 		return $this;
 	}
@@ -202,8 +182,8 @@ class Assembler
 	 */
 	public function setNote(OrderNote $note)
 	{
-		if ($this->_returnItem->order) {
-			$note->order = $this->_returnItem->order;
+		if ($this->_return->item->order) {
+			$note->order = $this->_return->item->order;
 		}
 
 		if (! $note->raisedFrom) {
@@ -214,14 +194,14 @@ class Assembler
 			$note->customerNotified = 0;
 		}
 
-		$this->_returnItem->note = $note;
+		$this->_return->item->note = $note;
 
 		return $this;
 	}
 
 	public function setReturnedStockLocation(StockLocation $location)
 	{
-		$this->_returnItem->returnedStockLocation = $location;
+		$this->_return->item->returnedStockLocation = $location;
 
 		return $this;
 	}
@@ -234,26 +214,23 @@ class Assembler
 	 */
 	public function setExchangeItem(ProductUnit $unit, StockLocation $stockLocation = null)
 	{
-		if (! $this->_returnItem) {
+		if (! $this->_return->item) {
 			throw new LogicException("You can not set the exchange item without having previously set the return item");
 		}
 
-		$item = new OrderItem;
+		$this->_return->item->exchangeItem = $item = new OrderItem;
 
-		if ($this->_returnItem->order) {
-			$this->_returnItem->order->append($item);
+		if ($this->_return->item->order) {
+			$this->_return->item->order->append($item);
 		}
 
 		$item->populate($unit);
 
 		$item->stockLocation = $stockLocation;
 
-		$balance = 0 - ($item->gross - $this->_returnItem->calculatedBalance);
+		$balance = 0 - ($item->gross - $this->_return->item->calculatedBalance);
 
-		$this->_returnItem->calculatedBalance = $balance;
-
-		$this->_exchangeItem = $item;
-		$this->_returnItem->exchangeItem = $item;
+		$this->_return->item->calculatedBalance = $balance;
 
 		return $this;
 	}
@@ -368,9 +345,10 @@ class Assembler
 		$status = $this->_statuses->get(ReturnStatuses::RETURN_COMPLETED);
 
 		$this->_returnItem->status = $status;
+		$this->_returnItem->remainingBalance = 0;
 
-		if ($this->_exchangeItem) {
-			$this->_exchangeItem->status = OrderItemStatuses::DISPATCHED;
+		if ($this->_return->item->exchangeItem) {
+			$this->_return->item->exchangeItem = OrderItemStatuses::DISPATCHED;
 		}
 
 		return $this;
