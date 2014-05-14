@@ -54,7 +54,7 @@ class Services implements ServicesInterface
 				$c['order.item.edit'],
 				$c['order.item.statuses'],
 				$c['return.reasons'],
-				$c['file.return_slip']
+				$c['file.return_slip'],
 				$c['stock.manager'],
 				$c['stock.locations'],
 				$c['stock.movement.reasons']
