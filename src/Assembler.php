@@ -374,7 +374,7 @@ class Assembler
 		$this->_return->item->remainingBalance = 0;
 
 		if ($this->_return->item->exchangeItem) {
-			$this->_return->item->exchangeItem = OrderItemStatuses::DISPATCHED;
+			$this->_return->item->exchangeItem->status = $this->_statuses->get(OrderItemStatuses::DISPATCHED);
 		}
 
 		return $this;
