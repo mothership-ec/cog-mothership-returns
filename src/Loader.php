@@ -12,6 +12,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 	protected $_query;
 	protected $_reasons;
 	protected $_statuses;
+	protected $_loadDeleted = false;
 
 	public function __construct(DB\Query $query, $reasons, $statuses)
 	{
@@ -218,6 +219,12 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		return $this->_load($result->flatten(), true);
 	}
 
+	public function includeDeleted($bool)
+	{
+		$this->_loadDeleted = $bool;
+		return $this;
+	}
+
 	protected function _load($ids, $alwaysReturnArray = false)
 	{
 		if (! is_array($ids)) {
@@ -274,6 +281,10 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$return = array();
 
 		foreach ($returnEntities as $key => $entity) {
+			if ($entity->deletedAt and ! $this->_loadDeleted) {
+				unset($returnEntities[$key]);
+				continue;
+			}
 
 			$entity->id = $returnsResult[$key]->return_id;
 
