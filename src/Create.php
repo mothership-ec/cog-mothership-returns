@@ -12,7 +12,6 @@ use Message\Cog\ValueObject\DateTimeImmutable;
 use Message\Cog\Event\Dispatcher as EventDispatcher;
 
 use Message\Mothership\Commerce\Order\Order;
-use Message\Mothership\Commerce\OrderItemStatuses;
 use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Commerce\Product\Stock\StockManager;
 use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
@@ -21,7 +20,9 @@ use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
 use Message\Mothership\Commerce\Order\Entity\Item\Create as OrderItemCreate;
 use Message\Mothership\Commerce\Product\Stock\Location\Collection as StockLocations;
 use Message\Mothership\Commerce\Order\Status\Collection as OrderItemStatusCollection;
-use Message\Mothership\Commerce\Product\Stock\Movement\Reason\Collection as StockMovementReasonCollection;
+use Message\Mothership\Commerce\Product\Stock\Movement\Reason\Collection as StockMovementReasons;
+
+use Message\Mothership\Ecommerce\OrderItemStatuses;
 
 use Message\Mothership\OrderReturn\File\ReturnSlip;
 use Message\Mothership\OrderReturn\Loader as ReturnLoader;
@@ -71,7 +72,7 @@ class Create implements DB\TransactionalInterface
 
 		StockManager $stockManager,
 		StockLocations $stockLocations,
-		StockMovementReasonCollection $stockMovementReasons
+		StockMovementReasons $stockMovementReasons
 	) {
 		$this->_query                = $query;
 		$this->_currentUser          = $currentUser;

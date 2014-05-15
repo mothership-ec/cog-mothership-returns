@@ -223,7 +223,7 @@ class Assembler
 		$this->_return->item->exchangeItem = $item = new OrderItem;
 
 		if ($this->_return->item->order) {
-			$this->_return->item->order->append($item);
+			$this->_return->item->order->items->append($item);
 		}
 
 		$item->populate($unit);
