@@ -7,16 +7,17 @@ use InvalidArgumentException;
 
 use Message\Mothership\Commerce\Refund\Refund;
 use Message\Mothership\Commerce\Payment\Payment;
-use Message\Mothership\Commerce\OrderItemStatuses;
 use Message\Mothership\Commerce\Product\Unit\Unit as ProductUnit;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Note\Note as OrderNote;
 use Message\Mothership\Commerce\Order\Status\Collection as StatusCollection;
 use Message\Mothership\Commerce\Product\Stock\Location\Location as StockLocation;
 
-use Message\Mothership\OrderReturn\ReturnStatuses;
+use Message\Mothership\Ecommerce\OrderItemStatuses;
+
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
+use Message\Mothership\OrderReturn\Statuses as ReturnStatuses;
 
 /**
  * Assembler for creating returns.
@@ -300,7 +301,7 @@ class Assembler
 	 */
 	public function setRefunds(array $refunds)
 	{
-		$this->clearRefund();
+		$this->clearRefunds();
 
 		foreach ($refunds as $refund) {
 			$this->addRefund($refund);
