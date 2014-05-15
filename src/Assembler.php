@@ -91,6 +91,8 @@ class Assembler
 			throw new InvalidArgumentException("You can only set a return item from an OrderItem or ProductUnit");
 		}
 
+		$this->_return = new OrderReturn;
+
 		if ($isOrderItem) {
 			$this->setReturnItemFromOrderItem($item);
 		} elseif ($isProductUnit) {

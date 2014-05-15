@@ -7,18 +7,21 @@ use InvalidArgumentException;
 
 use Message\User\UserInterface;
 
+use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
-use Message\Cog\DB\Transaction as DBTransaction;
 use Message\Cog\Event\Dispatcher as EventDispatcher;
 
 use Message\Mothership\Commerce\Order\Order;
 use Message\Mothership\Commerce\OrderItemStatuses;
 use Message\Mothership\Commerce\Product\Unit\Unit;
-use Message\Mothership\Commerce\Product\Unit\Unit\Loader;
+use Message\Mothership\Commerce\Product\Stock\StockManager;
+use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
 use Message\Mothership\Commerce\Order\Entity\Item\Create as OrderItemCreate;
+use Message\Mothership\Commerce\Product\Stock\Location\Collection as StockLocations;
 use Message\Mothership\Commerce\Order\Status\Collection as OrderItemStatusCollection;
+use Message\Mothership\Commerce\Product\Stock\Movement\Reason\Collection as StockMovementReasonCollection;
 
 use Message\Mothership\OrderReturn\File\ReturnSlip;
 use Message\Mothership\OrderReturn\Loader as ReturnLoader;
@@ -52,7 +55,7 @@ class Create implements DB\TransactionalInterface
 	protected $_transOverridden = false;
 
 	public function __construct(
-		DBTransaction $query,
+		DB\Transaction $query,
 		UserInterface $currentUser,
 		EventDispatcher $eventDispatcher,
 
@@ -221,7 +224,7 @@ class Create implements DB\TransactionalInterface
 			'statusCode'              => $statusCode,
 			'reason'                  => $return->item->reason->code,
 			'balance'                 => $return->item->balance,
-			'returnedStockLocationID' => $return->item->returnedStockLocation->id,
+			'returnedStockLocationID' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->id : null,
 		];
 
 		// Merge in the order item fields, from the orderItem if it is set or
@@ -284,7 +287,7 @@ class Create implements DB\TransactionalInterface
 
 		// If there is a related order item update its status
 		if ($return->item->orderItem) {
-			$this->_itemEdit
+			$this->_orderItemEdit
 				->setTransaction($this->_query)
 				->updateStatus($return->item->orderItem, $statusCode);
 		}
@@ -334,7 +337,7 @@ class Create implements DB\TransactionalInterface
 	protected function _validate(Entity\OrderReturn $return)
 	{
 		// Check the reason has been set and is valid
-		if (! $this->_reasons->exists($return->item->reason->code)) {
+		if (! $this->_returnReasons->exists($return->item->reason->code)) {
 			throw new InvalidArgumentException('Could not create return item: reason is not set or invalid');
 		}
 	}
