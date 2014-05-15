@@ -95,7 +95,7 @@ class Assembler
 	 * @param  string $currencyID
 	 * @return Assembler
 	 */
-	public function setCurrencyID($currencyID)
+	public function setCurrency($currencyID)
 	{
 		$this->_currencyID = $currencyID;
 
