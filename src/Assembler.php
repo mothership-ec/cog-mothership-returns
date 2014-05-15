@@ -144,7 +144,7 @@ class Assembler
 		$returnItem->orderItem = $item;
 
 		$returnItem->returnedValue = $item->gross;
-		$returnItem->calculatedBalance = 0 - $item->gross;
+		$returnItem->calculatedBalance = $item->gross;
 
 		return $this;
 	}
@@ -260,7 +260,7 @@ class Assembler
 
 		$item->stockLocation = $stockLocation;
 
-		$balance = 0 - ($item->gross + $this->_return->item->calculatedBalance);
+		$balance = 0 - ($item->listPrice - $this->_return->item->calculatedBalance);
 
 		$this->_return->item->calculatedBalance = $balance;
 
