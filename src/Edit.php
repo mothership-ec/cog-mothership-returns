@@ -36,9 +36,12 @@ class Edit
 	public function setAsReceived(Entity\OrderReturn $return, $date = null)
 	{
 		$date = ($date !== null) ?: date('Y-m-d H:i:s');
-		// notify customer?
 
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
+
+		if ($return->item->orderItem) {
+			$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_RECEIVED);
+		}
 	}
 
 	public function accept(Entity\OrderReturn $return)
