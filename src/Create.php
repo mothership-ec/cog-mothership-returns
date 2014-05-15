@@ -225,7 +225,7 @@ class Create implements DB\TransactionalInterface
 			'statusCode'              => $statusCode,
 			'reason'                  => $return->item->reason->code,
 			'balance'                 => $return->item->balance,
-			'returnedStockLocationID' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->id : null,
+			'returnedStockLocationID' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->name : null,
 		];
 
 		// Merge in the order item fields, from the orderItem if it is set or
