@@ -176,8 +176,21 @@ class Assembler
 		$returnItem->brand             = $unit->product->brand;
 		$returnItem->weight            = (int) $unit->weight;
 
-		$returnItem->returnedValue     = null;
-		$returnItem->calculatedBalance = null;
+		$returnItem->returnedValue     = $returnItem->listPrice;
+		$returnItem->calculatedBalance = $returnItem->listPrice;
+
+		return $this;
+	}
+
+	/**
+	 * Set the balance for the return.
+	 *
+	 * @param  float $balance
+	 * @return Assembler
+	 */
+	public function setBalance($balance)
+	{
+		$this->_return->item->balance = $balance;
 
 		return $this;
 	}
