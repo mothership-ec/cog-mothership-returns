@@ -308,20 +308,22 @@ class Create implements DB\TransactionalInterface
 			// slip file factory, and to be returned from the method.
 			$return = $this->_loader->getByID($this->_query->getIDVariable('RETURN_ID'));
 
-			// This should probably be moved to an event ?
-			// Create the return slip and attach it to the return item
-			$document = $this->_returnSlip->save($return);
-			$this->_query->run("
-				UPDATE
-					`return`
-				SET
-					document_id = :documentID?i
-				WHERE
-					return_id = :returnID?i
-			", [
-				'documentID' => $document->id,
-				'returnID'   => $return->id,
-			]);
+			if ($statusCode === Statuses::AWAITING_RETURN) {
+				// This should probably be moved to an event ?
+				// Create the return slip and attach it to the return item
+				$document = $this->_returnSlip->save($return);
+				$this->_query->run("
+					UPDATE
+						`return`
+					SET
+						document_id = :documentID?i
+					WHERE
+						return_id = :returnID?i
+				", [
+					'documentID' => $document->id,
+					'returnID'   => $return->id,
+				]);
+			}
 		}
 
 		return $return;
