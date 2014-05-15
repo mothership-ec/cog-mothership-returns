@@ -334,7 +334,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			$itemEntity->order   = $this->_orderLoader->getByID($itemEntity->orderID);
 			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
 
-			// add return entity to refunds
+			// Add return entity to refunds
 			foreach ($itemEntity->refunds as $refund) {
 				$refund->return = $return;
 			}
@@ -343,18 +343,18 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			if ($itemEntity->orderItemID) {
 				$itemEntity->orderItem = $itemEntity->order->items[$itemEntity->orderItemID];
 			}
+
+			// Only load the exchange item if one is attached to the return item
+			if ($itemEntity->exchangeItemID) {
+				$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, $itemEntity->order);
+			}
+
+			$itemEntity->note     = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
+			$itemEntity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->document_id, $itemEntity->order);
 		}
 
-		// Only load the exchange item if one is attached to the return item
-		if ($itemEntity->exchangeItemID) {
-			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, $itemEntity->order);
-		}
-
-		$itemEntity->reason     = $this->_reasons->get($itemResult->reason);
-		// $itemEntity->document   = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->document_id, $itemEntity->order);
-		$itemEntity->note       = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
-
-		$itemEntity->status     = $this->_statuses->get($itemResult->status_code);
+		$itemEntity->reason = $this->_reasons->get($itemResult->reason);
+		$itemEntity->status = $this->_statuses->get($itemResult->status_code);
 
 		return $itemEntity;
 	}
