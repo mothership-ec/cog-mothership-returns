@@ -49,6 +49,18 @@ class Assembler
 	 */
 	protected $_refunds;
 
+	/**
+	 * The currency used for calculating the price of the return item.
+	 *
+	 * @var string
+	 */
+	protected $_currencyID;
+
+	/**
+	 * Construct the assembler.
+	 *
+	 * @param StatusCollection $statuses
+	 */
 	public function __construct(StatusCollection $statuses)
 	{
 		$this->_statuses = $statuses;
@@ -75,6 +87,19 @@ class Assembler
 	public function getReturn()
 	{
 		return $this->_return;
+	}
+
+	/**
+	 * Set the currency to use when calculating the item price.
+	 *
+	 * @param  string $currencyID
+	 * @return Assembler
+	 */
+	public function setCurrencyID($currencyID)
+	{
+		$this->_currencyID = $currencyID;
+
+		return $this;
 	}
 
 	/**
@@ -136,10 +161,8 @@ class Assembler
 	{
 		$this->_return->item = $returnItem = new OrderReturnItem;
 
-		$currencyID = null;
-
-		$returnItem->listPrice         = $unit->getPrice('retail', $currencyID);
-		$returnItem->rrp               = $unit->getPrice('rrp', $currencyID);
+		$returnItem->listPrice         = $unit->getPrice('retail', $this->_currencyID);
+		$returnItem->rrp               = $unit->getPrice('rrp', $this->_currencyID);
 
 		$returnItem->productTaxRate    = (float) $unit->product->taxRate;
 		$returnItem->taxStrategy       = $unit->product->taxStrategy;
