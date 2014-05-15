@@ -225,6 +225,9 @@ class Create implements DB\TransactionalInterface
 			'statusCode'              => $statusCode,
 			'reason'                  => $return->item->reason->code,
 			'balance'                 => $return->item->balance,
+			'remainingBalance'        => $return->item->remainingBalance,
+			'calculatedBalance'       => $return->item->calculatedBalance,
+			'returnedValue'           => $return->item->returnedValue,
 			'returnedStockLocationID' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->name : null,
 		];
 
@@ -264,7 +267,8 @@ class Create implements DB\TransactionalInterface
 				note_id            = :noteID?in,
 				status_code        = :statusCode?i,
 				reason             = :reason?s,
-				calculated_balance = :balance?f,
+				balance            = :balance?f,
+				calculated_balance = :calculatedBalance?f,
 				returned_value     = :returnedValue?f,
 				list_price         = :listPrice?f,
 				net                = :net?f,

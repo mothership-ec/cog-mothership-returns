@@ -30,7 +30,9 @@ class OrderReturnItem
 	public $reason;
 	public $accepted;
 	public $balance;
+	public $remainingBalance;
 	public $calculatedBalance;
+	public $returnedValue;
 
 	// Order Item
 	public $listPrice       = 0;
