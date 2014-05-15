@@ -260,7 +260,7 @@ class Assembler
 
 		$item->stockLocation = $stockLocation;
 
-		$balance = 0 - ($item->gross - $this->_return->item->calculatedBalance);
+		$balance = 0 - ($item->gross + $this->_return->item->calculatedBalance);
 
 		$this->_return->item->calculatedBalance = $balance;
 
