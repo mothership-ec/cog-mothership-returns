@@ -229,7 +229,7 @@ class Create implements DB\TransactionalInterface
 			'calculatedBalance'       => $return->item->calculatedBalance,
 			'remainingBalance'        => $return->item->remainingBalance,
 			'returnedValue'           => $return->item->returnedValue,
-			'returnedStockLocationID' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->name : null,
+			'returnedStockLocation'   => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->name : null,
 		];
 
 		// Merge in the order item fields, from the orderItem if it is set or
@@ -273,6 +273,7 @@ class Create implements DB\TransactionalInterface
 				calculated_balance = :calculatedBalance?fn,
 				remaining_balance  = :remainingBalance?fn,
 				returned_value     = :returnedValue?f,
+				returned_stock_location = :returnedStockLocation?s,
 				list_price         = :listPrice?f,
 				net                = :net?f,
 				discount           = :discount?f,
