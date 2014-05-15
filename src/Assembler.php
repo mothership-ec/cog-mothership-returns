@@ -225,6 +225,12 @@ class Assembler
 		return $this;
 	}
 
+	/**
+	 * Set the stock location for the returned item to be placed into.
+	 *
+	 * @param  StockLocation $location
+	 * @return Assembler
+	 */
 	public function setReturnedStockLocation(StockLocation $location)
 	{
 		$this->_return->item->returnedStockLocation = $location;
