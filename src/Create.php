@@ -267,11 +267,9 @@ class Create implements DB\TransactionalInterface
 				note_id            = :noteID?in,
 				status_code        = :statusCode?i,
 				reason             = :reason?s,
-				"
-				. (null !== $return->balance)           ? "balance            = :balance?f,"           : ""
-				. (null !== $return->calculatedBalance) ? "calculated_balance = :calculatedBalance?f," : ""
-				. (null !== $return->remainingBalance)  ? "remaining_balance  = :remainingBalance?f,"  : ""
-				. "
+				balance            = :balance?fn,
+				calculated_balance = :calculatedBalance?fn,
+				remaining_balance  = :remainingBalance?fn,
 				returned_value     = :returnedValue?f,
 				list_price         = :listPrice?f,
 				net                = :net?f,
