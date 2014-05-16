@@ -281,7 +281,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$return = array();
 
 		foreach ($returnEntities as $key => $entity) {
-			if ($entity->deletedAt and ! $this->_loadDeleted) {
+			if ($entity->authorship->isDeleted() and ! $this->_loadDeleted) {
 				unset($returnEntities[$key]);
 				continue;
 			}
