@@ -99,6 +99,10 @@ class Assembler
 	{
 		$this->_currencyID = $currencyID;
 
+		if ($this->_return && $this->_return->item) {
+			$this->_return->item->currencyID = $this->_currencyID;
+		}
+
 		return $this;
 	}
 
@@ -125,6 +129,8 @@ class Assembler
 			$this->setReturnItemFromProductUnit($item);
 		}
 
+		$this->_return->item->currencyID = $this->_currencyID;
+
 		return $this;
 	}
 
@@ -143,8 +149,9 @@ class Assembler
 		$returnItem->order = $item->order;
 		$returnItem->orderItem = $item;
 
-		$returnItem->returnedValue = $item->gross;
-		$returnItem->calculatedBalance = $item->gross;
+		// not entirely, but pretty sure we should use $actualPrice instead of $gross here!
+		$returnItem->returnedValue = $item->actualPrice;
+		$returnItem->calculatedBalance = $item->actualPrice;
 
 		return $this;
 	}
@@ -162,7 +169,9 @@ class Assembler
 		$this->_return->item = $returnItem = new OrderReturnItem;
 
 		$returnItem->listPrice         = $unit->getPrice('retail', $this->_currencyID);
+		$returnItem->actualPrice       = $returnItem->listPrice;
 		$returnItem->rrp               = $unit->getPrice('rrp', $this->_currencyID);
+		$this->_calculateTax();
 
 		$returnItem->productTaxRate    = (float) $unit->product->taxRate;
 		$returnItem->taxStrategy       = $unit->product->taxStrategy;
@@ -176,8 +185,8 @@ class Assembler
 		$returnItem->brand             = $unit->product->brand;
 		$returnItem->weight            = (int) $unit->weight;
 
-		$returnItem->returnedValue     = null;
-		$returnItem->calculatedBalance = null;
+		$returnItem->returnedValue     = $returnItem->actualPrice;
+		$returnItem->calculatedBalance = $returnItem->actualPrice;
 
 		return $this;
 	}
@@ -255,6 +264,10 @@ class Assembler
 		if ($this->_return->item->order) {
 			$this->_return->item->order->items->append($item);
 		}
+
+		// just for now, until order gets created here and we can do this by just calling populate()
+		$item->listPrice = $unit->getPrice('retail', $this->_currencyID);
+		$item->rrp       = $unit->getPrice('rrp', $this->_currencyID);
 
 		$item->populate($unit);
 
@@ -384,5 +397,50 @@ class Assembler
 		}
 
 		return $this;
+	}
+
+	/**
+	 * Calculates tax for return item
+	 *
+	 * @todo REFACTOR! This should be its own class (tax helper or something?)
+	 *       and not copied from the Item EventListener in commerce!
+	 */
+	protected function _calculateTax()
+	{
+		$returnItem = $this->_return->item;
+		// Set the tax rate to whatever the product's tax rate is, if not already set
+		if (!$returnItem->taxRate) {
+			$returnItem->taxRate = $returnItem->productTaxRate;
+		}
+
+		// Set the gross to the list price minus the discount
+		$returnItem->gross = round($returnItem->actualPrice - $returnItem->discount, 2);
+
+		// Calculate tax where the strategy is exclusive
+		if ('exclusive' === $returnItem->taxStrategy) {
+			$returnItem->tax    = round($returnItem->gross * ($returnItem->taxRate / 100), 2);
+			$returnItem->gross += $returnItem->tax;
+		}
+		// Calculate tax where the strategy is inclusive
+		else {
+			$returnItem->tax = $this->_calculateInclusiveTax($returnItem->gross, $returnItem->taxRate);
+		}
+
+		// Set the net value to gross - tax
+		$returnItem->net = round($returnItem->gross - $returnItem->tax, 2);
+	}
+
+	/**
+	 * Calculates inclusive tax from given amount and tax rate.
+	 * 
+	 * @param  float $amount Amount
+	 * @param  float $rate   Tax rate
+	 * @return float         Calculated inclusive tax
+	 *
+	 * @todo This should also be refactored and not copied from commerce!
+	 */
+	protected function _calculateInclusiveTax($amount, $rate)
+	{
+		return round(($amount / (100 + $rate)) * $rate, 2);
 	}
 }
