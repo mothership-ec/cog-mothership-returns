@@ -33,12 +33,13 @@ class Edit
 		$this->_refundCreate = $refundCreate;
 	}
 
-	public function setAsReceived(Entity\OrderReturn $return, $date = null)
+	public function setAsReceived(Entity\OrderReturn $return)
 	{
-		$date = ($date !== null) ?: date('Y-m-d H:i:s');
-		// notify customer?
-
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
+
+		if ($return->item->orderItem) {
+			$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_RECEIVED);
+		}
 	}
 
 	public function accept(Entity\OrderReturn $return)

@@ -185,8 +185,22 @@ class Assembler
 		$returnItem->brand             = $unit->product->brand;
 		$returnItem->weight            = (int) $unit->weight;
 
+		// not entirely sure, but think this should be actual price instead?
 		$returnItem->returnedValue     = $returnItem->actualPrice;
 		$returnItem->calculatedBalance = $returnItem->actualPrice;
+
+		return $this;
+	}
+
+	/**
+	 * Set the balance for the return.
+	 *
+	 * @param  float $balance
+	 * @return Assembler
+	 */
+	public function setBalance($balance)
+	{
+		$this->_return->item->balance = $balance;
 
 		return $this;
 	}

@@ -8,6 +8,10 @@ use Message\Mothership\OrderReturn;
 
 class Detail extends Controller
 {
+	const PAYEE_NONE     = 'none';
+	const PAYEE_CLIENT   = 'client';
+	const PAYEE_CUSTOMER = 'customer';
+
 	/**
 	 * Display the detail view of a return.
 	 *
@@ -170,7 +174,7 @@ class Detail extends Controller
 		}
 
 		// Notify customer they owe the outstanding balance
-		elseif ($data['payee'] == 'client') {
+		elseif ($data['payee'] == static::PAYEE_CLIENT) {
 			$this->get('return.edit')->setBalance($return, abs($data['balance_amount']));
 		}
 
@@ -303,14 +307,14 @@ class Detail extends Controller
 		$form->setAction($this->generateUrl('ms.commerce.return.edit.balance', array('returnID' => $return->id)));
 
 		$payee = 'none';
-		if ($return->item->payeeIsClient()) $payee = 'client';
-		if ($return->item->payeeIsCustomer()) $payee = 'customer';
+		if ($return->item->payeeIsClient())   $payee = static::PAYEE_CLIENT;
+		if ($return->item->payeeIsCustomer()) $payee = static::PAYEE_CUSTOMER;
 
 		$form->add('payee', 'choice', 'Payee', array(
 			'choices' => array(
-				'none' => 'Clear the balance',
-				'customer' => 'Refund the customer',
-				'client' => 'Notify customer of their outstanding balance'
+				static::PAYEE_NONE     => 'Clear the balance',
+				static::PAYEE_CUSTOMER => 'Refund the customer',
+				static::PAYEE_CLIENT   => 'Notify customer of their outstanding balance'
 			),
 			'expanded' => true,
 			'empty_value' => false,
@@ -341,7 +345,7 @@ class Detail extends Controller
 
 		$message = '';
 
-		if ($return->item->hasCalculatedBalance() and 'none' !== $payee) {
+		if ($return->item->hasCalculatedBalance() and $payee !== static::PAYEE_NONE) {
 			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:mail:payee-' . $payee, array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,
