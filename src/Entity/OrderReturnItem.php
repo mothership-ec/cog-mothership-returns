@@ -15,6 +15,7 @@ class OrderReturnItem
 	public $orderItemID;
 	public $exchangeItemID;
 	public $noteID;
+	public $currencyID;
 
 	// Related entities
 	public $order;
@@ -36,6 +37,7 @@ class OrderReturnItem
 
 	// Order Item
 	public $listPrice       = 0;
+	public $actualPrice     = 0;
 	public $net             = 0;
 	public $discount        = 0;
 	public $tax             = 0;
