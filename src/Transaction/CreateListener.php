@@ -37,14 +37,16 @@ class CreateListener extends BaseListener implements SubscriberInterface
 
 		$transaction->records->add($return);
 
-		$payments = $return->item->order->payments->all();
+		// $payments = $return->item->payments->all();
+		$payments = [];
 		foreach ($payments as $payment) {
 			if ($payment->return === $return) {
 				$transaction->records->add($payment);
 			}
 		}
 
-		$refunds = $return->item->order->refunds->all();
+		// $refunds = $return->item->refunds->all();
+		$refunds = [];
 		foreach ($refunds as $refund) {
 			if ($refund->return === $return) {
 				$transaction->records->add($refund);
