@@ -124,6 +124,7 @@ class Assembler
 	 * Set the return item from an OrderItem.
 	 *
 	 * @todo   Verify how the returnedValue should be calculated.
+	 * @todo   Verify which value calculatedBalance should be taken from.
 	 *
 	 * @param  OrderItem $item
 	 * @return Assembler
@@ -132,12 +133,16 @@ class Assembler
 	{
 		$this->_return->item = $returnItem = new OrderReturnItem;
 
-		$returnItem->order = $item->order;
-		$returnItem->orderItem = $item;
+		$unit = $item->getUnit();
 
-		// not entirely, but pretty sure we should use $actualPrice instead of $gross here!
-		$returnItem->returnedValue = $item->actualPrice;
-		$returnItem->calculatedBalance = $item->actualPrice;
+		$values = [
+			'order'             => $item->order,
+			'orderItem'         => $item,
+			'returnedValue'     => $item->actualPrice,
+			'calculatedBalance' => $item->actualPrice,
+		];
+
+		$this->_populateReturnItem($returnItem, $unit, $values);
 
 		return $this;
 	}
@@ -154,26 +159,8 @@ class Assembler
 	{
 		$this->_return->item = $returnItem = new OrderReturnItem;
 
-		$returnItem->listPrice         = $unit->getPrice('retail', $this->_currencyID);
-		$returnItem->actualPrice       = $returnItem->listPrice;
-		$returnItem->rrp               = $unit->getPrice('rrp', $this->_currencyID);
-		$this->_calculateTax();
-
-		$returnItem->productTaxRate    = (float) $unit->product->taxRate;
-		$returnItem->taxStrategy       = $unit->product->taxStrategy;
-		$returnItem->productID         = $unit->product->id;
-		$returnItem->productName       = $unit->product->name;
-		$returnItem->unitID            = $unit->id;
-		$returnItem->unitRevision      = $unit->revisionID;
-		$returnItem->sku               = $unit->sku;
-		$returnItem->barcode           = $unit->barcode;
-		$returnItem->options           = implode($unit->options, ', ');
-		$returnItem->brand             = $unit->product->brand;
-		$returnItem->weight            = (int) $unit->weight;
-
-		// not entirely sure, but think this should be actual price instead?
-		$returnItem->returnedValue     = $returnItem->actualPrice;
-		$returnItem->calculatedBalance = $returnItem->actualPrice;
+		$this->_populateReturnItem($returnItem, $unit);
+		$this->_calculateTax($returnItem);
 
 		return $this;
 	}
@@ -400,14 +387,55 @@ class Assembler
 	}
 
 	/**
+	 * Populate a return item with a merge of default values from the unit and
+	 * an optional array of custom values.
+	 *
+	 * @param  OrderReturnItem $returnItem
+	 * @param  ProductUnit     $unit
+	 * @param  array|null      $values
+	 */
+	protected function _populateReturnItem(OrderReturnItem $returnItem, ProductUnit $unit, array $values = null)
+	{
+		$values = (null !== $values) ?: [];
+
+		$retailPrice = $unit->getPrice('retail', $this->_currencyID);
+		$rrpPrice    = $unit->getPrice('rrp', $this->_currencyID);
+
+		$defaults = [
+			'listPrice'         = $retailPrice,
+			'actualPrice'       = $retailPrice,
+			'returnedValue'     = $retailPrice,
+			'calculatedBalance' = $retailPrice,
+			'rrp'               = $rrpPrice,
+
+			'productTaxRate'    = (float) $unit->product->taxRate,
+			'taxStrategy'       = $unit->product->taxStrategy,
+			'productID'         = $unit->product->id,
+			'productName'       = $unit->product->name,
+			'unitID'            = $unit->id,
+			'unitRevision'      = $unit->revisionID,
+			'sku'               = $unit->sku,
+			'barcode'           = $unit->barcode,
+			'options'           = implode($unit->options, ', '),
+			'brand'             = $unit->product->brand,
+			'weight'            = (int) $unit->weight,
+		];
+
+		$values = $values + $defaults;
+
+		foreach ($values as $k => $v) {
+			$returnItem->$k = $v;
+		}
+	}
+
+	/**
 	 * Calculates tax for return item
 	 *
 	 * @todo REFACTOR! This should be its own class (tax helper or something?)
 	 *       and not copied from the Item EventListener in commerce!
 	 */
-	protected function _calculateTax()
+	protected function _calculateTax($returnItem)
 	{
-		$returnItem = $this->_return->item;
 		// Set the tax rate to whatever the product's tax rate is, if not already set
 		if (!$returnItem->taxRate) {
 			$returnItem->taxRate = $returnItem->productTaxRate;
