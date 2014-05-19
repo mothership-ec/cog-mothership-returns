@@ -17,34 +17,41 @@ use Message\Mothership\Commerce\Product;
 class Edit
 {
 	protected $_query;
-	protected $_user;
+	protected $_currentUser;
 	protected $_itemEdit;
 	protected $_refundCreate;
 
 	public function __construct(
 		DB\Query $query,
-		UserInterface $user,
+		UserInterface $currentUser,
 		Order\Entity\Item\Edit $itemEdit,
 		Order\Entity\Refund\Create $refundCreate
 	) {
-		$this->_query = $query;
-		$this->_user  = $user;
-		$this->_itemEdit = $itemEdit;
+		$this->_query        = $query;
+		$this->_currentUser  = $currentUser;
+		$this->_itemEdit     = $itemEdit;
 		$this->_refundCreate = $refundCreate;
 	}
 
 	public function setAsReceived(Entity\OrderReturn $return)
 	{
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
+
 		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
 
 		if ($return->item->orderItem) {
 			$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_RECEIVED);
 		}
+
+		$this->_setUpdatedReturn($return);
+		$this->_setUpdatedReturnItems($return);
 	}
 
 	public function accept(Entity\OrderReturn $return)
 	{
 		$return->item->accepted = true;
+
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
 
 		$this->_query->run('
 			UPDATE
@@ -52,10 +59,16 @@ class Edit
 			SET
 				accepted = 1
 			WHERE
-				return_id = :returnID?i
+				return_id  = :returnID?i,
+				updated_at = :updatedAt?i,
+				updated_by = :updatedBy?i
 		', array(
-			'returnID' => $return->id
+			'returnID'  => $return->id,
+			'updatedAt' => $return->authorship->updatedAt(),
+			'updatedBy' => $return->authorship->updatedBy(),
 		));
+
+		$this->_setUpdatedReturnItems($return);
 
 		return $return;
 	}
@@ -64,16 +77,24 @@ class Edit
 	{
 		$return->item->accepted = false;
 
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
+
 		$this->_query->run('
 			UPDATE
 				return_item
 			SET
 				accepted = 0
 			WHERE
-				return_id = :returnID?i
+				return_id  = :returnID?i,
+				updated_at = :updatedAt?i,
+				updated_by = :updatedBy?i
 		', array(
-			'returnID' => $return->id
+			'returnID'  => $return->id,
+			'updatedAt' => $return->authorship->updatedAt(),
+			'updatedBy' => $return->authorship->updatedBy(),
 		));
+
+		$this->_setUpdatedReturnItems($return);
 
 		return $return;
 	}
@@ -82,19 +103,27 @@ class Edit
 	{
 		$return->item->balance = $balance;
 
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
+
 		$this->_validate($return);
 
 		$this->_query->run('
 			UPDATE
 				return_item
 			SET
-				balance = :balance?f
+				balance    = :balance?f,
+				updated_at = :updatedAt?i,
+				updated_by = :updatedBy?i
 			WHERE
 				return_id = :returnID?i
 		', array(
-			'balance' => $balance,
-			'returnID' => $return->id
+			'balance'   => $balance,
+			'updatedAt' => $return->authorship->updatedAt(),
+			'updatedBy' => $return->authorship->updatedBy(),
+			'returnID'  => $return->id,
 		));
+
+		$this->_setUpdatedReturnItems($return);
 
 		return $return;
 	}
@@ -121,12 +150,51 @@ class Edit
 
 		$return->item->order->refunds->append($refund);
 
+		$this->_setUpdatedReturn($return);
+		$this->_setUpdatedReturnItems($return);
+
 		return $return;
 	}
 
 	protected function _validate(Entity\OrderReturn $return)
 	{
 		//
+	}
+
+	protected function _setUpdatedReturn(Entity\OrderReturn $return)
+	{
+		$this->_query->run("
+			UPDATE
+				return
+			SET
+				updated_at = :updatedAt?i,
+				updated_by = :updatedBy?i
+			WHERE
+				return_id = :returnID?i
+			", [
+				'updatedAt' => $return->authorship->updatedAt(),
+				'updatedBy' => $return->authorship->updatedBy(),
+				'returnID'  => $return->id,
+			]
+		);
+	}
+
+	protected function _setUpdatedReturnItems(Entity\OrderReturn $return)
+	{
+		$this->_query->run("
+			UPDATE
+				return_item
+			SET
+				updated_at = :updatedAt?i,
+				updated_by = :updatedBy?i
+			WHERE
+				return_id = :returnID?i
+			", [
+				'updatedAt' => $return->authorship->updatedAt(),
+				'updatedBy' => $return->authorship->updatedBy(),
+				'returnID'  => $return->id,
+			]
+		);
 	}
 
 }
