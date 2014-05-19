@@ -157,11 +157,13 @@ class Create implements DB\TransactionalInterface
 	{
 		$this->_validate($return);
 
-		$this->_noteCreate   ->setTransaction($this->_query);
-		$this->_paymentCreate->setTransaction($this->_query);
-		$this->_refundCreate ->setTransaction($this->_query);
-		$this->_stockManager ->setTransaction($this->_query);
-		$this->_orderItemEdit->setTransaction($this->_query);
+		$this->_noteCreate        ->setTransaction($this->_query);
+		$this->_paymentCreate     ->setTransaction($this->_query);
+		$this->_refundCreate      ->setTransaction($this->_query);
+		$this->_stockManager      ->setTransaction($this->_query);
+		$this->_orderItemEdit     ->setTransaction($this->_query);
+		$this->_orderPaymentCreate->setTransaction($this->_query);
+		$this->_orderRefundCreate ->setTransaction($this->_query);
 
 		// Set create authorship data if not already set
 		if (!$return->authorship->createdAt()) {
@@ -222,8 +224,8 @@ class Create implements DB\TransactionalInterface
 					INSERT INTO
 						`return_refund`
 					SET
-						return_id = :returnID,
-						refund_id = :refundID
+						return_id = :returnID?i,
+						refund_id = :refundID?i
 				", [
 					'returnID' => $return->id,
 					'refundID' => $refund->id,
