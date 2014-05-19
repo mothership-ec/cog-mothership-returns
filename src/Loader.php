@@ -365,7 +365,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			}
 
 			$itemEntity->note     = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
-			$itemEntity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->document_id, $itemEntity->order);
+			// $itemEntity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->documentID, $itemEntity->order);
 		}
 
 		$itemEntity->reason = $this->_reasons->get($itemResult->reason);
@@ -376,7 +376,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 	public function _loadPayments($return)
 	{
-		$paymentIDs = $this->_query->_run("
+		$paymentIDs = $this->_query->run("
 			SELECT
 				payment_id
 			FROM
@@ -396,11 +396,11 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 	public function _loadRefunds($return)
 	{
-		$refundIDs = $this->_query->_run("
+		$refundIDs = $this->_query->run("
 			SELECT
 				refund_id
 			FROM
-				return_payment
+				return_refund
 			WHERE
 				return_id = :returnID?i
 		", [
