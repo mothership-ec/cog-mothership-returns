@@ -14,6 +14,8 @@ class OrderReturn implements EntityInterface, RecordInterface
 	public $authorship;
 
 	public $item;
+	public $payments;
+	public $refunds;
 
 	public function __construct()
 	{

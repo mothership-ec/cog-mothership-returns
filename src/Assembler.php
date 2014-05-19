@@ -36,20 +36,6 @@ class Assembler
 	protected $_return;
 
 	/**
-	 * The list of payments made by the customer on this return.
-	 *
-	 * @var Payment
-	 */
-	protected $_payments;
-
-	/**
-	 * The list of refunds made by the seller on this return.
-	 *
-	 * @var Refund
-	 */
-	protected $_refunds;
-
-	/**
 	 * The currency used for calculating the price of the return item.
 	 *
 	 * @var string
@@ -302,7 +288,7 @@ class Assembler
 	 */
 	public function addPayment(Payment $payment)
 	{
-		$this->_payments[] = $payment;
+		$this->_return->payments[] = $payment;
 
 		return $this;
 	}
@@ -331,7 +317,7 @@ class Assembler
 	 */
 	public function clearPayments()
 	{
-		$this->_payments = [];
+		$this->_return->payments = [];
 
 		return $this;
 	}
@@ -344,7 +330,7 @@ class Assembler
 	 */
 	public function addRefund(Refund $refund)
 	{
-		$this->_refunds[] = $refund;
+		$this->_return->refunds[] = $refund;
 
 		return $this;
 	}
@@ -373,7 +359,7 @@ class Assembler
 	 */
 	public function clearRefunds()
 	{
-		$this->_refunds = [];
+		$this->_return->refunds = [];
 
 		return $this;
 	}
@@ -446,7 +432,7 @@ class Assembler
 
 	/**
 	 * Calculates inclusive tax from given amount and tax rate.
-	 * 
+	 *
 	 * @param  float $amount Amount
 	 * @param  float $rate   Tax rate
 	 * @return float         Calculated inclusive tax

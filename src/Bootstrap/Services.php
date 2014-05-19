@@ -20,7 +20,9 @@ class Services implements ServicesInterface
 				new OrderReturn\Loader(
 					$c['db.query'],
 					$c['return.reasons'],
-					$c['order.item.statuses']
+					$c['order.item.statuses'],
+					$c['refund.loader'],
+					$c['payment.loader']
 				)
 			);
 			return $entities;

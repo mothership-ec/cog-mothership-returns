@@ -5,6 +5,8 @@ namespace Message\Mothership\OrderReturn;
 use Message\User;
 use Message\Cog\DB;
 use Message\Mothership\Commerce\Order;
+use Message\Mothership\Commerce\Refund;
+use Message\Mothership\Commerce\Payment;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
 class Loader extends Order\Entity\BaseLoader implements Order\Transaction\RecordLoaderInterface
@@ -12,13 +14,23 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 	protected $_query;
 	protected $_reasons;
 	protected $_statuses;
+	protected $_refundLoader;
+	protected $_paymentLoader;
 	protected $_loadDeleted = false;
 
-	public function __construct(DB\Query $query, $reasons, $statuses)
+	public function __construct(
+		DB\Query $query,
+		$reasons,
+		$statuses,
+		Refund\Loader as $refundLoader,
+		Payment\Loader as $paymentLoader
+	)
 	{
-		$this->_query    = $query;
-		$this->_reasons  = $reasons;
-		$this->_statuses = $statuses;
+		$this->_query         = $query;
+		$this->_reasons       = $reasons;
+		$this->_statuses      = $statuses;
+		$this->_refundLoader  = $refundLoader;
+		$this->_paymentLoader = $paymentLoader;
 	}
 
 	public function getByID($id)
@@ -311,6 +323,9 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 				}
 			}
 
+			$entity->payments = $this->_loadPayments($entity);
+			$entity->refunds  = $this->_loadRefunds($entity);
+
 			$return[$entity->id] = $entity;
 		}
 
@@ -357,5 +372,45 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$itemEntity->status = $this->_statuses->get($itemResult->status_code);
 
 		return $itemEntity;
+	}
+
+	public function _loadPayments($return)
+	{
+		$paymentIDs = $this->_query->_run("
+			SELECT
+				payment_id
+			FROM
+				return_payment
+			WHERE
+				return_id = :returnID?i
+		", [
+			'returnID' => $return->id,
+		]);
+
+		$paymentIDs = $paymentIDs->flatten('payment_id');
+
+		$payments = $this->_paymentLoader->getByID($paymentIDs);
+
+		return $payments;
+	}
+
+	public function _loadRefunds($return)
+	{
+		$refundIDs = $this->_query->_run("
+			SELECT
+				refund_id
+			FROM
+				return_payment
+			WHERE
+				return_id = :returnID?i
+		", [
+			'returnID' => $return->id,
+		]);
+
+		$refundIDs = $refundIDs->flatten('refund_id');
+
+		$refunds = $this->_refundLoader->getByID($refundIDs);
+
+		return $refunds;
 	}
 }
