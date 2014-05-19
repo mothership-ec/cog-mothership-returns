@@ -20,7 +20,11 @@ use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Note\Create as NoteCreate;
 use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
+use Message\Mothership\Commerce\Order\Entity\Refund\Refund as OrderRefund;
 use Message\Mothership\Commerce\Order\Entity\Item\Create as OrderItemCreate;
+use Message\Mothership\Commerce\Order\Entity\Payment\Payment as OrderPayment;
+use Message\Mothership\Commerce\Order\Entity\Refund\Create as OrderRefundCreate;
+use Message\Mothership\Commerce\Order\Entity\Payment\Create as OrderPaymentCreate;
 use Message\Mothership\Commerce\Product\Stock\Location\Collection as StockLocations;
 use Message\Mothership\Commerce\Order\Status\Collection as OrderItemStatusCollection;
 use Message\Mothership\Commerce\Product\Stock\Movement\Reason\Collection as StockMovementReasons;
@@ -33,6 +37,8 @@ use Message\Mothership\OrderReturn\Collection\Collection as ReasonsCollection;
 
 /**
  * Order return creator.
+ *
+ * @todo   Reduce the stupid number of IoC injections.
  *
  * @author Laurence Roberts <laurence@message.co.uk>
  */
@@ -56,6 +62,12 @@ class Create implements DB\TransactionalInterface
 	protected $_stockLocations;
 	protected $_stockMovementReasons;
 
+	protected $_noteCreate;
+	protected $_paymentCreate;
+	protected $_refundCreate;
+	protected $_orderPaymentCreate;
+	protected $_orderRefundCreate;
+
 	protected $_transOverridden = false;
 
 	public function __construct(
@@ -78,9 +90,10 @@ class Create implements DB\TransactionalInterface
 		StockMovementReasons $stockMovementReasons,
 
 		NoteCreate $noteCreate,
-
 		PaymentCreate $paymentCreate,
-		RefundCreate  $refundCreate
+		RefundCreate  $refundCreate,
+		OrderPaymentCreate $orderPaymentCreate,
+		OrderRefundCreate $orderRefundCreate,
 	) {
 		$this->_query                = $query;
 		$this->_currentUser          = $currentUser;
@@ -101,9 +114,10 @@ class Create implements DB\TransactionalInterface
 		$this->_stockMovementReasons = $stockMovementReasons;
 
 		$this->_noteCreate           = $noteCreate;
-
 		$this->_paymentCreate        = $paymentCreate;
 		$this->_refundCreate         = $refundCreate;
+		$this->_orderPaymentCreate   = $orderPaymentCreate;
+		$this->_orderRefundCreate    = $orderRefundCreate;
 	}
 
 	/**
@@ -187,6 +201,10 @@ class Create implements DB\TransactionalInterface
 					'returnID'  => $return->id,
 					'paymentID' => $payment->id,
 				]);
+
+				if ($return->item->order) {
+					$this->_orderPaymentCreate->create(new OrderPayment($payment));
+				}
 			}
 		}
 
@@ -205,6 +223,10 @@ class Create implements DB\TransactionalInterface
 					'returnID' => $return->id,
 					'refundID' => $refund->id,
 				]);
+
+				if ($return->item->order) {
+					$this->_orderRefundCreate->create(new OrderRefund($refund));
+				}
 			}
 		}
 
