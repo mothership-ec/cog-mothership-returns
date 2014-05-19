@@ -14,6 +14,8 @@ use Message\Cog\Event\Dispatcher as EventDispatcher;
 use Message\Mothership\Commerce\Order\Order;
 use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Commerce\Product\Stock\StockManager;
+use Message\Mothership\Commerce\Refund\Create as RefundCreate;
+use Message\Mothership\Commerce\Payment\Create as PaymentCreate;
 use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
@@ -72,7 +74,12 @@ class Create implements DB\TransactionalInterface
 
 		StockManager $stockManager,
 		StockLocations $stockLocations,
-		StockMovementReasons $stockMovementReasons
+		StockMovementReasons $stockMovementReasons,
+
+		NoteCreate $noteCreate,
+
+		PaymentCreate $paymentCreate,
+		RefundCreate  $refundCreate
 	) {
 		$this->_query                = $query;
 		$this->_currentUser          = $currentUser;
@@ -91,6 +98,11 @@ class Create implements DB\TransactionalInterface
 		$this->_stockManager         = $stockManager;
 		$this->_stockLocations       = $stockLocations;
 		$this->_stockMovementReasons = $stockMovementReasons;
+
+		$this->_noteCreate           = $noteCreate;
+
+		$this->_paymentCreate        = $paymentCreate;
+		$this->_refundCreate         = $refundCreate;
 	}
 
 	/**
@@ -125,6 +137,12 @@ class Create implements DB\TransactionalInterface
 	{
 		$this->_validate($return);
 
+		$this->_noteCreate   ->setTransaction($this->_query);
+		$this->_paymentCreate->setTransaction($this->_query);
+		$this->_refundCreate ->setTransaction($this->_query);
+		$this->_stockManager ->setTransaction($this->_query);
+		$this->_orderItemEdit->setTransaction($this->_query);
+
 		// Set create authorship data if not already set
 		if (!$return->authorship->createdAt()) {
 			$return->authorship->create(
@@ -150,8 +168,43 @@ class Create implements DB\TransactionalInterface
 
 		// Create the related note if there is one
 		if ($return->item->note) {
-			$this->_noteCreate->setTransaction($this->_query);
-			$this->_noteCreate->create($return->item->note);
+			$return->item->note = $this->_noteCreate->create($return->item->note);
+		}
+
+		// Create the related payments if there are any
+		if ($return->payments) {
+			foreach ($return->payments as $payment) {
+				$this->_paymentCreate->create($payment);
+
+				$this->_query->run("
+					INSERT INTO
+						`return_payment`
+					SET
+						return_id  = :returnID,
+						payment_id = :paymentID
+				", [
+					'returnID'  => $return->id,
+					'paymentID' => $payment->id,
+				]);
+			}
+		}
+
+		// Create the related refunds if there are any
+		if ($return->refunds) {
+			foreach ($return->refunds as $refund) {
+				$this->_refundCreate->create($refund);
+
+				$this->_query->run("
+					INSERT INTO
+						`return_refund`
+					SET
+						return_id = :returnID,
+						refund_id = :refundID
+				", [
+					'returnID' => $return->id,
+					'refundID' => $refund->id,
+				]);
+			}
 		}
 
 		// Create the related exchange item, set the status and move it's stock
@@ -172,7 +225,6 @@ class Create implements DB\TransactionalInterface
 				$return->item->exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
 			}
 
-			$this->_stockManager->setTransaction($this->_query);
 			$this->_stockManager->setAutomated(true);
 
 			$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
@@ -296,9 +348,7 @@ class Create implements DB\TransactionalInterface
 
 		// If there is a related order item update its status
 		if ($return->item->orderItem) {
-			$this->_orderItemEdit
-				->setTransaction($this->_query)
-				->updateStatus($return->item->orderItem, $statusCode);
+			$this->_orderItemEdit->updateStatus($return->item->orderItem, $statusCode);
 		}
 
 		$event = new Event($return);
