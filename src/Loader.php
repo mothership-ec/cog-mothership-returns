@@ -314,6 +314,14 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 				);
 			}
 
+			// Add deleted authorship
+			if ($returnsResult[$key]->deleted_at) {
+				$entity->authorship->delete(
+					new DateTimeImmutable(date('c', $returnsResult[$key]->deleted_at)),
+					$returnsResult[$key]->deleted_by
+				);
+			}
+
 			// Load the first item into the return
 			// @todo Make this an array of items
 			foreach ($itemEntities as $itemKey => $item) {
