@@ -22,8 +22,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		DB\Query $query,
 		$reasons,
 		$statuses,
-		Refund\Loader as $refundLoader,
-		Payment\Loader as $paymentLoader
+		Refund\Loader $refundLoader,
+		Payment\Loader $paymentLoader
 	)
 	{
 		$this->_query         = $query;
