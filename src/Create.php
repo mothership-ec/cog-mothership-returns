@@ -18,6 +18,7 @@ use Message\Mothership\Commerce\Refund\Create as RefundCreate;
 use Message\Mothership\Commerce\Payment\Create as PaymentCreate;
 use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
+use Message\Mothership\Commerce\Order\Entity\Note\Create as NoteCreate;
 use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
 use Message\Mothership\Commerce\Order\Entity\Item\Create as OrderItemCreate;
 use Message\Mothership\Commerce\Product\Stock\Location\Collection as StockLocations;
