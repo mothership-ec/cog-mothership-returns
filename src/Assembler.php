@@ -396,7 +396,7 @@ class Assembler
 	 */
 	protected function _populateReturnItem(OrderReturnItem $returnItem, ProductUnit $unit, array $values = null)
 	{
-		$values = (null !== $values) ?: [];
+		if (null === $values) $values = [];
 
 		$retailPrice = $unit->getPrice('retail', $this->_currencyID);
 		$rrpPrice    = $unit->getPrice('rrp', $this->_currencyID);
