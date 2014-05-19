@@ -402,23 +402,22 @@ class Assembler
 		$rrpPrice    = $unit->getPrice('rrp', $this->_currencyID);
 
 		$defaults = [
-			'listPrice'         = $retailPrice,
-			'actualPrice'       = $retailPrice,
-			'returnedValue'     = $retailPrice,
-			'calculatedBalance' = $retailPrice,
-			'rrp'               = $rrpPrice,
-
-			'productTaxRate'    = (float) $unit->product->taxRate,
-			'taxStrategy'       = $unit->product->taxStrategy,
-			'productID'         = $unit->product->id,
-			'productName'       = $unit->product->name,
-			'unitID'            = $unit->id,
-			'unitRevision'      = $unit->revisionID,
-			'sku'               = $unit->sku,
-			'barcode'           = $unit->barcode,
-			'options'           = implode($unit->options, ', '),
-			'brand'             = $unit->product->brand,
-			'weight'            = (int) $unit->weight,
+			'listPrice'         => $retailPrice,
+			'actualPrice'       => $retailPrice,
+			'returnedValue'     => $retailPrice,
+			'calculatedBalance' => $retailPrice,
+			'rrp'               => $rrpPrice,
+			'productTaxRate'    => (float) $unit->product->taxRate,
+			'taxStrategy'       => $unit->product->taxStrategy,
+			'productID'         => $unit->product->id,
+			'productName'       => $unit->product->name,
+			'unitID'            => $unit->id,
+			'unitRevision'      => $unit->revisionID,
+			'sku'               => $unit->sku,
+			'barcode'           => $unit->barcode,
+			'options'           => implode($unit->options, ', '),
+			'brand'             => $unit->product->brand,
+			'weight'            => (int) $unit->weight,
 		];
 
 		$values = $values + $defaults;
