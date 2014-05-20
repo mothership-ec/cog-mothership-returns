@@ -229,7 +229,7 @@ class Create implements DB\TransactionalInterface
 				if ($return->item->order) {
 					$orderPayment = new OrderPayment($payment);
 					$orderPayment->order = $return->item->order;
-					$return->item->order->append($orderPayment);
+					$return->item->order->payments->append($orderPayment);
 
 					if (! $isStandalone) {
 						$this->_orderPaymentCreate->create($orderPayment);
