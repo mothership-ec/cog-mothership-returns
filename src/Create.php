@@ -11,8 +11,6 @@ use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
 use Message\Cog\Event\Dispatcher as EventDispatcher;
 
-use Message\Mothership\Commerce\Order\Order;
-
 use Message\Mothership\Commerce\Product\Unit\Unit;
 use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 
