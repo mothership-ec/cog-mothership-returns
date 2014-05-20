@@ -219,8 +219,8 @@ class Create implements DB\TransactionalInterface
 					INSERT INTO
 						`return_payment`
 					SET
-						return_id  = :returnID,
-						payment_id = :paymentID
+						return_id  = :returnID?i,
+						payment_id = :paymentID?i
 				", [
 					'returnID'  => $return->id,
 					'paymentID' => $payment->id,
