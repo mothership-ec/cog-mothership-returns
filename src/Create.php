@@ -226,12 +226,14 @@ class Create implements DB\TransactionalInterface
 					'paymentID' => $payment->id,
 				]);
 
-				$orderPayment = new OrderPayment($payment);
-				$orderPayment->order = $return->item->order;
-				$return->item->order->append($orderPayment);
+				if ($return->item->order) {
+					$orderPayment = new OrderPayment($payment);
+					$orderPayment->order = $return->item->order;
+					$return->item->order->append($orderPayment);
 
-				if (! $isStandalone) {
-					$this->_orderPaymentCreate->create($orderPayment);
+					if (! $isStandalone) {
+						$this->_orderPaymentCreate->create($orderPayment);
+					}
 				}
 			}
 		}
@@ -252,12 +254,14 @@ class Create implements DB\TransactionalInterface
 					'refundID' => $refund->id,
 				]);
 
-				$orderRefund = new OrderRefund($refund);
-				$orderRefund->order = $return->item->order;
-				$return->item->order->refunds->append($orderRefund);
+				if ($return->item->order) {
+					$orderRefund = new OrderRefund($refund);
+					$orderRefund->order = $return->item->order;
+					$return->item->order->refunds->append($orderRefund);
 
-				if (! $isStandalone) {
-					$this->_orderRefundCreate->create($orderRefund);
+					if (! $isStandalone) {
+						$this->_orderRefundCreate->create($orderRefund);
+					}
 				}
 			}
 		}
