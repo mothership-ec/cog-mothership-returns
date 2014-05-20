@@ -98,7 +98,7 @@ class Create implements DB\TransactionalInterface
 		PaymentCreate $paymentCreate,
 		RefundCreate  $refundCreate,
 		OrderPaymentCreate $orderPaymentCreate,
-		OrderRefundCreate $orderRefundCreate,
+		OrderRefundCreate $orderRefundCreate
 	) {
 		$this->_query                = $query;
 		$this->_currentUser          = $currentUser;

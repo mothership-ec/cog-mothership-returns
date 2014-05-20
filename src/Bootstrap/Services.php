@@ -22,7 +22,8 @@ class Services implements ServicesInterface
 					$c['return.reasons'],
 					$c['order.item.statuses'],
 					$c['refund.loader'],
-					$c['payment.loader']
+					$c['payment.loader'],
+					$c['stock.locations']
 				)
 			);
 			return $entities;
@@ -70,9 +71,10 @@ class Services implements ServicesInterface
 				$c['stock.movement.reasons'],
 
 				$c['order.note.create'],
-
 				$c['payment.create'],
-				$c['refund.create']
+				$c['refund.create'],
+				$c['order.payment.create'],
+				$c['order.refund.create']
 			);
 		});
 
