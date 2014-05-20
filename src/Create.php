@@ -145,8 +145,6 @@ class Create implements DB\TransactionalInterface
 	 * @todo   Create an order when an exchange item is added to a standalone
 	 *         return.
 	 * @todo   Update to handle multiple return items.
-	 * @todo   Create payments.
-	 * @todo   Create refunds.
 	 * @todo   Break this up into either events or smaller classes handling
 	 *         each separate responsibility.
 	 *
