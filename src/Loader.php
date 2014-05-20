@@ -2,12 +2,16 @@
 
 namespace Message\Mothership\OrderReturn;
 
-use Message\User;
 use Message\Cog\DB;
+use Message\Cog\ValueObject\DateTimeImmutable;
+
+use Message\User;
+
 use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Refund;
 use Message\Mothership\Commerce\Payment;
-use Message\Cog\ValueObject\DateTimeImmutable;
+use Message\Mothership\Commerce\Product\Stock;
+
 
 class Loader extends Order\Entity\BaseLoader implements Order\Transaction\RecordLoaderInterface
 {
@@ -16,6 +20,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 	protected $_statuses;
 	protected $_refundLoader;
 	protected $_paymentLoader;
+	protected $_stockLocations;
 	protected $_loadDeleted = false;
 
 	public function __construct(
@@ -23,14 +28,16 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$reasons,
 		$statuses,
 		Refund\Loader $refundLoader,
-		Payment\Loader $paymentLoader
+		Payment\Loader $paymentLoader,
+		Stock\Location\Collection $stockLocations
 	)
 	{
-		$this->_query         = $query;
-		$this->_reasons       = $reasons;
-		$this->_statuses      = $statuses;
-		$this->_refundLoader  = $refundLoader;
-		$this->_paymentLoader = $paymentLoader;
+		$this->_query          = $query;
+		$this->_reasons        = $reasons;
+		$this->_statuses       = $statuses;
+		$this->_refundLoader   = $refundLoader;
+		$this->_paymentLoader  = $paymentLoader;
+		$this->_stockLocations = $stockLocations;
 	}
 
 	public function getByID($id)
@@ -259,24 +266,24 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$itemsResult = $this->_query->run('
 			SELECT
 				*,
-				return_item_id     AS returnItemID,
-				return_id          AS returnID,
-				order_id           AS orderID,
-				item_id            AS orderItemID,
-				exchange_item_id   AS exchangeItemID,
-				note_id            AS noteID,
-				remaining_balance  AS remainingBalance,
-				calculated_balance AS calculatedBalance,
-				returned_value     AS returnedValue,
-				list_price         AS listPrice,
-				tax_rate           AS taxRate,
-				product_tax_rate   AS productTaxRate,
-				tax_strategy       AS taxStrategy,
-				product_id         AS productID,
-				product_name       AS productName,
-				unit_id            AS unitID,
-				unit_revision      AS unitRevision,
-				weight_grams       AS weight
+				return_item_id          AS returnItemID,
+				return_id               AS returnID,
+				order_id                AS orderID,
+				item_id                 AS orderItemID,
+				exchange_item_id        AS exchangeItemID,
+				note_id                 AS noteID,
+				remaining_balance       AS remainingBalance,
+				calculated_balance      AS calculatedBalance,
+				returned_value          AS returnedValue,
+				list_price              AS listPrice,
+				tax_rate                AS taxRate,
+				product_tax_rate        AS productTaxRate,
+				tax_strategy            AS taxStrategy,
+				product_id              AS productID,
+				product_name            AS productName,
+				unit_id                 AS unitID,
+				unit_revision           AS unitRevision,
+				weight_grams            AS weight
 			FROM
 				return_item
 			WHERE
@@ -378,6 +385,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 		$itemEntity->reason = $this->_reasons->get($itemResult->reason);
 		$itemEntity->status = $this->_statuses->get($itemResult->status_code);
+
+		$itemEntity->returnedStockLocation = $this->_stockLocations->get($itemResult->returned_stock_location);
 
 		return $itemEntity;
 	}
