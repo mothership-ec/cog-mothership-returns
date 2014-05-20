@@ -150,8 +150,6 @@ class Assembler
 	/**
 	 * Set the return item from a ProductUnit.
 	 *
-	 * @todo   Get the correct currency id from somewhere.
-	 *
 	 * @param  ProductUnit $unit
 	 * @return Assembler
 	 */
