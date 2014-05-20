@@ -59,6 +59,9 @@ class Services implements ServicesInterface
 				$c['return.loader'],
 				$c['product.unit.loader'],
 
+				$c['order'],
+				$c['order.create'],
+
 				$c['order.item.create'],
 				$c['order.item.edit'],
 				$c['order.item.statuses'],

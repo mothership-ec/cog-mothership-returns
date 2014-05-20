@@ -20,6 +20,9 @@ use Message\Mothership\Commerce\Product\Stock\StockManager;
 use Message\Mothership\Commerce\Product\Stock\Location\Collection as StockLocations;
 use Message\Mothership\Commerce\Product\Stock\Movement\Reason\Collection as StockMovementReasons;
 
+use Message\Mothership\Commerce\Order\Order;
+use Message\Mothership\Commerce\Order\Create as OrderCreate;
+
 use Message\Mothership\Ecommerce\OrderItemStatuses;
 use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Item\Edit as OrderItemEdit;
@@ -83,6 +86,9 @@ class Create implements DB\TransactionalInterface
 		ReturnLoader $loader,
 		UnitLoader $unitLoader,
 
+		Order $newOrder,
+		OrderCreate $orderCreate,
+
 		OrderItemCreate $orderItemCreate,
 		OrderItemEdit $orderItemEdit,
 		OrderItemStatusCollection $orderItemStatusCollection,
@@ -106,6 +112,9 @@ class Create implements DB\TransactionalInterface
 
 		$this->_loader               = $loader;
 		$this->_unitLoader           = $unitLoader;
+
+		$this->_newOrder             = $newOrder,
+		$this->_orderCreate          = $orderCreate,
 
 		$this->_orderItemCreate      = $orderItemCreate;
 		$this->_orderItemEdit        = $orderItemEdit;
@@ -142,8 +151,6 @@ class Create implements DB\TransactionalInterface
 	/**
 	 * Save a return entity into the database.
 	 *
-	 * @todo   Create an order when an exchange item is added to a standalone
-	 *         return.
 	 * @todo   Update to handle multiple return items.
 	 * @todo   Break this up into either events or smaller classes handling
 	 *         each separate responsibility.
@@ -153,15 +160,18 @@ class Create implements DB\TransactionalInterface
 	 */
 	public function create(Entity\OrderReturn $return)
 	{
+		$isStandalone = ! ($return->item->order and $return->item->order->id);
+
 		$this->_validate($return);
 
+		$this->_orderCreate       ->setTransaction($this->_query);
 		$this->_noteCreate        ->setTransaction($this->_query);
 		$this->_paymentCreate     ->setTransaction($this->_query);
 		$this->_refundCreate      ->setTransaction($this->_query);
 		$this->_stockManager      ->setTransaction($this->_query);
 		$this->_orderItemEdit     ->setTransaction($this->_query);
-		$this->_orderPaymentCreate->setTransaction($this->_query);
 		$this->_orderRefundCreate ->setTransaction($this->_query);
+		$this->_orderPaymentCreate->setTransaction($this->_query);
 
 		// Set create authorship data if not already set
 		if (!$return->authorship->createdAt()) {
@@ -186,9 +196,20 @@ class Create implements DB\TransactionalInterface
 		$this->_query->setIDVariable('RETURN_ID');
 		$return->id = '@RETURN_ID';
 
+		// If this is a standalone exchange, create an order for entities to be
+		// attached to and representing the original sale.
+		if ($isStandalone and $return->item->exchangeItem) {
+			$return->item->order = clone $this->_newOrder;
+		}
+
 		// Create the related note if there is one
-		if ($return->item->note) {
-			$return->item->note = $this->_noteCreate->create($return->item->note);
+		if ($return->item->order and $return->item->note) {
+			$return->item->note->order = $return->item->order;
+			$return->item->order->notes->append($return->item->note);
+
+			if (! $isStandalone) {
+				$this->_noteCreate->create($return->item->note);
+			}
 		}
 
 		// Create the related payments if there are any
@@ -207,8 +228,12 @@ class Create implements DB\TransactionalInterface
 					'paymentID' => $payment->id,
 				]);
 
-				if ($return->item->order) {
-					$this->_orderPaymentCreate->create(new OrderPayment($payment));
+				$orderPayment = new OrderPayment($payment);
+				$orderPayment->order = $return->item->order;
+				$return->item->order->append($orderPayment);
+
+				if (! $isStandalone) {
+					$this->_orderPaymentCreate->create($orderPayment);
 				}
 			}
 		}
@@ -229,22 +254,18 @@ class Create implements DB\TransactionalInterface
 					'refundID' => $refund->id,
 				]);
 
-				if ($return->item->order) {
-					$this->_orderRefundCreate->create(new OrderRefund($refund));
+				$orderRefund = new OrderRefund($refund);
+				$orderRefund->order = $return->item->order;
+				$return->item->order->refunds->append($orderRefund);
+
+				if (! $isStandalone) {
+					$this->_orderRefundCreate->create($orderRefund);
 				}
 			}
 		}
 
 		// Create the related exchange item, set the status and move it's stock
 		if ($return->item->exchangeItem) {
-			$stockLocations = $this->_stockLocations;
-
-			// If there is an order related to this return, attach the
-			// exchangeItem to this order
-			if ($return->item->order) {
-				$return->item->order->items->append($return->item->exchangeItem);
-			}
-
 			if (! $return->item->exchangeItem->status) {
 				$return->item->exchangeItem->status = clone $this->_orderItemStatusCollection->get(OrderItemStatuses::HOLD);
 			}
@@ -253,37 +274,12 @@ class Create implements DB\TransactionalInterface
 				$return->item->exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
 			}
 
-			$this->_stockManager->setAutomated(true);
+			$return->item->exchangeItem->order = $return->item->order;
+			$return->item->order->items->append($return->item->exchangeItem);
 
-			$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
-
-			$unit = $this->_unitLoader
-				->includeOutOfStock(true)
-				->getByID($return->item->exchangeItem->unitID);
-
-			$this->_stockManager->setNote(sprintf(
-				'Order #%s, return #%s. Replacement item requested.',
-				$return->item->order->id,
-				$return->id
-			));
-
-			$this->_stockManager->setReason(
-				$this->_stockMovementReasons->get('exchange_item')
-			);
-
-			// Decrement from sell stock
-			$this->_stockManager->decrement(
-				$unit,
-				$return->item->exchangeItem->stockLocation
-			);
-
-			// Increment in hold stock
-			$this->_stockManager->increment(
-				$unit,
-				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
-			);
-
-			$this->_stockManager->commit();
+			if (! $isStandalone) {
+				$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
+			}
 		}
 
 		// Get the return item status
@@ -379,6 +375,45 @@ class Create implements DB\TransactionalInterface
 			$this->_orderItemEdit->updateStatus($return->item->orderItem, $statusCode);
 		}
 
+		// If this is a standalone return, create the new order
+		if ($isStandalone) {
+			$this->_orderCreate->create($return->item->order);
+		}
+
+		// Adjust the stock if this is an exchange
+		if ($return->item->exchangeItem) {
+			$stockLocations = $this->_stockLocations;
+
+			$this->_stockManager->setAutomated(true);
+
+			$unit = $this->_unitLoader
+				->includeOutOfStock(true)
+				->getByID($return->item->exchangeItem->unitID);
+
+			$this->_stockManager->setNote(sprintf(
+				'Order #%s, return #%s. Replacement item requested.',
+				$return->item->order->id,
+				$return->id
+			));
+
+			$this->_stockManager->setReason(
+				$this->_stockMovementReasons->get('exchange_item')
+			);
+
+			// Decrement from sell stock
+			$this->_stockManager->decrement(
+				$unit,
+				$return->item->exchangeItem->stockLocation
+			);
+
+			// Increment in hold stock
+			$this->_stockManager->increment(
+				$unit,
+				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
+			);
+		}
+
+		// Fire the created event
 		$event = new Event($return);
 		$event->setTransaction($this->_query);
 
@@ -387,6 +422,7 @@ class Create implements DB\TransactionalInterface
 			$event
 		)->getReturn();
 
+		// Commit all the changes
 		if (!$this->_transOverridden) {
 			$this->_query->commit();
 

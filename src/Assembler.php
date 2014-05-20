@@ -202,10 +202,6 @@ class Assembler
 	 */
 	public function setNote(OrderNote $note)
 	{
-		if ($this->_return->item->order) {
-			$note->order = $this->_return->item->order;
-		}
-
 		if (! $note->raisedFrom) {
 			$note->raisedFrom = static::NOTE_RAISED_FROM_RETURN;
 		}
@@ -246,11 +242,6 @@ class Assembler
 
 		$this->_return->item->exchangeItem = $item = new OrderItem;
 
-		if ($this->_return->item->order) {
-			$this->_return->item->order->items->append($item);
-		}
-
-		// just for now, until order gets created here and we can do this by just calling populate()
 		$item->listPrice = $unit->getPrice('retail', $this->_currencyID);
 		$item->rrp       = $unit->getPrice('rrp', $this->_currencyID);
 
@@ -258,8 +249,8 @@ class Assembler
 
 		$item->stockLocation = $stockLocation;
 
+		// Adjust the balance to reflect the exchange item
 		$balance = 0 - ($item->listPrice - $this->_return->item->calculatedBalance);
-
 		$this->_return->item->calculatedBalance = $balance;
 
 		return $this;
