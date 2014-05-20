@@ -139,7 +139,7 @@ class Assembler
 			'order'             => $item->order,
 			'orderItem'         => $item,
 			'returnedValue'     => $item->actualPrice,
-			'calculatedBalance' => $item->actualPrice,
+			'calculatedBalance' => 0 - $item->actualPrice,
 		];
 
 		$this->_populateReturnItem($returnItem, $unit, $values);
@@ -405,7 +405,7 @@ class Assembler
 			'listPrice'         => $retailPrice,
 			'actualPrice'       => $retailPrice,
 			'returnedValue'     => $retailPrice,
-			'calculatedBalance' => $retailPrice,
+			'calculatedBalance' => 0 - $retailPrice,
 			'rrp'               => $rrpPrice,
 			'productTaxRate'    => (float) $unit->product->taxRate,
 			'taxStrategy'       => $unit->product->taxStrategy,
