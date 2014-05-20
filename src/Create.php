@@ -111,8 +111,8 @@ class Create implements DB\TransactionalInterface
 		$this->_loader               = $loader;
 		$this->_unitLoader           = $unitLoader;
 
-		$this->_newOrder             = $newOrder,
-		$this->_orderCreate          = $orderCreate,
+		$this->_newOrder             = $newOrder;
+		$this->_orderCreate          = $orderCreate;
 
 		$this->_orderItemCreate      = $orderItemCreate;
 		$this->_orderItemEdit        = $orderItemEdit;
