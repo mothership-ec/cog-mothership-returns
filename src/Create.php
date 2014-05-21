@@ -298,7 +298,7 @@ class Create implements DB\TransactionalInterface
 		$returnItemValues = [
 			'returnID'              => $return->id,
 			'orderID'               => ($return->item->order and $return->item->order->id) ? $return->item->order->id : null,
-			'orderItemID'           => ($orderItem) ? $orderItem->id : null,
+			'orderItemID'           => ($return->item->orderItem) ? $return->item->orderItem->id : null,
 			'exchangeItemID'        => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
 			'noteID'                => ($return->item->note) ? $return->item->note->id : null,
 			'createdAt'             => $return->authorship->createdAt(),
@@ -384,7 +384,7 @@ class Create implements DB\TransactionalInterface
 		}
 
 		// If this is a standalone return, create the new order
-		if ($isStandalone) {
+		if ($isStandalone and $order) {
 			$this->_orderCreate->create($order);
 		}
 
