@@ -159,8 +159,6 @@ class Assembler
 		$returnItem->brand             = $item->brand;
 		$returnItem->weight            = $item->weight;
 
-		$this->_calculateTax($returnItem);
-
 		return $this;
 	}
 
@@ -193,6 +191,8 @@ class Assembler
 		$returnItem->options           = implode($unit->options, ', ');
 		$returnItem->brand             = $unit->product->brand;
 		$returnItem->weight            = (int) $unit->weight;
+
+		$this->_calculateTax($returnItem);
 
 		return $this;
 	}
