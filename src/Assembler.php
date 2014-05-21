@@ -267,7 +267,7 @@ class Assembler
 		$item->stockLocation = $stockLocation;
 
 		// Adjust the balance to reflect the exchange item
-		$balance = 0 - ($item->listPrice - $this->_return->item->calculatedBalance);
+		$balance = $item->listPrice - $this->_return->item->actualPrice;
 		$this->_return->item->calculatedBalance = $balance;
 
 		return $this;
