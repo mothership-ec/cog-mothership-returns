@@ -133,6 +133,8 @@ class Assembler
 	{
 		$this->_return->item = $returnItem = new OrderReturnItem;
 
+		$this->setCurrency($item->order->currencyID);
+
 		$unit = $item->getUnit();
 
 		$values = [
