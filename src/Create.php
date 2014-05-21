@@ -171,6 +171,9 @@ class Create implements DB\TransactionalInterface
 		$this->_orderRefundCreate ->setTransaction($this->_query);
 		$this->_orderPaymentCreate->setTransaction($this->_query);
 
+		// Alias this to allow using it's constants
+		$stockLocations = $this->_stockLocations;
+
 		// Set create authorship data if not already set
 		if (!$return->authorship->createdAt()) {
 			$return->authorship->create(
@@ -398,8 +401,6 @@ class Create implements DB\TransactionalInterface
 
 		// Adjust the stock if this is an exchange
 		if ($return->item->exchangeItem) {
-			$stockLocations = $this->_stockLocations;
-
 			$this->_stockManager->setAutomated(true);
 
 			$unit = $this->_unitLoader
