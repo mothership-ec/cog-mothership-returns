@@ -190,7 +190,7 @@ class Create implements DB\TransactionalInterface
 		", [
 			'createdAt'  => $return->authorship->createdAt(),
 			'createdBy'  => $return->authorship->createdBy(),
-			'currencyID' => $return->currencyID;
+			'currencyID' => $return->currencyID,
 		]);
 
 		$this->_query->setIDVariable('RETURN_ID');
