@@ -15,7 +15,6 @@ class OrderReturnItem
 	public $orderItemID;
 	public $exchangeItemID;
 	public $noteID;
-	public $currencyID;
 
 	// Related entities
 	public $order;
