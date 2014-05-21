@@ -85,8 +85,8 @@ class Assembler
 	{
 		$this->_currencyID = $currencyID;
 
-		if ($this->_return && $this->_return->item) {
-			$this->_return->item->currencyID = $this->_currencyID;
+		if ($this->_return) {
+			$this->_return->currencyID = $this->_currencyID;
 		}
 
 		return $this;
@@ -115,7 +115,7 @@ class Assembler
 			$this->setReturnItemFromProductUnit($item);
 		}
 
-		$this->_return->item->currencyID = $this->_currencyID;
+		$this->_return->currencyID = $this->_currencyID;
 
 		return $this;
 	}

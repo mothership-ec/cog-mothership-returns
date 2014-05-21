@@ -184,11 +184,13 @@ class Create implements DB\TransactionalInterface
 			INSERT INTO
 				`return`
 			SET
-				created_at = :createdAt?i,
-				created_by = :createdBy?i
+				created_at  = :createdAt?i,
+				created_by  = :createdBy?i,
+				currency_id = :currencyID?s
 		", [
-			'createdAt' => $return->authorship->createdAt(),
-			'createdBy' => $return->authorship->createdBy(),
+			'createdAt'  => $return->authorship->createdAt(),
+			'createdBy'  => $return->authorship->createdBy(),
+			'currencyID' => $return->currencyID;
 		]);
 
 		$this->_query->setIDVariable('RETURN_ID');
@@ -316,10 +318,10 @@ class Create implements DB\TransactionalInterface
 		// Merge in the order item fields, from the orderItem if it is set or
 		// just the item object.
 		$orderItemFields = [
-			'listPrice', 'net', 'discount', 'tax', 'gross', 'rrp', 'taxRate',
-			'productTaxRate', 'taxStrategy', 'productID', 'productName',
-			'unitID', 'unitRevision', 'sku', 'barcode', 'options', 'brand',
-			'weight'
+			'listPrice', 'actualPrice', 'net', 'discount', 'tax', 'gross',
+			'rrp', 'taxRate', 'productTaxRate', 'taxStrategy', 'productID',
+			'productName', 'unitID', 'unitRevision', 'sku', 'barcode',
+			'options', 'brand', 'weight'
 		];
 
 		foreach ($orderItemFields as $field) {
@@ -356,6 +358,7 @@ class Create implements DB\TransactionalInterface
 				returned_value          = :returnedValue?f,
 				returned_stock_location = :returnedStockLocation?s,
 				list_price              = :listPrice?f,
+				actual_price            = :actualPrice?f,
 				net                     = :net?f,
 				discount                = :discount?f,
 				tax                     = :tax?f,
