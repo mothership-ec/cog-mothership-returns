@@ -140,11 +140,26 @@ class Assembler
 		$values = [
 			'order'             => $item->order,
 			'orderItem'         => $item,
+			'listPrice'         => $item->listPrice,
+			'actualPrice'       => $item->actualPrice,
 			'returnedValue'     => $item->actualPrice,
 			'calculatedBalance' => 0 - $item->actualPrice,
+			'rrp'               => $item->rrp,
+			'productTaxRate'    => $item->productTaxRate,
+			'taxStrategy'       => $item->taxStrategy,
+			'productID'         => $item->productID,
+			'productName'       => $item->productName,
+			'unitID'            => $item->unitID,
+			'unitRevision'      => $item->unitRevision,
+			'sku'               => $item->sku,
+			'barcode'           => $item->barcode,
+			'options'           => $item->options,
+			'brand'             => $item->brand,
+			'weight'            => $item->weight,
 		];
 
 		$this->_populateReturnItem($returnItem, $unit, $values);
+		$this->_calculateTax($returnItem);
 
 		return $this;
 	}
