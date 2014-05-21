@@ -406,7 +406,9 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 		$paymentIDs = $paymentIDs->flatten('payment_id');
 
-		$payments = $this->_paymentLoader->getByID($paymentIDs);
+		$payments = $this->_paymentLoader->getByID($paymentIDs) ?: [];
+
+		if (! is_array($payments)) $payments = [$payments];
 
 		return $payments;
 	}
@@ -426,7 +428,9 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 		$refundIDs = $refundIDs->flatten('refund_id');
 
-		$refunds = $this->_refundLoader->getByID($refundIDs);
+		$refunds = $this->_refundLoader->getByID($refundIDs) ?: [];
+
+		if (! is_array($refunds)) $refunds = [$refunds];
 
 		return $refunds;
 	}
