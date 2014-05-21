@@ -393,6 +393,7 @@ class Create implements DB\TransactionalInterface
 
 			$unit = $this->_unitLoader
 				->includeOutOfStock(true)
+				->includeInvisible(true)
 				->getByID($return->item->exchangeItem->unitID);
 
 			$this->_stockManager->setNote(sprintf(
