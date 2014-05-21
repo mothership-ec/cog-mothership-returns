@@ -276,6 +276,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 				calculated_balance      AS calculatedBalance,
 				returned_value          AS returnedValue,
 				list_price              AS listPrice,
+				actual_price            AS actualPrice,
 				tax_rate                AS taxRate,
 				product_tax_rate        AS productTaxRate,
 				tax_strategy            AS taxStrategy,
@@ -351,6 +352,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 	{
 		// Cast decimals to float
 		$itemEntity->listPrice      = (float) $itemEntity->listPrice;
+		$itemEntity->actualPrice    = (float) $itemEntity->actualPrice;
 		$itemEntity->net            = (float) $itemEntity->net;
 		$itemEntity->discount       = (float) $itemEntity->discount;
 		$itemEntity->tax            = (float) $itemEntity->tax;

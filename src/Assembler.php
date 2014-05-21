@@ -135,30 +135,30 @@ class Assembler
 
 		$this->setCurrency($item->order->currencyID);
 
-		$unit = $item->getUnit();
+		$returnItem->order             = $item->order;
+		$returnItem->orderItem         = $item;
+		$returnItem->listPrice         = $item->listPrice;
+		$returnItem->actualPrice       = $item->actualPrice;
+		$returnItem->returnedValue     = $item->actualPrice;
+		$returnItem->calculatedBalance = 0 - $item->actualPrice;
+		$returnItem->net               = $item->net;
+		$returnItem->discount          = $item->discount;
+		$returnItem->tax               = $item->tax;
+		$returnItem->gross             = $item->gross;
+		$returnItem->rrp               = $item->rrp;
+		$returnItem->taxRate           = $item->taxRate;
+		$returnItem->productTaxRate    = $item->productTaxRate;
+		$returnItem->taxStrategy       = $item->taxStrategy;
+		$returnItem->productID         = $item->productID;
+		$returnItem->productName       = $item->productName;
+		$returnItem->unitID            = $item->unitID;
+		$returnItem->unitRevision      = $item->unitRevision;
+		$returnItem->sku               = $item->sku;
+		$returnItem->barcode           = $item->barcode;
+		$returnItem->options           = $item->options;
+		$returnItem->brand             = $item->brand;
+		$returnItem->weight            = $item->weight;
 
-		$values = [
-			'order'             => $item->order,
-			'orderItem'         => $item,
-			'listPrice'         => $item->listPrice,
-			'actualPrice'       => $item->actualPrice,
-			'returnedValue'     => $item->actualPrice,
-			'calculatedBalance' => 0 - $item->actualPrice,
-			'rrp'               => $item->rrp,
-			'productTaxRate'    => $item->productTaxRate,
-			'taxStrategy'       => $item->taxStrategy,
-			'productID'         => $item->productID,
-			'productName'       => $item->productName,
-			'unitID'            => $item->unitID,
-			'unitRevision'      => $item->unitRevision,
-			'sku'               => $item->sku,
-			'barcode'           => $item->barcode,
-			'options'           => $item->options,
-			'brand'             => $item->brand,
-			'weight'            => $item->weight,
-		];
-
-		$this->_populateReturnItem($returnItem, $unit, $values);
 		$this->_calculateTax($returnItem);
 
 		return $this;
@@ -174,8 +174,25 @@ class Assembler
 	{
 		$this->_return->item = $returnItem = new OrderReturnItem;
 
-		$this->_populateReturnItem($returnItem, $unit);
-		$this->_calculateTax($returnItem);
+		$retailPrice = $unit->getPrice('retail', $this->_currencyID);
+		$rrpPrice    = $unit->getPrice('rrp', $this->_currencyID);
+
+		$returnItem->listPrice         = $retailPrice;
+		$returnItem->actualPrice       = $retailPrice;
+		$returnItem->returnedValue     = $retailPrice;
+		$returnItem->calculatedBalance = 0 - $retailPrice;
+		$returnItem->rrp               = $rrpPrice;
+		$returnItem->productTaxRate    = (float) $unit->product->taxRate;
+		$returnItem->taxStrategy       = $unit->product->taxStrategy;
+		$returnItem->productID         = $unit->product->id;
+		$returnItem->productName       = $unit->product->name;
+		$returnItem->unitID            = $unit->id;
+		$returnItem->unitRevision      = $unit->revisionID;
+		$returnItem->sku               = $unit->sku;
+		$returnItem->barcode           = $unit->barcode;
+		$returnItem->options           = implode($unit->options, ', ');
+		$returnItem->brand             = $unit->product->brand;
+		$returnItem->weight            = (int) $unit->weight;
 
 		return $this;
 	}
@@ -390,47 +407,6 @@ class Assembler
 		}
 
 		return $this;
-	}
-
-	/**
-	 * Populate a return item with a merge of default values from the unit and
-	 * an optional array of custom values.
-	 *
-	 * @param  OrderReturnItem $returnItem
-	 * @param  ProductUnit     $unit
-	 * @param  array|null      $values
-	 */
-	protected function _populateReturnItem(OrderReturnItem $returnItem, ProductUnit $unit, array $values = null)
-	{
-		if (null === $values) $values = [];
-
-		$retailPrice = $unit->getPrice('retail', $this->_currencyID);
-		$rrpPrice    = $unit->getPrice('rrp', $this->_currencyID);
-
-		$defaults = [
-			'listPrice'         => $retailPrice,
-			'actualPrice'       => $retailPrice,
-			'returnedValue'     => $retailPrice,
-			'calculatedBalance' => 0 - $retailPrice,
-			'rrp'               => $rrpPrice,
-			'productTaxRate'    => (float) $unit->product->taxRate,
-			'taxStrategy'       => $unit->product->taxStrategy,
-			'productID'         => $unit->product->id,
-			'productName'       => $unit->product->name,
-			'unitID'            => $unit->id,
-			'unitRevision'      => $unit->revisionID,
-			'sku'               => $unit->sku,
-			'barcode'           => $unit->barcode,
-			'options'           => implode($unit->options, ', '),
-			'brand'             => $unit->product->brand,
-			'weight'            => (int) $unit->weight,
-		];
-
-		$values = $values + $defaults;
-
-		foreach ($values as $k => $v) {
-			$returnItem->$k = $v;
-		}
 	}
 
 	/**
