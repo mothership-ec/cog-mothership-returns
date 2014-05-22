@@ -133,6 +133,9 @@ class Edit
 		return $this->setBalance($return, 0);
 	}
 
+	/**
+	 * @todo Make this work with the base refund entity not order refunds.
+	 */
 	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null, $reference = null)
 	{
 		// Create the refund
