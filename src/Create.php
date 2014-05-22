@@ -202,11 +202,11 @@ class Create implements DB\TransactionalInterface
 		// Get the order for the return for quick reference
 		$order = $return->item->order;
 
-		if (! $order->currencyID) {
+		if ($order and ! $order->currencyID) {
 			$order->currencyID = $return->currencyID;
 		}
 
-		if (! $order->type) {
+		if ($order and ! $order->type) {
 			$order->type = 'standalone-return';
 		}
 
