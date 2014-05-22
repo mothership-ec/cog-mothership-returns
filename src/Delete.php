@@ -43,7 +43,7 @@ class Delete implements DB\TransactionalInterface
 		return $this;
 	}
 
-	public function delete(OrderReturn $return)
+	public function delete(Entity\OrderReturn $return)
 	{
 		$return->authorship->delete(new DateTimeImmutable, $this->_currentUser->id);
 
