@@ -49,6 +49,7 @@ class OrderReturnItem
 	// Order Item Product
 	public $productID;
 	public $productName;
+	public $unit;
 	public $unitID;
 	public $unitRevision;
 	public $sku;
