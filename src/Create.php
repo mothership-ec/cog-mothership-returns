@@ -229,6 +229,11 @@ class Create implements DB\TransactionalInterface
 		// Create the related payments if there are any
 		if ($return->payments) {
 			foreach ($return->payments as $payment) {
+				// Set the currency id to match the return if null
+				if (! $payment->currencyID)
+					$payment->currencyID = $payment->currencyID;
+				}
+
 				$this->_paymentCreate->create($payment);
 
 				$this->_query->run("
@@ -257,6 +262,11 @@ class Create implements DB\TransactionalInterface
 		// Create the related refunds if there are any
 		if ($return->refunds) {
 			foreach ($return->refunds as $refund) {
+				// Set the currency id to match the return if null
+				if (! $refund->currencyID)
+					$refund->currencyID = $return->currencyID;
+				}
+
 				$this->_refundCreate->create($refund);
 
 				$this->_query->run("
