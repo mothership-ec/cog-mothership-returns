@@ -55,7 +55,7 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 	 */
 	public function getPayableAmount()
 	{
-		return abs($this->balance);
+		return abs($this->item->balance);
 	}
 
 	/**
@@ -63,7 +63,7 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 	 */
 	public function getPayableCurrency()
 	{
-		return $this->order->currencyID;
+		return $this->item->order->currencyID;
 	}
 
 	/**
@@ -71,7 +71,7 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 	 */
 	public function getPayableAddress($type)
 	{
-		return $this->order->getPayableAddress($type);
+		return $this->item->order->getPayableAddress($type);
 	}
 
 	/**

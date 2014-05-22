@@ -4,10 +4,10 @@ namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Balance;
 
 use Message\Cog\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Message\Mothership\Commerce\Payment\MethodInterface;
 use Message\Mothership\Commerce\Payable\PayableInterface;
 use Message\Mothership\Commerce\Order\Entity\Payment\Payment;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Message\Mothership\Commerce\Order\Entity\Payment\MethodInterface;
 use Message\Mothership\Ecommerce\Controller\Gateway\CompleteControllerInterface;
 
 /**
@@ -31,9 +31,9 @@ class Complete extends Controller implements CompleteControllerInterface
 		$amount = $payable->getPayableAmount();
 
 		// Adjust the return's balance
-		$newBalance = ($payable->balance > 0)
-			? $payable->balance - $amount
-			: $payable->balance + $amount;
+		$newBalance = ($payable->item->balance > 0)
+			? $payable->item->balance - $amount
+			: $payable->item->balance + $amount;
 
 		$this->get('return.edit')->setBalance($payable, $newBalance);
 
@@ -43,7 +43,7 @@ class Complete extends Controller implements CompleteControllerInterface
 		$payment->amount    = $amount;
 		$payment->reference = $reference;
 
-		$payable->order->payments->append($payment);
+		$payable->item->order->payments->append($payment);
 
 		$this->get('order.payment.create')->create($payment);
 

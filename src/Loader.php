@@ -388,7 +388,9 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$itemEntity->reason = $this->_reasons->get($itemResult->reason);
 		$itemEntity->status = $this->_statuses->get($itemResult->status_code);
 
-		$itemEntity->returnedStockLocation = $this->_stockLocations->get($itemResult->returned_stock_location);
+		if ($itemResult->returned_stock_location) {
+			$itemEntity->returnedStockLocation = $this->_stockLocations->get($itemResult->returned_stock_location);
+		}
 
 		return $itemEntity;
 	}

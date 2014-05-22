@@ -74,7 +74,7 @@ class Detail extends Controller
 
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
 			$message->setSubject('Your ' . $this->get('cfg')->app->defaultEmailFrom->name .' return has been received - ' . $return->getDisplayID());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => $data['message']
@@ -135,7 +135,7 @@ class Detail extends Controller
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order
-				foreach ($return->order->payments as $p) {
+				foreach ($return->payments as $p) {
 					$payment = $p;
 				}
 
@@ -179,7 +179,7 @@ class Detail extends Controller
 		// Send the message
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
 			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => $data['message']
@@ -211,7 +211,7 @@ class Detail extends Controller
 
 		$stockManager = $this->get('stock.manager');
 		$stockManager->setReason($this->get('stock.movement.reasons')->get('exchange_item'));
-		$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item ready for fulfillment.', $return->order->id, $returnID));
+		$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item ready for fulfillment.', $return->item->order->id, $returnID));
 		$stockManager->setAutomated(true);
 
 		$stockManager->decrement(

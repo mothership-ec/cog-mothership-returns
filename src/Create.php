@@ -202,14 +202,6 @@ class Create implements DB\TransactionalInterface
 		// Get the order for the return for quick reference
 		$order = $return->item->order;
 
-		if ($order and ! $order->currencyID) {
-			$order->currencyID = $return->currencyID;
-		}
-
-		if ($order and ! $order->type) {
-			$order->type = 'standalone-return';
-		}
-
 		// If this is a standalone exchange, create an order for entities to be
 		// attached to and representing the original sale.
 		if ($isStandalone and $return->item->exchangeItem) {
@@ -226,12 +218,20 @@ class Create implements DB\TransactionalInterface
 			}
 		}
 
+		if ($order and ! $order->currencyID) {
+			$order->currencyID = $return->currencyID;
+		}
+
+		if ($order and ! $order->type) {
+			$order->type = 'standalone-return';
+		}
+
 		// Create the related payments if there are any
 		if ($return->payments) {
 			foreach ($return->payments as $payment) {
 				// Set the currency id to match the return if null
-				if (! $payment->currencyID)
-					$payment->currencyID = $payment->currencyID;
+				if (! $payment->currencyID) {
+					$payment->currencyID = $return->currencyID;
 				}
 
 				$this->_paymentCreate->create($payment);
@@ -263,7 +263,7 @@ class Create implements DB\TransactionalInterface
 		if ($return->refunds) {
 			foreach ($return->refunds as $refund) {
 				// Set the currency id to match the return if null
-				if (! $refund->currencyID)
+				if (! $refund->currencyID) {
 					$refund->currencyID = $return->currencyID;
 				}
 
