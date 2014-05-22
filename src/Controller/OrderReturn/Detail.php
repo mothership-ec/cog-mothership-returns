@@ -74,7 +74,7 @@ class Detail extends Controller
 
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
 			$message->setSubject('Your ' . $this->get('cfg')->app->defaultEmailFrom->name .' return has been received - ' . $return->getDisplayID());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => $data['message']
@@ -135,42 +135,40 @@ class Detail extends Controller
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order
-				foreach ($return->order->payments as $p) {
+				foreach ($return->payments as $p) {
 					$payment = $p;
 				}
 
 				if (null === $payment) {
 					// If there are no payments to be refunded, inform the user
-					$this->addFlash('error', "There are no recorded payments for this order, please try refunding
-						manually");
+					$this->addFlash('error', "There are no recorded payments for
+						this order, please try refunding manually");
 
 					return $this->redirect($viewURL);
 				}
 
-				try {
-					// Send the refund payment
-					$result = $this->get('commerce.gateway.refund')->refund($payment, $amount);
+				// Set the return's balance
+				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
 
-					// Set the balance to 0 to indicate it has been fully refunded
-					$return = $this->get('return.edit')->setBalance($return, 0);
-
-					// Inform the user the payment was sent successfully
-					$this->addFlash('success', 'Return refunded');
-				}
-				catch (Exception $e) {
-					// If the payment failed, inform the user
-					$this->addFlash('error', $e->getMessage());
-
-					return $this->redirect($viewURL);
-				}
+				// Forward to the refund controller
+				$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
+				return $this->forward($this->get('gateway')->getRefundControllerReference(), [
+					'payable'   => $return,
+					'reference' => $payment->reference,
+					'stages'    => [
+						'cancel'  => $controller . '#cancel',
+						'failure' => $controller . '#failure',
+						'success' => $controller . '#success',
+					],
+				]);
 			}
 			else {
 				// If refunding manually, just set the balance to 0 without checking for a payment
 				$return = $this->get('return.edit')->setBalance($return, 0);
-			}
 
-			// Refund the return
-			$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
+				// Refund the return
+				$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
+			}
 		}
 
 		// Notify customer they owe the outstanding balance
@@ -181,7 +179,7 @@ class Detail extends Controller
 		// Send the message
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
 			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => $data['message']
@@ -213,7 +211,7 @@ class Detail extends Controller
 
 		$stockManager = $this->get('stock.manager');
 		$stockManager->setReason($this->get('stock.movement.reasons')->get('exchange_item'));
-		$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item ready for fulfillment.', $return->order->id, $returnID));
+		$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item ready for fulfillment.', $return->item->order->id, $returnID));
 		$stockManager->setAutomated(true);
 
 		$stockManager->decrement(

@@ -35,33 +35,46 @@ class Edit
 
 	public function setAsReceived(Entity\OrderReturn $return)
 	{
-		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
-		$this->_itemEdit->updateStatus($return->item, Statuses::RETURN_RECEIVED);
+		$this->_query->run("
+			UPDATE
+				return_item
+			SET
+				status_code = :status?i,
+				updated_at  = :updatedAt?d,
+				updated_by  = :updatedBy?in
+			WHERE
+				return_id = :returnID?i
+		", [
+			'status'    => Statuses::RETURN_RECEIVED,
+			'updatedAt' => $return->authorship->updatedAt(),
+			'updatedBy' => $return->authorship->updatedBy(),
+			'returnID'  => $return->id,
+		]);
 
 		if ($return->item->orderItem) {
 			$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_RECEIVED);
 		}
 
 		$this->_setUpdatedReturn($return);
-		$this->_setUpdatedReturnItems($return);
 	}
 
 	public function accept(Entity\OrderReturn $return)
 	{
 		$return->item->accepted = true;
 
-		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
 		$this->_query->run('
 			UPDATE
 				return_item
 			SET
-				accepted = 1
+				accepted = 1,
+				updated_at = :updatedAt?d,
+				updated_by = :updatedBy?in
 			WHERE
-				return_id  = :returnID?i,
-				updated_at = :updatedAt?i,
-				updated_by = :updatedBy?i
+				return_id  = :returnID?i
 		', array(
 			'returnID'  => $return->id,
 			'updatedAt' => $return->authorship->updatedAt(),
@@ -77,17 +90,17 @@ class Edit
 	{
 		$return->item->accepted = false;
 
-		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
 		$this->_query->run('
 			UPDATE
 				return_item
 			SET
-				accepted = 0
+				accepted = 0,
+				updated_at = :updatedAt?d,
+				updated_by = :updatedBy?in
 			WHERE
-				return_id  = :returnID?i,
-				updated_at = :updatedAt?i,
-				updated_by = :updatedBy?i
+				return_id  = :returnID?i
 		', array(
 			'returnID'  => $return->id,
 			'updatedAt' => $return->authorship->updatedAt(),
@@ -103,7 +116,7 @@ class Edit
 	{
 		$return->item->balance = $balance;
 
-		$return->authorship->update(new DateTimeImmutable, $this->_currentUser);
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
 		$this->_validate($return);
 
@@ -112,8 +125,8 @@ class Edit
 				return_item
 			SET
 				balance    = :balance?f,
-				updated_at = :updatedAt?i,
-				updated_by = :updatedBy?i
+				updated_at = :updatedAt?d,
+				updated_by = :updatedBy?in
 			WHERE
 				return_id = :returnID?i
 		', array(
@@ -134,17 +147,19 @@ class Edit
 	}
 
 	/**
-	 * @todo Throw an exception if there is no associated order.
+	 * @todo Make this work with the base refund entity not order refunds.
 	 */
-	public function refund(Entity\OrderReturn $return, $method, $amount)
+	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null, $reference = null)
 	{
 		// Create the refund
 		$refund = new Order\Entity\Refund\Refund;
-		$refund->method = $method;
-		$refund->amount = $amount;
-		$refund->reason = 'Returned Item: ' . $return->item->reason;
-		$refund->order  = $return->item->order;
-		$refund->return = $return;
+		$refund->method    = $method;
+		$refund->amount    = $amount;
+		$refund->reason    = 'Returned Item: ' . $return->item->reason;
+		$refund->order     = $return->item->order;
+		$refund->payment   = $payment;
+		$refund->return    = $return;
+		$refund->reference = $reference;
 
 		$refund = $this->_refundCreate->create($refund);
 
@@ -152,6 +167,9 @@ class Edit
 
 		$this->_setUpdatedReturn($return);
 		$this->_setUpdatedReturnItems($return);
+
+		// Set the new balance of the return
+		$this->setBalance($return, $return->balance + $amount);
 
 		return $return;
 	}
@@ -165,10 +183,10 @@ class Edit
 	{
 		$this->_query->run("
 			UPDATE
-				return
+				`return`
 			SET
-				updated_at = :updatedAt?i,
-				updated_by = :updatedBy?i
+				updated_at = :updatedAt?d,
+				updated_by = :updatedBy?in
 			WHERE
 				return_id = :returnID?i
 			", [
@@ -185,8 +203,8 @@ class Edit
 			UPDATE
 				return_item
 			SET
-				updated_at = :updatedAt?i,
-				updated_by = :updatedBy?i
+				updated_at = :updatedAt?d,
+				updated_by = :updatedBy?in
 			WHERE
 				return_id = :returnID?i
 			", [

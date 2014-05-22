@@ -6,59 +6,31 @@ use Message\Cog\Controller\Controller;
 
 /**
  * Checkout controller for returns.
+ *
+ * @deprecated  This controller has been modified to maintain backwards
+ *              compatibility by forwarding the customer onto the new
+ *              balance payment controller.
  */
 class Checkout extends Controller
 {
+
+	/**
+	 * Get the latest return related to an order and forward onto the balance
+	 * payment controller with that return id.
+	 *
+	 * @param  int $orderID
+	 * @return \Message\Cog\HTTP\RedirectResponse
+	 */
 	public function view($orderID)
 	{
-		$user = $this->get('user.current');
 		$order = $this->get('order.loader')->getByID($orderID);
-
-		if ($order->user->id != $user->id) {
-			throw $this->createNotFoundException();
-		}
 
 		$returns = $this->get('return.loader')->getByOrder($order);
 
-		foreach ($returns as $key => $return) {
-			if ($return->payeeIsCustomer()) {
-				unset($returns[$key]);
-			}
-		}
+		$latestReturn = array_pop($returns);
 
-		return $this->render('::return:checkout:single-payment-checkout', array(
-			'amount'  => $this->_getPaymentAmount($returns),
-			'returns' => $returns,
-			'form'    => $this->_getPaymentForm($order),
-		));
-	}
-
-	protected function _getPaymentAmount($returns)
-	{
-		$balance = 0;
-
-		foreach ($returns as $return) {
-			if ($return->payeeIsClient()) {
-				$balance += abs($return->balance);
-			}
-		}
-
-		if ($balance > 0) {
-			return $balance;
-		}
-
-		return false;
-	}
-
-	protected function _getPaymentForm($order)
-	{
-		$form = $this->get('form');
-
-		$form->setAction($this->generateUrl('ms.ecom.return.payment.store', array(
-			'orderID' => $order->id
-		)));
-		$form->setMethod('POST');
-
-		return $form;
+		return $this->redirectToRoute('ms.ecom.return.balance', [
+			'returnID' => $latestReturn->id
+		]);
 	}
 }
