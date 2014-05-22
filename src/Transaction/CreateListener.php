@@ -56,6 +56,11 @@ class CreateListener extends BaseListener implements SubscriberInterface
 			$transaction->records->add($refund);
 		}
 
+		// Add the exchange item, if there is one
+		if ($exchangeItem = $return->item->exchangeItem) {
+			$transaction->records->add($exchangeItem);
+		}
+
 		$this->get('order.transaction.create')
 			->setDbTransaction($event->getTransaction())
 			->create($transaction);
