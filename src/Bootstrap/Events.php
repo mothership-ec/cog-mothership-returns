@@ -22,5 +22,6 @@ class Events implements EventsInterface, ContainerAwareInterface
 	{
 		$dispatcher->addSubscriber(new OrderReturn\EventListener);
 		$dispatcher->addSubscriber(new OrderReturn\Transaction\CreateListener);
+		$dispatcher->addSubscriber(new OrderReturn\Transaction\VoidListener);
 	}
 }
