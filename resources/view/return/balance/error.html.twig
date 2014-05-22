@@ -1,0 +1,14 @@
+{% extends 'Message:Mothership:User::account:account-layout' %}
+{% block title %}Return balance paid | {{ return.getDisplayID() }} | {{ app.cfg.app.name }}{% endblock %}
+
+{% block account_content %}
+
+	<section>
+		<h1>Payment error</h1>
+	</section>
+
+	<section>
+		<p>Your payment failed to process. Please try again.</p>
+	</section>
+
+{% endblock %}

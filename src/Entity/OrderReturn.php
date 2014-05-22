@@ -3,10 +3,15 @@
 namespace Message\Mothership\OrderReturn\Entity;
 
 use Message\Cog\ValueObject\Authorship;
+
+use Message\Mothership\Commerce\Payable\PayableInterface;
 use Message\Mothership\Commerce\Order\Entity\EntityInterface;
 use Message\Mothership\Commerce\Order\Transaction\RecordInterface;
 
-class OrderReturn implements EntityInterface, RecordInterface
+use Message\Mothership\OrderReturn\Statuses;
+use Message\Mothership\OrderReturn\Resolutions;
+
+class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 {
 	const RECORD_TYPE = 'return';
 
@@ -43,5 +48,37 @@ class OrderReturn implements EntityInterface, RecordInterface
 	public function getRecordID()
 	{
 		return $this->id;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableAmount()
+	{
+		return abs($this->balance);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableCurrency()
+	{
+		return $this->order->currencyID;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableAddress($type)
+	{
+		return $this->order->getPayableAddress($type);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayableTransactionID()
+	{
+		return 'RETURN-' . $this->id;
 	}
 }

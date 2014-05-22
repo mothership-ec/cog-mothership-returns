@@ -133,18 +133,17 @@ class Edit
 		return $this->setBalance($return, 0);
 	}
 
-	/**
-	 * @todo Throw an exception if there is no associated order.
-	 */
-	public function refund(Entity\OrderReturn $return, $method, $amount)
+	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null, $reference = null)
 	{
 		// Create the refund
 		$refund = new Order\Entity\Refund\Refund;
-		$refund->method = $method;
-		$refund->amount = $amount;
-		$refund->reason = 'Returned Item: ' . $return->item->reason;
-		$refund->order  = $return->item->order;
-		$refund->return = $return;
+		$refund->method    = $method;
+		$refund->amount    = $amount;
+		$refund->reason    = 'Returned Item: ' . $return->item->reason;
+		$refund->order     = $return->item->order;
+		$refund->payment   = $payment;
+		$refund->return    = $return;
+		$refund->reference = $reference;
 
 		$refund = $this->_refundCreate->create($refund);
 
@@ -152,6 +151,9 @@ class Edit
 
 		$this->_setUpdatedReturn($return);
 		$this->_setUpdatedReturnItems($return);
+
+		// Set the new balance of the return
+		$this->setBalance($return, $return->balance + $amount);
 
 		return $return;
 	}

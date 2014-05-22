@@ -1,0 +1,36 @@
+{% extends 'Message:Mothership:User::account:account-layout' %}
+{% block title %}Pay your return balance | {{ return.getDisplayID() }} | {{ app.cfg.app.name }}{% endblock %}
+
+{% block account_content %}
+
+	<section>
+		<h1>Pay your return balance</h1>
+	</section>
+
+	<section>
+		<dl>
+			<dt>Return</dt>
+			<dd>{{ return.getDisplayID() }}</dd>
+
+			<dt>Returned Item</dt>
+			<dd>{{ return.item.productName }}, {{ return.item.options }}</dd>
+
+			<dt>Exchange Item</dt>
+			<dd>{{ return.exchangeItem.productName }}, {{ return.exchangeItem.options }}</dd>
+
+			<dt>Your balance</dt>
+			{% if return.payeeIsClient() %}
+				<dd>{{ return.getPayableAmount()|price }} remaining</dd>
+			{% else %}
+				<dd>You have no remaining balance to pay</dd>
+			{% endif %}
+		</dl>
+
+		{% if return.payeeIsClient() %}
+			{{ form_start(form) }}
+				<button class="button submit">Continue to secure payment</button>
+			{{ form_end(form) }}
+		{% endif %}
+	</section>
+
+{% endblock %}

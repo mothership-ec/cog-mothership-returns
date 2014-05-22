@@ -66,14 +66,11 @@
 						{# else show the refund payments made #}
 						{% else %}
 							<h2>Balance Payment</h2>
-							{% for refund in returnItem.refunds %}
+
+							{% for refund in return.refunds %}
 								<dl class="order-details">
 									<dt>Payee</dt>
-									{% if returnItem.balance > 0 %}
-										<dd>The customer paid</dd>
-									{% else %}
-										<dd>You refunded the customer</dd>
-									{% endif %}
+									<dd>You refunded the customer</dd>
 
 									<dt>Amount </dt>
 									<dd>{{ refund.amount|price }}</dd>
