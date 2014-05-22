@@ -2,13 +2,16 @@
 
 namespace Message\Mothership\OrderReturn\Transaction;
 
-use Message\Mothership\OrderReturn\Entity\OrderReturn;
-use Message\Mothership\Commerce\Order\Transaction\Transaction;
-use Message\Mothership\OrderReturn\Events as Events;
-use Message\Mothership\OrderReturn\Event;
+use Message\Cog\Event\SubscriberInterface;
 use Message\Cog\Event\EventListener as BaseListener;
 
-use Message\Cog\Event\SubscriberInterface;
+use Message\Mothership\OrderReturn\Events;
+use Message\Mothership\OrderReturn\Event;
+use Message\Mothership\OrderReturn\Entity\OrderReturn;
+
+use Message\Mothership\Commerce\Order\Transaction\Transaction;
+use Message\Mothership\Commerce\Order\Entity\Payment\Payment as OrderPayment;
+use Message\Mothership\Commerce\Order\Entity\Refund\Refund as OrderRefund;
 
 /**
  * Event listener to add transaction when a return is created
@@ -38,10 +41,18 @@ class CreateListener extends BaseListener implements SubscriberInterface
 		$transaction->records->add($return);
 
 		foreach ($return->payments as $payment) {
+			if ($return->item->order) {
+				$payment = new OrderPayment($payment);
+				$payment->order = $return->item->order;
+			}
 			$transaction->records->add($payment);
 		}
 
 		foreach ($return->refunds as $refund) {
+			if ($return->item->order) {
+				$refund = new OrderRefund($refund);
+				$refund->order = $return->item->order;
+			}
 			$transaction->records->add($refund);
 		}
 
