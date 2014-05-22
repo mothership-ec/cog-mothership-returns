@@ -26,8 +26,8 @@ class CreateListener extends BaseListener implements SubscriberInterface
 	static public function getSubscribedEvents()
 	{
 		return [
-		Events::CREATE_END => [
-				['returnCreated',],
+			Events::CREATE_END => [
+				['returnCreated'],
 			],
 		];
 	}
@@ -54,6 +54,16 @@ class CreateListener extends BaseListener implements SubscriberInterface
 				$refund->order = $return->item->order;
 			}
 			$transaction->records->add($refund);
+		}
+
+		// Add the exchange item, if there is one
+		if ($exchangeItem = $return->item->exchangeItem) {
+			$transaction->records->add($exchangeItem);
+
+			// Add the exchange item's order, if it's standalone
+			if (!$return->item->order) {
+				$transaction->records->add($exchangeItem->order);
+			}
 		}
 
 		$this->get('order.transaction.create')
