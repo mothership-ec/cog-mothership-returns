@@ -93,6 +93,13 @@ class Services implements ServicesInterface
 			);
 		});
 
+		$services['return.delete'] = $services->factory(function($c) {
+			return new OrderReturn\Delete(
+				$c['db.query'],
+				$c['user.current']
+			);
+		});
+
 		// Register files
 		$services['file.return_slip'] = $services->factory(function($c) {
 			return new OrderReturn\File\ReturnSlip($c);
@@ -125,9 +132,13 @@ class Services implements ServicesInterface
 		});
 
 		$services->extend('order.transaction.loader', function($loader, $c) {
+			$returnLoader = $c['return.loader'];
+
+			$returnLoader->includeDeleted(true);
+
 			$loader->addRecordLoader(
 				OrderReturn\Entity\OrderReturn::RECORD_TYPE,
-				$c['return.loader']
+				$returnLoader
 			);
 
 			return $loader;

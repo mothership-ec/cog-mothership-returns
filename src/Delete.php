@@ -2,12 +2,17 @@
 
 namespace Message\Mothership\OrderReturn;
 
+use Message\User\UserInterface;
+
+use Message\Cog\DB;
+use Message\Cog\ValueObject\DateTimeImmutable;
+
 /**
  * Decorator for deleting and restoring returns.
  *
  * @author Laurence Roberts <laurence@message.co.uk>
  */
-class Delete
+class Delete implements DB\TransactionalInterface
 {
 	protected $_query;
 	protected $_currentUser;
@@ -24,13 +29,21 @@ class Delete
 		$this->_currentUser     = $user;
 	}
 
-	public function delete(OrderReturn $return)
+	/**
+	 * {@inheritDoc}
+	 */
+	public function setTransaction(DB\Transaction $transaction)
+	{
+		$this->_query = $transaction;
+	}
+
+	public function delete(Entity\OrderReturn $return)
 	{
 		$return->authorship->delete(new DateTimeImmutable, $this->_currentUser->id);
 
 		$result = $this->_query->run('
 			UPDATE
-				order_return
+				`return`
 			SET
 				deleted_at = :at?d,
 				deleted_by = :by?in
@@ -45,13 +58,13 @@ class Delete
 		return $return;
 	}
 
-	public function restore(OrderReturn $return)
+	public function restore(Entity\OrderReturn $return)
 	{
 		$return->authorship->restore();
 
 		$result = $this->_query->run('
 			UPDATE
-				order_return
+				`return`
 			SET
 				deleted_at = NULL,
 				deleted_by = NULL
