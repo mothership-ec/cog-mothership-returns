@@ -40,6 +40,7 @@ use Message\Mothership\Commerce\Order\Entity\Note\Create as NoteCreate;
 use Message\Mothership\OrderReturn\File\ReturnSlip;
 use Message\Mothership\OrderReturn\Loader as ReturnLoader;
 use Message\Mothership\OrderReturn\Collection\Collection as ReasonsCollection;
+use Message\Mothership\OrderReturn\StockMovementReasons as ReturnStockMovementReasons;
 
 /**
  * Order return creator.
@@ -170,6 +171,9 @@ class Create implements DB\TransactionalInterface
 		$this->_orderItemEdit     ->setTransaction($this->_query);
 		$this->_orderRefundCreate ->setTransaction($this->_query);
 		$this->_orderPaymentCreate->setTransaction($this->_query);
+
+		$this->_stockManager->setAutomated(true);
+		$this->_stockManager->createWithRawNote(true);
 
 		// Alias this to allow using it's constants
 		$stockLocations = $this->_stockLocations;
@@ -409,24 +413,54 @@ class Create implements DB\TransactionalInterface
 			$this->_orderCreate->create($order);
 		}
 
-		// Adjust the stock if this is an exchange
-		if ($return->item->exchangeItem) {
-			$this->_stockManager->setAutomated(true);
+		// set stock manager's properties, because we can't change them anymore
+		// once an adjustment was added...
+		if (true === $return->item->accepted) {	
+			if ($return->item->order) {
+				$this->_query->run(
+					"SET @STOCK_NOTE = CONCAT('Order #', CONCAT(:orderID?i, CONCAT(', Return #', :returnID?i)));",
+					[
+						'orderID'  => $return->item->order->id,
+						'returnID' => $return->id,
+					]
+				);			
+			} else {
+				$this->_query->run("SET @STOCK_NOTE = CONCAT('Standalone Return #', ?i);", $return->id);
+			}
 
-			$unit = $this->_unitLoader
-				->includeOutOfStock(true)
-				->includeInvisible(true)
-				->getByID($return->item->exchangeItem->unitID);
-
-			$this->_stockManager->setNote(sprintf(
-				'Order #%s, return #%s. Replacement item requested.',
-				$order->id,
-				$return->id
+			$this->_stockManager->setReason($this->_stockMovementReasons->get(
+				ReturnStockMovementReasons::RETURNED
 			));
+		}
+		if (!$isStandalone && $return->item->exchangeItem) {
+			$this->_query->run(
+				"SET @STOCK_NOTE = CONCAT('Order #', CONCAT(:orderID?i, CONCAT(', Return #', CONCAT(:returnID?i, ', Exchange Item requested'))));",
+				[
+					'orderID'  => $return->item->order->id,
+					'returnID' => $return->id,
+				]
+			);
 
 			$this->_stockManager->setReason(
-				$this->_stockMovementReasons->get('exchange_item')
+				$this->_stockMovementReasons->get(ReturnStockMovementReasons::EXCHANGE_ITEM)
 			);
+		}
+
+		$this->_stockManager->setNote('@STOCK_NOTE');
+
+		// if the return is already accepted, immediatly move returned item back
+		// to stock
+		if (true === $return->item->accepted) {
+			$this->_stockManager->increment(
+				$return->item->unit,
+				$return->item->returnedStockLocation
+			);
+		}
+
+		// Adjust the stock if this is an exchange and the newly created order
+		// doesn't take care of this
+		if (!$isStandalone && $return->item->exchangeItem) {
+			$unit = $return->item->exchangeItem->getUnit();
 
 			// Decrement from sell stock
 			$this->_stockManager->decrement(
@@ -434,11 +468,13 @@ class Create implements DB\TransactionalInterface
 				$return->item->exchangeItem->stockLocation
 			);
 
-			// Increment in hold stock
-			$this->_stockManager->increment(
-				$unit,
-				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
-			);
+			if (null === $return->item->accepted) {
+				// Increment in hold stock
+				$this->_stockManager->increment(
+					$unit,
+					$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
+				);
+			}
 		}
 
 		// Fire the created event

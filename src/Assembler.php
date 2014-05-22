@@ -151,6 +151,7 @@ class Assembler
 		$returnItem->taxStrategy       = $item->taxStrategy;
 		$returnItem->productID         = $item->productID;
 		$returnItem->productName       = $item->productName;
+		$returnItem->unit              = $item->getUnit();
 		$returnItem->unitID            = $item->unitID;
 		$returnItem->unitRevision      = $item->unitRevision;
 		$returnItem->sku               = $item->sku;
@@ -184,6 +185,7 @@ class Assembler
 		$returnItem->taxStrategy       = $unit->product->taxStrategy;
 		$returnItem->productID         = $unit->product->id;
 		$returnItem->productName       = $unit->product->name;
+		$returnItem->unit              = $unit;
 		$returnItem->unitID            = $unit->id;
 		$returnItem->unitRevision      = $unit->revisionID;
 		$returnItem->sku               = $unit->sku;

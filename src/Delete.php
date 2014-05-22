@@ -20,24 +20,30 @@ class Delete implements DB\TransactionalInterface
 	/**
 	 * Constructor.
 	 *
-	 * @param DB\Query            $query          The database query instance to use
-	 * @param UserInterface       $currentUser    The currently logged in user
+	 * @param DB\Query      $query       The database query instance to use
+	 * @param UserInterface $currentUser The currently logged in user
 	 */
 	public function __construct(DB\Query $query, UserInterface $user)
 	{
-		$this->_query           = $query;
-		$this->_currentUser     = $user;
+		$this->_query       = $query;
+		$this->_currentUser = $user;
 	}
 
 	/**
 	 * {@inheritDoc}
+	 *
+	 * @param  DB\Transaction $trans Database transaction
+	 *
+	 * @return Create                Returns $this for chainability
 	 */
-	public function setTransaction(DB\Transaction $transaction)
+	public function setTransaction(DB\Transaction $trans)
 	{
-		$this->_query = $transaction;
+		$this->_query = $trans;
+
+		return $this;
 	}
 
-	public function delete(Entity\OrderReturn $return)
+	public function delete(OrderReturn $return)
 	{
 		$return->authorship->delete(new DateTimeImmutable, $this->_currentUser->id);
 
