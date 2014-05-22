@@ -21,7 +21,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 	protected $_refundLoader;
 	protected $_paymentLoader;
 	protected $_stockLocations;
-	protected $_loadDeleted = false;
+	protected $_includeDeleted = false;
 
 	public function __construct(
 		DB\Query $query,
@@ -238,9 +238,10 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		return $this->_load($result->flatten(), true);
 	}
 
-	public function includeDeleted($bool)
+	public function includeDeleted($bool = true)
 	{
-		$this->_loadDeleted = $bool;
+		$this->_includeDeleted = (bool) $bool;
+
 		return $this;
 	}
 
@@ -261,6 +262,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 				`return`
 			WHERE
 				return_id IN (?ij)
+			' . ($this->_includeDeleted ? '' : 'AND deleted_at IS NULL') . '
 		', array($ids));
 
 		$itemsResult = $this->_query->run('
@@ -301,11 +303,6 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$return = array();
 
 		foreach ($returnEntities as $key => $entity) {
-			if ($entity->authorship->isDeleted() and ! $this->_loadDeleted) {
-				unset($returnEntities[$key]);
-				continue;
-			}
-
 			$entity->id = $returnsResult[$key]->return_id;
 
 			// Add created authorship
