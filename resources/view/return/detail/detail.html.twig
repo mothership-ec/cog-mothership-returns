@@ -81,16 +81,32 @@
 									<dt>Date</dt>
 									<dd>{{ refund.authorship.createdAt()|date }}</dd>
 								</dl>
-							{% else %}
+							{% endfor %}
+
+							{% for payment in return.payments %}
 								<dl class="order-details">
-									<dt>Status</dt>
-									{% if not returnItem.hasRemainingBalance %}
-										<dd>No outstanding balance or payments</dd>
-									{% elseif returnItem.payeeIsClient %}
-										<dd>Awaiting customer's payment of {{ returnItem.balance|abs|price }}</dd>
-									{% endif %}
+									<dt>Payee</dt>
+									<dd>The customer paid you</dd>
+
+									<dt>Amount </dt>
+									<dd>{{ payment.amount|price }}</dd>
+
+									<dt>Method</dt>
+									<dd>{{ payment.method.getDisplayName() }}</dd>
+
+									<dt>Date</dt>
+									<dd>{{ payment.authorship.createdAt()|date }}</dd>
 								</dl>
 							{% endfor %}
+
+							<dl class="order-details">
+								<dt>Status</dt>
+								{% if not returnItem.hasRemainingBalance %}
+									<dd>No outstanding balance or payments</dd>
+								{% elseif returnItem.payeeIsClient %}
+									<dd>Awaiting customer's payment of {{ returnItem.balance|abs|price }}</dd>
+								{% endif %}
+							</dl>
 						{% endif %}
 
 
