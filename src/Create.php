@@ -202,18 +202,18 @@ class Create implements DB\TransactionalInterface
 		// Get the order for the return for quick reference
 		$order = $return->item->order;
 
+		// If this is a standalone exchange, create an order for entities to be
+		// attached to and representing the original sale.
+		if ($isStandalone and $return->item->exchangeItem) {
+			$order = clone $this->_newOrder;
+		}
+
 		if ($order and ! $order->currencyID) {
 			$order->currencyID = $return->currencyID;
 		}
 
 		if ($order and ! $order->type) {
 			$order->type = 'standalone-return';
-		}
-
-		// If this is a standalone exchange, create an order for entities to be
-		// attached to and representing the original sale.
-		if ($isStandalone and $return->item->exchangeItem) {
-			$order = clone $this->_newOrder;
 		}
 
 		// Create the related note if there is one
