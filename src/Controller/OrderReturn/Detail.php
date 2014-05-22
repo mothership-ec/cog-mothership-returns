@@ -103,7 +103,7 @@ class Detail extends Controller
 
 		// Clear the balance
 		if ($data['payee'] == 'none') {
-			$this->get('return.edit')->clearBalance($return);
+			$this->get('return.edit')->clearRemainingBalance($return);
 		}
 
 		// Process refund to the customer
@@ -135,7 +135,8 @@ class Detail extends Controller
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order
-				foreach ($return->payments as $p) {
+				$payment = null;
+				foreach ($return->item->order->payments as $p) {
 					$payment = $p;
 				}
 
@@ -163,8 +164,9 @@ class Detail extends Controller
 				]);
 			}
 			else {
-				// If refunding manually, just set the balance to 0 without checking for a payment
-				$return = $this->get('return.edit')->setBalance($return, 0);
+				// If refunding manually, just set the balance to the amount
+				// give without checking for a payment
+				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
 
 				// Refund the return
 				$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);

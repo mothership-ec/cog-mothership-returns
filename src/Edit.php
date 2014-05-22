@@ -7,7 +7,9 @@ use Message\Cog\ValueObject\DateTimeImmutable;
 use Message\User\UserInterface;
 
 use Message\Mothership\Commerce\Order;
+use Message\Mothership\Commerce\Refund;
 use Message\Mothership\Commerce\Product;
+use Message\Mothership\Commerce\Payment;
 
 /**
  * Order return editor.
@@ -20,17 +22,26 @@ class Edit
 	protected $_currentUser;
 	protected $_itemEdit;
 	protected $_refundCreate;
+	protected $_orderRefundCreate;
+	protected $_paymentCreate;
+	protected $_orderPaymentCreate;
 
 	public function __construct(
 		DB\Query $query,
 		UserInterface $currentUser,
 		Order\Entity\Item\Edit $itemEdit,
-		Order\Entity\Refund\Create $refundCreate
+		Payment\Create $paymentCreate,
+		Order\Entity\Payment\Create $orderPaymentCreate,
+		Refund\Create $refundCreate,
+		Order\Entity\Refund\Create $orderRefundCreate
 	) {
-		$this->_query        = $query;
-		$this->_currentUser  = $currentUser;
-		$this->_itemEdit     = $itemEdit;
-		$this->_refundCreate = $refundCreate;
+		$this->_query              = $query;
+		$this->_currentUser        = $currentUser;
+		$this->_itemEdit           = $itemEdit;
+		$this->_paymentCreate      = $paymentCreate;
+		$this->_orderPaymentCreate = $orderPaymentCreate;
+		$this->_refundCreate       = $refundCreate;
+		$this->_orderRefundCreate  = $orderRefundCreate;
 	}
 
 	public function setAsReceived(Entity\OrderReturn $return)
@@ -115,6 +126,7 @@ class Edit
 	public function setBalance(Entity\OrderReturn $return, $balance)
 	{
 		$return->item->balance = $balance;
+		$return->item->remainingBalance = $balance;
 
 		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
@@ -124,9 +136,10 @@ class Edit
 			UPDATE
 				return_item
 			SET
-				balance    = :balance?f,
-				updated_at = :updatedAt?d,
-				updated_by = :updatedBy?in
+				balance           = :balance?f,
+				remaining_balance = :balance?f,
+				updated_at        = :updatedAt?d,
+				updated_by        = :updatedBy?in
 			WHERE
 				return_id = :returnID?i
 		', array(
@@ -136,40 +149,117 @@ class Edit
 			'returnID'  => $return->id,
 		));
 
-		$this->_setUpdatedReturnItems($return);
+		return $return;
+	}
+
+	public function setRemainingBalance(Entity\OrderReturn $return, $remainingBalance)
+	{
+		$return->item->remainingBalance = $remainingBalance;
+
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+
+		$this->_validate($return);
+
+		$this->_query->run('
+			UPDATE
+				return_item
+			SET
+				remaining_balance = :remainingBalance?f,
+				updated_at        = :updatedAt?d,
+				updated_by        = :updatedBy?in
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'remainingBalance' => $remainingBalance,
+			'updatedAt'        => $return->authorship->updatedAt(),
+			'updatedBy'        => $return->authorship->updatedBy(),
+			'returnID'         => $return->id,
+		));
 
 		return $return;
 	}
 
-	public function clearBalance(Entity\OrderReturn $return)
+	public function clearRemainingBalance(Entity\OrderReturn $return)
 	{
-		return $this->setBalance($return, 0);
+		return $this->setRemainingBalance($return, 0);
 	}
 
-	/**
-	 * @todo Make this work with the base refund entity not order refunds.
-	 */
-	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null, $reference = null)
+	public function addPayment(Entity\OrderReturn $return, $method, $amount)
 	{
-		// Create the refund
-		$refund = new Order\Entity\Refund\Refund;
-		$refund->method    = $method;
-		$refund->amount    = $amount;
-		$refund->reason    = 'Returned Item: ' . $return->item->reason;
-		$refund->order     = $return->item->order;
-		$refund->payment   = $payment;
-		$refund->return    = $return;
-		$refund->reference = $reference;
+		// Create the payment
+		$payment = new Payment\Payment;
 
-		$refund = $this->_refundCreate->create($refund);
+		$payment->method    = $method;
+		$payment->amount    = $amount;
+		$payment->reference = $reference;
+		$refund->currencyID = $return->currencyID;
 
-		$return->item->order->refunds->append($refund);
+		$this->_paymentCreate->create($payment);
+
+		$this->_query->run("
+			INSERT INTO
+				`return_payment`
+			SET
+				return_id  = :returnID?i,
+				payment_id = :paymentID?i
+		", [
+			'returnID'  => $return->id,
+			'paymentID' => $payment->id,
+		]);
+
+		if ($return->item->order) {
+			$orderPayment = new Order\Entity\Payment\Payment($payment);
+			$orderPayment->order = $return->item->order;
+			$return->item->order->refunds->append($orderPayment);
+
+			$this->_orderPaymentCreate->create($orderPayment);
+		}
 
 		$this->_setUpdatedReturn($return);
 		$this->_setUpdatedReturnItems($return);
 
-		// Set the new balance of the return
-		$this->setBalance($return, $return->balance + $amount);
+		// Set the new remaining balance of the return
+		$this->setRemainingBalance($return, $payable->item->remainingBalance - $amount);
+	}
+
+	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null, $reference = null)
+	{
+		// Create the refund
+		$refund = new Refund\Refund;
+
+		$refund->method     = $method;
+		$refund->amount     = $amount;
+		$refund->reason     = 'Returned Item: ' . $return->item->reason;
+		$refund->payment    = $payment;
+		$refund->reference  = $reference;
+		$refund->currencyID = $return->currencyID;
+
+		$this->_refundCreate->create($refund);
+
+		$this->_query->run("
+			INSERT INTO
+				`return_refund`
+			SET
+				return_id = :returnID?i,
+				refund_id = :refundID?i
+		", [
+			'returnID' => $return->id,
+			'refundID' => $refund->id,
+		]);
+
+		if ($return->item->order) {
+			$orderRefund = new Order\Entity\Refund\Refund($refund);
+			$orderRefund->order = $return->item->order;
+			$return->item->order->refunds->append($orderRefund);
+
+			$this->_orderRefundCreate->create($orderRefund);
+		}
+
+		$this->_setUpdatedReturn($return);
+		$this->_setUpdatedReturnItems($return);
+
+		// Set the new remaining balance of the return
+		$this->setRemainingBalance($return, $return->item->balance + $amount);
 
 		return $return;
 	}

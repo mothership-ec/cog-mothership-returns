@@ -86,6 +86,9 @@ class Services implements ServicesInterface
 				$c['db.query'],
 				$c['user.current'],
 				$c['order.item.edit'],
+				$c['payment.create'],
+				$c['order.payment.create'],
+				$c['refund.create'],
 				$c['order.refund.create']
 			);
 		});

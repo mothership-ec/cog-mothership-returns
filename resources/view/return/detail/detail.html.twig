@@ -168,7 +168,7 @@
 			<div class="column">
 				<h2>Return Details</h2>
 				<dl class="order-details">
-					{% if (returnItem.order) %}
+					{% if (returnItem.orderItem) %}
 						<dt>Order</dt>
 						<dd>
 							<a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">
@@ -192,27 +192,24 @@
 						<dd>Refund</dd>
 					{% endif %}
 
-					{% if not returnItem.hasBalance %}
-						{% if returnItem.payeeIsClient %}
+					{% if returnItem.hasBalance %}
+						{% if not returnItem.hasRemainingBalance %}
+							<dt>Balance</dt>
+							<dd>Cleared</dd>
+						{% elseif returnItem.payeeIsClient %}
 							<dt>Customer Balance</dt>
-							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
+							<dd>{{ returnItem.balance|abs|price }}</dd>
 						{% elseif returnItem.payeeIsCustomer %}
 							<dt>Your Balance</dt>
-							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
-						{% else %}
-							<dt>Balance</dt>
-							<dd>None</dd>
+							<dd>{{ returnItem.balance|abs|price }}</dd>
 						{% endif %}
 					{% else %}
 						{% if returnItem.payeeIsClient %}
 							<dt>Customer Balance</dt>
-							<dd>{{ returnItem.balance|abs|price }}</dd>
+							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
 						{% elseif returnItem.payeeIsCustomer %}
 							<dt>Your Balance</dt>
-							<dd>{{ returnItem.balance|abs|price }}</dd>
-						{% else %}
-							<dt>Balance</dt>
-							<dd>Cleared</dd>
+							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
 						{% endif %}
 					{% endif %}
 

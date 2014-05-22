@@ -351,15 +351,18 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 	protected function _loadItem($itemResult, $itemEntity, $return)
 	{
 		// Cast decimals to float
-		$itemEntity->listPrice      = (float) $itemEntity->listPrice;
-		$itemEntity->actualPrice    = (float) $itemEntity->actualPrice;
-		$itemEntity->net            = (float) $itemEntity->net;
-		$itemEntity->discount       = (float) $itemEntity->discount;
-		$itemEntity->tax            = (float) $itemEntity->tax;
-		$itemEntity->taxRate        = (float) $itemEntity->taxRate;
-		$itemEntity->productTaxRate = (float) $itemEntity->productTaxRate;
-		$itemEntity->gross          = (float) $itemEntity->gross;
-		$itemEntity->rrp            = (float) $itemEntity->rrp;
+		$itemEntity->balance           = ($itemEntity->balance) ? (float) $itemEntity->balance : null;
+		$itemEntity->calculatedBalance = ($itemEntity->calculatedBalance) ? (float) $itemEntity->calculatedBalance : null;
+		$itemEntity->remainingBalance  = ($itemEntity->remainingBalance) ? (float) $itemEntity->remainingBalance : null;
+		$itemEntity->listPrice         = (float) $itemEntity->listPrice;
+		$itemEntity->actualPrice       = (float) $itemEntity->actualPrice;
+		$itemEntity->net               = (float) $itemEntity->net;
+		$itemEntity->discount          = (float) $itemEntity->discount;
+		$itemEntity->tax               = (float) $itemEntity->tax;
+		$itemEntity->taxRate           = (float) $itemEntity->taxRate;
+		$itemEntity->productTaxRate    = (float) $itemEntity->productTaxRate;
+		$itemEntity->gross             = (float) $itemEntity->gross;
+		$itemEntity->rrp               = (float) $itemEntity->rrp;
 
 		// Only load the order and refunds if one is attached to the return
 		if ($itemEntity->orderID) {

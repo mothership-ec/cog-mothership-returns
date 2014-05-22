@@ -4,10 +4,10 @@ namespace Message\Mothership\OrderReturn\Controller\OrderReturn;
 
 use Message\Cog\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Message\Mothership\Commerce\Payment\MethodInterface;
 use Message\Mothership\Commerce\Payable\PayableInterface;
 use Message\Mothership\Commerce\Order\Entity\Payment\Payment;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Message\Mothership\Commerce\Order\Entity\Payment\MethodInterface;
 use Message\Mothership\Ecommerce\Controller\Gateway\CompleteControllerInterface;
 
 /**
@@ -26,9 +26,8 @@ class Refund extends Controller implements CompleteControllerInterface
 	{
 		$payment = null;
 
-		foreach ($payable->order->payments as $p) {
+		foreach ($payable->item->order->payments as $p) {
 			$payment = $p;
-			break;
 		}
 
 		$this->get('return.edit')->refund($payable, $method, $payable->getPayableAmount(), $payment, $reference);
