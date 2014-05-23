@@ -319,6 +319,16 @@ class Create implements DB\TransactionalInterface
 			? $return->item->status->code
 			: Statuses::AWAITING_RETURN;
 
+		// If there is a related order item update its status
+		if ($return->item->orderItem) {
+			$this->_orderItemEdit->updateStatus($return->item->orderItem, $statusCode);
+		}
+
+		// If this is a standalone return, create the new order
+		if ($isStandalone and $order) {
+			$this->_orderCreate->create($order);
+		}
+
 		// Get the values for the return item
 		$returnItemValues = [
 			'returnID'              => $return->id,
@@ -402,16 +412,6 @@ class Create implements DB\TransactionalInterface
 				brand                   = :brand?s,
 				weight_grams            = :weight?i
 		", $returnItemValues);
-
-		// If there is a related order item update its status
-		if ($return->item->orderItem) {
-			$this->_orderItemEdit->updateStatus($return->item->orderItem, $statusCode);
-		}
-
-		// If this is a standalone return, create the new order
-		if ($isStandalone and $order) {
-			$this->_orderCreate->create($order);
-		}
 
 		// set stock manager's properties, because we can't change them anymore
 		// once an adjustment was added...
