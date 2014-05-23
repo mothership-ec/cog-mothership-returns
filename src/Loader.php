@@ -364,25 +364,18 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		// Only load the order and refunds if one is attached to the return
 		if ($itemEntity->orderID) {
 			$itemEntity->order   = $this->_orderLoader->getByID($itemEntity->orderID);
-			$itemEntity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($itemEntity->order);
-
-			// Add return entity to refunds
-			foreach ($itemEntity->refunds as $refund) {
-				$refund->return = $return;
-			}
 
 			// Grab the item from the order for easy access
 			if ($itemEntity->orderItemID) {
 				$itemEntity->orderItem = $itemEntity->order->items[$itemEntity->orderItemID];
 			}
 
-			// Only load the exchange item if one is attached to the return item
-			if ($itemEntity->exchangeItemID) {
-				$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, $itemEntity->order);
-			}
-
 			$itemEntity->note     = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
 			// $itemEntity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->documentID, $itemEntity->order);
+		}
+
+		if ($itemEntity->exchangeItemID) {
+			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, ($itemEntity->order ?: null));
 		}
 
 		$itemEntity->reason = $this->_reasons->get($itemResult->reason);
