@@ -257,7 +257,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 		$returnsResult = $this->_query->run('
 			SELECT
-				*
+				*,
+				currency_id as currencyID
 			FROM
 				`return`
 			WHERE

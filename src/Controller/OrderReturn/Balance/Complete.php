@@ -30,7 +30,7 @@ class Complete extends Controller implements CompleteControllerInterface
 		// afterwards
 		$amount = $payable->getPayableAmount();
 
-		$this->get('return.edit')->addPayment($payable, $method, $amount);
+		$this->get('return.edit')->addPayment($payable, $method, $amount, $reference);
 
 		// Generate the successful url
 		$salt = $this->get('cfg')->payment->salt;

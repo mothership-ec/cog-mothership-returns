@@ -184,7 +184,7 @@ class Edit
 		return $this->setRemainingBalance($return, 0);
 	}
 
-	public function addPayment(Entity\OrderReturn $return, $method, $amount)
+	public function addPayment(Entity\OrderReturn $return, $method, $amount, $reference)
 	{
 		// Create the payment
 		$payment = new Payment\Payment;
@@ -192,7 +192,7 @@ class Edit
 		$payment->method    = $method;
 		$payment->amount    = $amount;
 		$payment->reference = $reference;
-		$refund->currencyID = $return->currencyID;
+		$payment->currencyID = $return->currencyID;
 
 		$this->_paymentCreate->create($payment);
 
@@ -210,7 +210,7 @@ class Edit
 		if ($return->item->order) {
 			$orderPayment = new Order\Entity\Payment\Payment($payment);
 			$orderPayment->order = $return->item->order;
-			$return->item->order->refunds->append($orderPayment);
+			$return->item->order->payments->append($orderPayment);
 
 			$this->_orderPaymentCreate->create($orderPayment);
 		}
@@ -219,7 +219,7 @@ class Edit
 		$this->_setUpdatedReturnItems($return);
 
 		// Set the new remaining balance of the return
-		$this->setRemainingBalance($return, $payable->item->remainingBalance - $amount);
+		$this->setRemainingBalance($return, $return->item->remainingBalance - $amount);
 	}
 
 	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null, $reference = null)
