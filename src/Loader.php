@@ -11,6 +11,7 @@ use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Refund;
 use Message\Mothership\Commerce\Payment;
 use Message\Mothership\Commerce\Product\Stock;
+use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 
 
 class Loader extends Order\Entity\BaseLoader implements Order\Transaction\RecordLoaderInterface
@@ -29,15 +30,16 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$statuses,
 		Refund\Loader $refundLoader,
 		Payment\Loader $paymentLoader,
-		Stock\Location\Collection $stockLocations
-	)
-	{
+		Stock\Location\Collection $stockLocations,
+		UnitLoader $unitLoader
+	) {
 		$this->_query          = $query;
 		$this->_reasons        = $reasons;
 		$this->_statuses       = $statuses;
 		$this->_refundLoader   = $refundLoader;
 		$this->_paymentLoader  = $paymentLoader;
 		$this->_stockLocations = $stockLocations;
+		$this->_unitLoader     = $unitLoader;
 	}
 
 	public function getByID($id)
@@ -269,7 +271,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$itemsResult = $this->_query->run('
 			SELECT
 				*,
-				return_item_id          AS returnItemID,
+				return_item_id          AS id,
 				return_id               AS returnID,
 				order_id                AS orderID,
 				item_id                 AS orderItemID,
@@ -337,8 +339,9 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 				}
 			}
 
-			$entity->payments = $this->_loadPayments($entity);
-			$entity->refunds  = $this->_loadRefunds($entity);
+			$entity->currencyID = $returnsResult[$key]->currency_id;
+			$entity->payments   = $this->_loadPayments($entity);
+			$entity->refunds    = $this->_loadRefunds($entity);
 
 			$return[$entity->id] = $entity;
 		}
@@ -352,6 +355,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$itemEntity->balance           = ($itemEntity->balance) ? (float) $itemEntity->balance : null;
 		$itemEntity->calculatedBalance = ($itemEntity->calculatedBalance) ? (float) $itemEntity->calculatedBalance : null;
 		$itemEntity->remainingBalance  = ($itemEntity->remainingBalance) ? (float) $itemEntity->remainingBalance : null;
+		$itemEntity->accepted          = (null !== $itemEntity->accepted ? (bool) $itemEntity->accepted : null);
 		$itemEntity->listPrice         = (float) $itemEntity->listPrice;
 		$itemEntity->actualPrice       = (float) $itemEntity->actualPrice;
 		$itemEntity->net               = (float) $itemEntity->net;
@@ -364,19 +368,25 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 		// Only load the order and refunds if one is attached to the return
 		if ($itemEntity->orderID) {
-			$itemEntity->order   = $this->_orderLoader->getByID($itemEntity->orderID);
+			$itemEntity->order = $this->_orderLoader->getByID($itemEntity->orderID);
 
 			// Grab the item from the order for easy access
 			if ($itemEntity->orderItemID) {
 				$itemEntity->orderItem = $itemEntity->order->items[$itemEntity->orderItemID];
+
+				$itemEntity->unit = $itemEntity->orderItem->getUnit();
 			}
 
-			$itemEntity->note     = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
+			$itemEntity->note = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
 			// $itemEntity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->documentID, $itemEntity->order);
 		}
 
 		if ($itemEntity->exchangeItemID) {
 			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, ($itemEntity->order ?: null));
+		}
+
+		if (!$itemEntity->unit) {
+			$itemEntity->unit = $this->_unitLoader->getByID($itemEntity->unitID);
 		}
 
 		$itemEntity->reason = $this->_reasons->get($itemResult->reason);
