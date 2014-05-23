@@ -345,8 +345,6 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			$return[$entity->id] = $entity;
 		}
 
-		de($return);
-
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
 	}
 
