@@ -332,7 +332,7 @@ class Create implements DB\TransactionalInterface
 		// Get the values for the return item
 		$returnItemValues = [
 			'returnID'              => $return->id,
-			'orderID'               => ($return->item->order and $return->item->order->id) ? $return->item->order->id : null,
+			'orderID'               => ($order) ? $order->id : null,
 			'orderItemID'           => ($return->item->orderItem) ? $return->item->orderItem->id : null,
 			'exchangeItemID'        => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
 			'noteID'                => ($return->item->note) ? $return->item->note->id : null,
@@ -415,7 +415,7 @@ class Create implements DB\TransactionalInterface
 
 		// set stock manager's properties, because we can't change them anymore
 		// once an adjustment was added...
-		if (true === $return->item->accepted) {	
+		if (true === $return->item->accepted) {
 			if ($return->item->order) {
 				$this->_query->run(
 					"SET @STOCK_NOTE = CONCAT('Order #', CONCAT(:orderID?i, CONCAT(', Return #', :returnID?i)));",
@@ -423,7 +423,7 @@ class Create implements DB\TransactionalInterface
 						'orderID'  => $return->item->order->id,
 						'returnID' => $return->id,
 					]
-				);			
+				);
 			} else {
 				$this->_query->run("SET @STOCK_NOTE = CONCAT('Standalone Return #', ?i);", $return->id);
 			}
