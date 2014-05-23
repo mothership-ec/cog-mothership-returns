@@ -40,6 +40,9 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$this->_paymentLoader  = $paymentLoader;
 		$this->_stockLocations = $stockLocations;
 		$this->_unitLoader     = $unitLoader;
+
+		$this->_unitLoader->includeOutOfStock(true);
+		$this->_unitLoader->includeInvisible(true);
 	}
 
 	public function getByID($id)
