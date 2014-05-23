@@ -23,7 +23,8 @@ class Services implements ServicesInterface
 					$c['order.item.statuses'],
 					$c['refund.loader'],
 					$c['payment.loader'],
-					$c['stock.locations']
+					$c['stock.locations'],
+					$c['product.unit.loader']
 				)
 			);
 			return $entities;
