@@ -76,6 +76,23 @@ class Assembler
 	}
 
 	/**
+	 * Set the return type.
+	 *
+	 * @param  string $type
+	 * @return Assembler
+	 */
+	public function setType($type)
+	{
+		$this->_type = $type;
+
+		if ($this->_return) {
+			$this->_return->type = $type;
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Set the currency to use when calculating the item price.
 	 *
 	 * @param  string $currencyID

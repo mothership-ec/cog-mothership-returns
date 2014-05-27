@@ -193,10 +193,12 @@ class Create implements DB\TransactionalInterface
 			SET
 				created_at  = :createdAt?i,
 				created_by  = :createdBy?i,
+				type        = :type?s,
 				currency_id = :currencyID?s
 		", [
 			'createdAt'  => $return->authorship->createdAt(),
 			'createdBy'  => $return->authorship->createdBy(),
+			'type'       => $return->type,
 			'currencyID' => $return->currencyID,
 		]);
 
