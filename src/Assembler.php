@@ -323,6 +323,26 @@ class Assembler
 	}
 
 	/**
+	 * Remove a payment from the return.
+	 *
+	 * @param  Payment $payment
+	 * @return Assembler
+	 */
+	public function removePayment(Payment $payment)
+	{
+		foreach ($this->_return->payments as $key => $p) {
+			if ($p->reference == $payment->reference and
+				$p->method == $payment->method
+			) {
+				unset($this->_return->payments[$key]);
+				break;
+			}
+		}
+
+		return $this;
+	}
+
+	/**
 	 * Clear out and reset the payments to a given list.
 	 *
 	 * @param  array[Payment] $payments
@@ -360,6 +380,26 @@ class Assembler
 	public function addRefund(Refund $refund)
 	{
 		$this->_return->refunds[] = $refund;
+
+		return $this;
+	}
+
+	/**
+	 * Remove a refund from the return.
+	 *
+	 * @param  Refund $refund
+	 * @return Assembler
+	 */
+	public function removeRefund(Refund $refund)
+	{
+		foreach ($this->_return->refunds as $key => $r) {
+			if ($r->reference == $refund->reference and
+				$r->method == $refund->method
+			) {
+				unset($this->_return->refunds[$key]);
+				break;
+			}
+		}
 
 		return $this;
 	}
