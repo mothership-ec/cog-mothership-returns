@@ -1,60 +1,63 @@
+{# @todo replace this with a loop #}
+{% set returnItem = return.item %}
+
 <div class="group">
 	<h2 class="title">
-	{{ return.item.description }}
+		{{ returnItem.description }}
 	</h2>
 	<div class="content" id="return{{ return.id }}">
 		<h2>Return Details</h2>
 		<dl class="order-details">
-			<dt>Reason </dt>
-			<dd>{{ return.reason }}</dd>
+			<dt>Reason</dt>
+			<dd>{{ returnItem.reason }}</dd>
 
 			<dt>Resolution</dt>
 			{% if return.isExchangeResolution %}
 				<dd>
-					Exchange for <a href="{{ url('ms.commerce.product.edit.details', {productID: return.exchangeItem.productID}) }}" data-live>{{ return.exchangeItem.productName }} - {{ return.exchangeItem.options }}</a>
+					Exchange for <a href="{{ url('ms.commerce.product.edit.details', {productID: returnItem.exchangeItem.productID}) }}" data-live>{{ returnItem.exchangeItem.productName }} - {{ returnItem.exchangeItem.options }}</a>
 				</dd>
 			{% else %}
 				<dd>Refund</dd>
 			{% endif %}
 
-			{% if not return.hasBalance %}
-				{% if return.payeeIsClient %}
-					<dt>Customer Balance</dt>
-					<dd>{{ return.calculatedBalance|abs|price }}</dd>
-				{% elseif return.payeeIsCustomer %}
-					<dt>Your Balance</dt>
-					<dd>{{ return.calculatedBalance|abs|price }}</dd>
-				{% else %}
-					<dt>Balance</dt>
-					<dd>None</dd>
-				{% endif %}
-			{% else %}
-				{% if return.payeeIsClient %}
-					<dt>Customer Balance</dt>
-					<dd>{{ return.balance|abs|price }}</dd>
-				{% elseif return.payeeIsCustomer %}
-					<dt>Your Balance</dt>
-					<dd>{{ return.balance|abs|price }}</dd>
-				{% else %}
+			{% if returnItem.hasBalance %}
+				{% if not returnItem.hasRemainingBalance %}
 					<dt>Balance</dt>
 					<dd>Cleared</dd>
+				{% elseif returnItem.payeeIsClient %}
+					<dt>Customer Balance</dt>
+					<dd>{{ returnItem.balance|abs|price }}</dd>
+				{% elseif returnItem.payeeIsCustomer %}
+					<dt>Your Balance</dt>
+					<dd>{{ returnItem.balance|abs|price }}</dd>
+				{% endif %}
+			{% else %}
+				{% if returnItem.payeeIsClient %}
+					<dt>Customer Balance</dt>
+					<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
+				{% elseif returnItem.payeeIsCustomer %}
+					<dt>Your Balance</dt>
+					<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
+				{% else %}
+					<dt>Balance</dt>
+					<dd>{{ 0|price }}</dd>
 				{% endif %}
 			{% endif %}
 
-			<dt>Status </dt>
-			<dd>{{ return.item.status }}</dd>
+			<dt>Status</dt>
+			<dd>{{ returnItem.status }}</dd>
 
-			{% if return.note %}
+			{% if returnItem.note %}
 				<dt>Note</dt>
-				<dd>{{ return.note.note }}</dd>
+				<dd>{{ returnItem.note.note }}</dd>
 			{% endif %}
 
-			<dt>Created by </dt>
-			<dd>{{ return.order.user.name }} on {{ return.authorship.createdAt|date }}</dd>
+			<dt>Created by</dt>
+			<dd>{{ returnItem.order.user.name }} on {{ returnItem.authorship.createdAt|date }}</dd>
 
-			{% if not return.authorship.updatedAt is empty and not return.authorship.updatedBy is empty %}
-				<dt>Updated by {{ return.authorship.updatedBy }}</dt>
-				<dd><span>at</span> {{ return.authorship.updatedAt|date }}</dd>
+			{% if not returnItem.authorship.updatedAt is empty and not returnItem.authorship.updatedBy is empty %}
+				<dt>Updated by</dt>
+				<dd>{{ returnItem.authorship.updatedBy }} <span>at</span> {{ returnItem.authorship.updatedAt|date }}</dd>
 			{% endif %}
 		</dl>
 		<a class="button small submit" href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">Process this Return</a>
