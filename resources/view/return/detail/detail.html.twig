@@ -210,6 +210,9 @@
 						{% elseif returnItem.payeeIsCustomer %}
 							<dt>Your Balance</dt>
 							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
+						{% else %}
+							<dt>Balance</dt>
+							<dd>{{ 0|price }}</dd>
 						{% endif %}
 					{% endif %}
 
