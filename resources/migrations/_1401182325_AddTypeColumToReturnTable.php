@@ -2,7 +2,7 @@
 
 use Message\Cog\Migration\Adapter\MySQL\Migration;
 
-class _1401182325_AddCurrencyIDColumToReturnTable extends Migration
+class _1401182325_AddTypeColumToReturnTable extends Migration
 {
 	public function up()
 	{
