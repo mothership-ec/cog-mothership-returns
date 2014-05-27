@@ -78,7 +78,9 @@ class Services implements ServicesInterface
 				$c['payment.create'],
 				$c['refund.create'],
 				$c['order.payment.create'],
-				$c['order.refund.create']
+				$c['order.refund.create'],
+
+				$c['order.item.specification.returnable']
 			);
 		});
 

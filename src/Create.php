@@ -42,6 +42,8 @@ use Message\Mothership\OrderReturn\Loader as ReturnLoader;
 use Message\Mothership\OrderReturn\Collection\Collection as ReasonsCollection;
 use Message\Mothership\OrderReturn\StockMovementReasons as ReturnStockMovementReasons;
 
+use Message\Mothership\OrderReturn\Specification\ItemIsReturnableSpecification;
+
 /**
  * Order return creator.
  *
@@ -75,6 +77,8 @@ class Create implements DB\TransactionalInterface
 	protected $_orderPaymentCreate;
 	protected $_orderRefundCreate;
 
+	protected $_itemIsReturnable;
+
 	protected $_transOverridden = false;
 
 	public function __construct(
@@ -103,7 +107,9 @@ class Create implements DB\TransactionalInterface
 		PaymentCreate $paymentCreate,
 		RefundCreate  $refundCreate,
 		OrderPaymentCreate $orderPaymentCreate,
-		OrderRefundCreate $orderRefundCreate
+		OrderRefundCreate $orderRefundCreate,
+
+		ItemIsReturnableSpecification $itemIsReturnable
 	) {
 		$this->_query                = $query;
 		$this->_currentUser          = $currentUser;
@@ -131,6 +137,8 @@ class Create implements DB\TransactionalInterface
 		$this->_refundCreate         = $refundCreate;
 		$this->_orderPaymentCreate   = $orderPaymentCreate;
 		$this->_orderRefundCreate    = $orderRefundCreate;
+
+		$this->_itemIsReturnable     = $itemIsReturnable;
 	}
 
 	/**
@@ -530,6 +538,10 @@ class Create implements DB\TransactionalInterface
 		// Check the reason has been set and is valid
 		if (! $this->_returnReasons->exists($return->item->reason->code)) {
 			throw new InvalidArgumentException('Could not create return item: reason is not set or invalid');
+		}
+
+		if ($return->item->orderItem and ! $this->_itemIsReturnable->isSatisfiedBy($return->item->orderItem)) {
+			throw new InvalidArgumentException('Returned order item is not satisifed by ItemIsReturnableSpecification');
 		}
 	}
 }
