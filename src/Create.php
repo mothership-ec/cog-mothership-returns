@@ -342,7 +342,7 @@ class Create implements DB\TransactionalInterface
 		// Get the values for the return item
 		$returnItemValues = [
 			'returnID'              => $return->id,
-			'orderID'               => ($order) ? $order->id : null,
+			'orderID'               => (!$isStandalone and $order) ? $order->id : null,
 			'orderItemID'           => ($return->item->orderItem) ? $return->item->orderItem->id : null,
 			'exchangeItemID'        => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
 			'noteID'                => ($return->item->note) ? $return->item->note->id : null,
