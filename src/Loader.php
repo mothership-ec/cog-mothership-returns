@@ -163,8 +163,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$returns = $this->_load($result->flatten(), true);
 
 		foreach ($returns as $i => $return) {
-			if (Statuses::RETURN_RECEIVED > $return->item->status->code or
-				Order\Statuses::DISPATCHED <= $return->exchangeItem->status->code
+			if (Statuses::RETURN_RECEIVED > $return->item->orderItem->status->code or
+				Order\Statuses::DISPATCHED <= $return->item->exchangeItem->status->code
 			) {
 				unset($returns[$i]);
 			}
