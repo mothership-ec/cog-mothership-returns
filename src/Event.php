@@ -8,7 +8,8 @@ use Message\Cog\Event\Event as BaseEvent;
 use Message\Cog\DB;
 
 /**
- * Base event for the return system. Allows a return to be set & get.
+ * Transactional base event for the return system.
+ * Has setters and getters for a return and a db-transaction.
  *
  * @author Iris Schaffer <iris@message.co.uk>
  */
@@ -20,7 +21,7 @@ class Event extends BaseEvent implements DB\TransactionalInterface
 	/**
 	 * Constructor.
 	 *
-	 * @param Order $order The order to live in this event
+	 * @param OrderReturn $return The return to live in this event
 	 */
 	public function __construct(OrderReturn $return)
 	{
@@ -30,7 +31,7 @@ class Event extends BaseEvent implements DB\TransactionalInterface
 	/**
 	 * Sets Transaction
 	 *
-	 * @param  DB\Transaction $transaction transaction
+	 * @param  DB\Transaction $transaction Transaction
 	 * @return Event                       $this for chainability
 	 */
 	public function setTransaction(DB\Transaction $transaction)
@@ -49,26 +50,27 @@ class Event extends BaseEvent implements DB\TransactionalInterface
 	{
 		return $this->_transaction;
 	}
-
+	
 	/**
-	 * Get the order relating to this event.
+	 * Set the return relating to this event.
 	 *
-	 * @return Order
-	 */
-	public function getReturn()
-	{
-		return $this->_return;
-	}
-
-	/**
-	 * Set the order relating to this event.
-	 *
-	 * @param Order $order
+	 * @param OrderReturn $return   Return
+	 * @return Event                $this for chainability
 	 */
 	public function setReturn(OrderReturn $return)
 	{
 		$this->_return = $return;
 
 		return $this;
+	}
+
+	/**
+	 * Get the return relating to this event.
+	 *
+	 * @return OrderReturn
+	 */
+	public function getReturn()
+	{
+		return $this->_return;
 	}
 }
