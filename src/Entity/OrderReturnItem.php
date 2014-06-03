@@ -94,7 +94,7 @@ class OrderReturnItem
 
 	public function isRejected()
 	{
-		return $this->accepted == false and $this->accepted !== null;
+		return $this->accepted === false;
 	}
 
 	public function isRefundResolution()

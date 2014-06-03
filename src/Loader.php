@@ -358,7 +358,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		$itemEntity->balance           = ($itemEntity->balance) ? (float) $itemEntity->balance : null;
 		$itemEntity->calculatedBalance = ($itemEntity->calculatedBalance) ? (float) $itemEntity->calculatedBalance : null;
 		$itemEntity->remainingBalance  = ($itemEntity->remainingBalance) ? (float) $itemEntity->remainingBalance : null;
-		$itemEntity->accepted          = (null !== $itemEntity->accepted ? (bool) $itemEntity->accepted : null);
+		$itemEntity->accepted          = (null !== $itemEntity->accepted) ? (bool) $itemEntity->accepted : null;
 		$itemEntity->listPrice         = (float) $itemEntity->listPrice;
 		$itemEntity->actualPrice       = (float) $itemEntity->actualPrice;
 		$itemEntity->net               = (float) $itemEntity->net;
