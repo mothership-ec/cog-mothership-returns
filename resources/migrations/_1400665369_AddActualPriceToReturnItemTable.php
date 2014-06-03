@@ -16,7 +16,7 @@ class _1400665369_AddActualPriceToReturnItemTable extends Migration
 	{
 		$this->run("
 			ALTER TABLE `return_item`
-			DROP `actual_price`
+			DROP TABLE IF EXISTS `actual_price`
 		");
 	}
 }
