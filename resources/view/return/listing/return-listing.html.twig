@@ -43,17 +43,9 @@
 						<td>{{ returnItem.status }}</td>
 						<td>
 							{% if not returnItem.hasBalance %}
-								{% if returnItem.payeeIsClient %}
-									{{ returnItem.calculatedBalance|price }} (calculated)
-								{% elseif returnItem.payeeIsCustomer %}
-									{{ returnItem.calculatedBalance|price }} (calculated)
-								{% endif %}
+								{{ returnItem.calculatedBalance|price }} (calculated)
 							{% else %}
-								{% if returnItem.payeeIsClient %}
-									{{ returnItem.balance|price }}
-								{% elseif returnItem.payeeIsCustomer %}
-									{{ returnItem.balance|price }}
-								{% endif %}
+								{{ returnItem.balance|price }}
 							{% endif %}
 						</td>
 						<td>
