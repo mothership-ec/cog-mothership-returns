@@ -26,8 +26,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 	public function __construct(
 		DB\Query $query,
-		$reasons,
-		$statuses,
+		Collection\Collection $reasons,
+		Order\Status\Collection $statuses,
 		Refund\Loader $refundLoader,
 		Payment\Loader $paymentLoader,
 		Stock\Location\Collection $stockLocations,
