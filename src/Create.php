@@ -183,9 +183,6 @@ class Create implements DB\TransactionalInterface
 		$this->_stockManager->setAutomated(true);
 		$this->_stockManager->createWithRawNote(true);
 
-		// Alias this to allow using it's constants
-		$stockLocations = $this->_stockLocations;
-
 		// Set create authorship data if not already set
 		if (!$return->authorship->createdAt()) {
 			$return->authorship->create(
@@ -313,7 +310,7 @@ class Create implements DB\TransactionalInterface
 			}
 
 			if (! $return->item->exchangeItem->stockLocation) {
-				$return->item->exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
+				$return->item->exchangeItem->stockLocation = $this->_stockLocations->getRoleLocation(StockLocations::SELL_ROLE);
 			}
 
 			$return->item->exchangeItem->order = $order;
@@ -482,7 +479,7 @@ class Create implements DB\TransactionalInterface
 				// Increment in hold stock
 				$this->_stockManager->increment(
 					$unit,
-					$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
+					$this->_stockLocations->getRoleLocation(StockLocations::HOLD_ROLE)
 				);
 			}
 		}
