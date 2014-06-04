@@ -53,7 +53,7 @@ use Message\Mothership\OrderReturn\Specification\ItemIsReturnableSpecification;
  */
 class Create implements DB\TransactionalInterface
 {
-	protected $_query;
+	protected $_trans;
 	protected $_currentUser;
 	protected $_eventDispatcher;
 
@@ -82,7 +82,7 @@ class Create implements DB\TransactionalInterface
 	protected $_transOverridden = false;
 
 	public function __construct(
-		DB\Transaction $query,
+		DB\Transaction $trans,
 		UserInterface $currentUser,
 		EventDispatcher $eventDispatcher,
 
@@ -111,7 +111,7 @@ class Create implements DB\TransactionalInterface
 
 		ItemIsReturnableSpecification $itemIsReturnable
 	) {
-		$this->_query                = $query;
+		$this->_trans                = $trans;
 		$this->_currentUser          = $currentUser;
 		$this->_eventDispatcher      = $eventDispatcher;
 
@@ -149,7 +149,7 @@ class Create implements DB\TransactionalInterface
 	 */
 	public function setTransaction(DB\Transaction $trans)
 	{
-		$this->_query = $trans;
+		$this->_trans = $trans;
 		$this->_transOverridden = true;
 
 		return $this;
@@ -171,14 +171,14 @@ class Create implements DB\TransactionalInterface
 
 		$this->_validate($return);
 
-		$this->_orderCreate       ->setTransaction($this->_query);
-		$this->_noteCreate        ->setTransaction($this->_query);
-		$this->_paymentCreate     ->setTransaction($this->_query);
-		$this->_refundCreate      ->setTransaction($this->_query);
-		$this->_stockManager      ->setTransaction($this->_query);
-		$this->_orderItemEdit     ->setTransaction($this->_query);
-		$this->_orderRefundCreate ->setTransaction($this->_query);
-		$this->_orderPaymentCreate->setTransaction($this->_query);
+		$this->_orderCreate       ->setTransaction($this->_trans);
+		$this->_noteCreate        ->setTransaction($this->_trans);
+		$this->_paymentCreate     ->setTransaction($this->_trans);
+		$this->_refundCreate      ->setTransaction($this->_trans);
+		$this->_stockManager      ->setTransaction($this->_trans);
+		$this->_orderItemEdit     ->setTransaction($this->_trans);
+		$this->_orderRefundCreate ->setTransaction($this->_trans);
+		$this->_orderPaymentCreate->setTransaction($this->_trans);
 
 		$this->_stockManager->setAutomated(true);
 		$this->_stockManager->createWithRawNote(true);
@@ -195,7 +195,7 @@ class Create implements DB\TransactionalInterface
 		}
 
 		// Create the return
-		$this->_query->run("
+		$this->_trans->run("
 			INSERT INTO
 				`return`
 			SET
@@ -210,7 +210,7 @@ class Create implements DB\TransactionalInterface
 			'currencyID' => $return->currencyID,
 		]);
 
-		$this->_query->setIDVariable('RETURN_ID');
+		$this->_trans->setIDVariable('RETURN_ID');
 		$return->id = '@RETURN_ID';
 
 		// Get the order for the return for quick reference
@@ -250,7 +250,7 @@ class Create implements DB\TransactionalInterface
 
 				$this->_paymentCreate->create($payment);
 
-				$this->_query->run("
+				$this->_trans->run("
 					INSERT INTO
 						`return_payment`
 					SET
@@ -283,7 +283,7 @@ class Create implements DB\TransactionalInterface
 
 				$this->_refundCreate->create($refund);
 
-				$this->_query->run("
+				$this->_trans->run("
 					INSERT INTO
 						`return_refund`
 					SET
@@ -381,7 +381,7 @@ class Create implements DB\TransactionalInterface
 		}
 
 		// Create the return item
-		$itemResult = $this->_query->run("
+		$itemResult = $this->_trans->run("
 			INSERT INTO
 				`return_item`
 			SET
@@ -427,7 +427,7 @@ class Create implements DB\TransactionalInterface
 		// once an adjustment was added...
 		if (true === $return->item->accepted) {
 			if ($return->item->order) {
-				$this->_query->run(
+				$this->_trans->run(
 					"SET @STOCK_NOTE = CONCAT('Order #', CONCAT(:orderID?i, CONCAT(', Return #', :returnID?i)));",
 					[
 						'orderID'  => $return->item->order->id,
@@ -435,7 +435,7 @@ class Create implements DB\TransactionalInterface
 					]
 				);
 			} else {
-				$this->_query->run("SET @STOCK_NOTE = CONCAT('Standalone Return #', ?i);", $return->id);
+				$this->_trans->run("SET @STOCK_NOTE = CONCAT('Standalone Return #', ?i);", $return->id);
 			}
 
 			$this->_stockManager->setReason($this->_stockMovementReasons->get(
@@ -443,7 +443,7 @@ class Create implements DB\TransactionalInterface
 			));
 		}
 		if (!$isStandalone && $return->item->exchangeItem) {
-			$this->_query->run(
+			$this->_trans->run(
 				"SET @STOCK_NOTE = CONCAT('Order #', CONCAT(:orderID?i, CONCAT(', Return #', CONCAT(:returnID?i, ', Exchange Item requested'))));",
 				[
 					'orderID'  => $return->item->order->id,
@@ -489,7 +489,7 @@ class Create implements DB\TransactionalInterface
 
 		// Fire the created event
 		$event = new Event($return);
-		$event->setTransaction($this->_query);
+		$event->setTransaction($this->_trans);
 
 		$return = $this->_eventDispatcher->dispatch(
 			Events::CREATE_END,
@@ -498,17 +498,17 @@ class Create implements DB\TransactionalInterface
 
 		// Commit all the changes
 		if (!$this->_transOverridden) {
-			$this->_query->commit();
+			$this->_trans->commit();
 
 			// Re-load the return to ensure it is ready to be passed to the return
 			// slip file factory, and to be returned from the method.
-			$return = $this->_loader->getByID($this->_query->getIDVariable('RETURN_ID'));
+			$return = $this->_loader->getByID($this->_trans->getIDVariable('RETURN_ID'));
 
 			if ($statusCode === Statuses::AWAITING_RETURN) {
 				// This should probably be moved to an event ?
 				// Create the return slip and attach it to the return item
 				$document = $this->_returnSlip->save($return);
-				$this->_query->run("
+				$this->_trans->run("
 					UPDATE
 						`return`
 					SET
