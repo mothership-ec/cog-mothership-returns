@@ -313,7 +313,7 @@ class Edit
 
 	protected function _setUpdatedReturnItems(Entity\OrderReturn $return)
 	{
-		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+		$return->item->authorship->update($return->authorship->updatedAt(), $return->authorshipo->updatedBy());
 
 		$this->_query->run("
 			UPDATE
@@ -324,8 +324,8 @@ class Edit
 			WHERE
 				return_id = :returnID?i
 			", [
-				'updatedAt' => $return->authorship->updatedAt(),
-				'updatedBy' => $return->authorship->updatedBy(),
+				'updatedAt' => $return->item->authorship->updatedAt(),
+				'updatedBy' => $return->item->authorship->updatedBy(),
 				'returnID'  => $return->id,
 			]
 		);
