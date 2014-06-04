@@ -82,6 +82,11 @@
 									<dt>Date</dt>
 									<dd>{{ refund.authorship.createdAt()|date }}</dd>
 								</dl>
+							{% else %}
+								<dl class="order-details">
+									<dt>Refunds</dt>
+									<dd>No refunds have been made on this return</dd>
+								</dl>
 							{% endfor %}
 
 							{% for payment in return.payments %}
@@ -97,6 +102,11 @@
 
 									<dt>Date</dt>
 									<dd>{{ payment.authorship.createdAt()|date }}</dd>
+								</dl>
+							{% else %}
+								<dl class="order-details">
+									<dt>Payments</dt>
+									<dd>No payments have been made on this return</dd>
 								</dl>
 							{% endfor %}
 
