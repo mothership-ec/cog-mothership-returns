@@ -140,9 +140,6 @@ class Assembler
 	/**
 	 * Set the return item from an OrderItem.
 	 *
-	 * @todo   Verify how the returnedValue should be calculated.
-	 * @todo   Verify which value calculatedBalance should be taken from.
-	 *
 	 * @param  OrderItem $item
 	 * @return Assembler
 	 */
