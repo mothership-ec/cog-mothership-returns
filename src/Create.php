@@ -337,7 +337,7 @@ class Create implements DB\TransactionalInterface
 		}
 
 		// Get the values for the return item
-		$returnItemValues = [
+		$returnItemValues = array_merge((array) $return->item, [
 			'returnID'              => $return->id,
 			'orderID'               => (!$isStandalone and $order) ? $order->id : null,
 			'orderItemID'           => ($return->item->orderItem) ? $return->item->orderItem->id : null,
@@ -349,33 +349,8 @@ class Create implements DB\TransactionalInterface
 			'completedBy'           => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdBy() : null,
 			'statusCode'            => $statusCode,
 			'reason'                => $return->item->reason->code,
-			'accepted'              => $return->item->accepted,
-			'balance'               => $return->item->balance,
-			'calculatedBalance'     => $return->item->calculatedBalance,
-			'remainingBalance'      => $return->item->remainingBalance,
-			'returnedValue'         => $return->item->returnedValue,
 			'returnedStockLocation' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->name : null,
-		];
-
-		// Merge in the order item fields, from the orderItem if it is set or
-		// just the item object.
-		$orderItemFields = [
-			'listPrice', 'actualPrice', 'net', 'discount', 'tax', 'gross',
-			'rrp', 'taxRate', 'productTaxRate', 'taxStrategy', 'productID',
-			'productName', 'unitID', 'unitRevision', 'sku', 'barcode',
-			'options', 'brand', 'weight'
-		];
-
-		foreach ($orderItemFields as $field) {
-			if ($return->item->orderItem
-				and (!property_exists($return->item, $field)
-					or !$return->item->$field)) {
-
-				$returnItemValues[$field] = $return->item->orderItem->$field;
-			} else {
-				$returnItemValues[$field] = $return->item->$field;
-			}
-		}
+		]);
 
 		// Create the return item
 		$itemResult = $this->_trans->run("
