@@ -84,7 +84,6 @@ class OrderReturnItem
 	public function isReceived()
 	{
 		return $this->status->code >= Statuses::RETURN_RECEIVED;
-			   // or $this->status->code == Order\Statuses::CANCELLED;
 	}
 
 	public function isAccepted()
