@@ -68,7 +68,7 @@ class Edit
 			$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_RECEIVED);
 		}
 
-		$this->_setUpdatedReturn($return);
+		return $return;
 	}
 
 	public function accept(Entity\OrderReturn $return)
@@ -91,8 +91,6 @@ class Edit
 			'updatedAt' => $return->authorship->updatedAt(),
 			'updatedBy' => $return->authorship->updatedBy(),
 		));
-
-		$this->_setUpdatedReturnItems($return);
 
 		return $return;
 	}
@@ -117,8 +115,6 @@ class Edit
 			'updatedAt' => $return->authorship->updatedAt(),
 			'updatedBy' => $return->authorship->updatedBy(),
 		));
-
-		$this->_setUpdatedReturnItems($return);
 
 		return $return;
 	}
@@ -297,6 +293,8 @@ class Edit
 
 	protected function _setUpdatedReturn(Entity\OrderReturn $return)
 	{
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+
 		$this->_query->run("
 			UPDATE
 				`return`
@@ -315,6 +313,8 @@ class Edit
 
 	protected function _setUpdatedReturnItems(Entity\OrderReturn $return)
 	{
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+
 		$this->_query->run("
 			UPDATE
 				return_item
