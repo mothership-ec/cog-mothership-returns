@@ -102,12 +102,12 @@ class Detail extends Controller
 		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 		// Clear the balance
-		if ($data['payee'] == 'none') {
+		if ($data['payee'] == static::PAYEE_NONE) {
 			$this->get('return.edit')->clearRemainingBalance($return);
 		}
 
 		// Process refund to the customer
-		elseif ($data['payee'] == 'customer') {
+		elseif ($data['payee'] == static::PAYEE_CUSTOMER) {
 			// Ensure the amount has been approved
 			if ($data['refund_approve'] == false) {
 				$this->addFlash('error', 'You must approve the refund to enact it');
@@ -324,7 +324,7 @@ class Detail extends Controller
 
 		$form->setAction($this->generateUrl('ms.commerce.return.edit.balance', array('returnID' => $return->id)));
 
-		$payee = 'none';
+		$payee = static::PAYEE_NONE;
 		if ($return->item->payeeIsClient())   $payee = static::PAYEE_CLIENT;
 		if ($return->item->payeeIsCustomer()) $payee = static::PAYEE_CUSTOMER;
 
