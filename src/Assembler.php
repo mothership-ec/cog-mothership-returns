@@ -244,8 +244,8 @@ class Assembler
 	}
 
 	/**
-	 * Set the note for the return. Attach the order if this is not a
-	 * standalone return and apply the default values.
+	 * Set the note for the return, defaults the raisedFrom and customerNotified
+	 * values if these have not already been set.
 	 *
 	 * @param  OrderNote $note
 	 * @return Assembler
