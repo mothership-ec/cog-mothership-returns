@@ -264,6 +264,32 @@ class Edit
 		return $return;
 	}
 
+	public function complete(Entity\OrderReturn $return)
+	{
+		$return->item->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+
+		$this->_query->run("
+			UPDATE
+				return_item
+			SET
+				status_code = :status?i,
+				updated_at  = :updatedAt?d,
+				updated_by  = :updatedBy?in
+			WHERE
+				return_id = :returnID?i
+		", [
+			'status'    => Statuses::RETURN_COMPLETED,
+			'updatedAt' => $return->item->authorship->updatedAt(),
+			'updatedBy' => $return->item->authorship->updatedBy(),
+			'returnID'  => $return->id,
+		]);
+
+		// Complete the returned item
+		$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_COMPLETED);
+
+		return $return;
+	}
+
 	protected function _validate(Entity\OrderReturn $return)
 	{
 		//

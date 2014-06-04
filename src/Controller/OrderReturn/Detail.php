@@ -253,26 +253,8 @@ class Detail extends Controller
 
 		$stockManager->commit();
 
-		$return->item->authorship->update(new \Message\Cog\ValueObject\DateTimeImmutable, $this->get('user.current')->id);
-
-		$this->get('db.query')->run("
-			UPDATE
-				return_item
-			SET
-				status_code = :status?i,
-				updated_at  = :updatedAt?d,
-				updated_by  = :updatedBy?in
-			WHERE
-				return_id = :returnID?i
-		", [
-			'status'    => \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED,
-			'updatedAt' => $return->item->authorship->updatedAt(),
-			'updatedBy' => $return->item->authorship->updatedBy(),
-			'returnID'  => $return->id,
-		]);
-
-		// Complete the returned item
-		$this->get('order.item.edit')->updateStatus($return->item->orderItem, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
+		// Complete the return
+		$return = $this->get('return.edit')->complete($return);
 
 		return $this->redirect($viewURL);
 	}
