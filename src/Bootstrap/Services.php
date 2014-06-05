@@ -86,7 +86,7 @@ class Services implements ServicesInterface
 
 		$services['return.edit'] = $services->factory(function($c) {
 			return new OrderReturn\Edit(
-				$c['db.query'],
+				$c['db.transaction'],
 				$c['user.current'],
 				$c['order.item.edit'],
 				$c['payment.create'],
