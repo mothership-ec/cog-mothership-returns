@@ -77,10 +77,10 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			WHERE
 				(
 					accepted != 0 AND
-					balance != 0
+					remaining_balance != 0
 				) OR (
 					accepted IS NULL AND
-					balance IS NULL
+					remaining_balance IS NULL
 				)
 		');
 
@@ -124,8 +124,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			FROM
 				return_item
 			WHERE
-				balance IS NOT NULL AND
-				balance < 0 AND
+				remaining_balance > 0 AND
 				accepted = 1
 		');
 
@@ -140,9 +139,15 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			FROM
 				return_item
 			WHERE
-				balance IS NOT NULL AND
-				balance > 0 AND
-				accepted = 1
+				accepted = 1 AND
+				completed_at IS NULL AND
+				(
+					remaining_balance < 0 OR
+					(
+						remaining_balance IS NULL AND
+						calculated_balance < 0
+					)
+				)
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -156,21 +161,12 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			FROM
 				return_item
 			WHERE
-				exchange_item_id > 0 AND
-				accepted = 1
+				exchange_item_id IS NOT NULL AND
+				accepted = 1 AND
+				completed_at IS NULL
 		');
 
-		$returns = $this->_load($result->flatten(), true);
-
-		foreach ($returns as $i => $return) {
-			if (Statuses::RETURN_RECEIVED > $return->item->orderItem->status->code or
-				Order\Statuses::DISPATCHED <= $return->item->exchangeItem->status->code
-			) {
-				unset($returns[$i]);
-			}
-		}
-
-		return $returns;
+		return $this->_load($result->flatten(), true);
 	}
 
 	public function getCompleted()
@@ -181,7 +177,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 			FROM
 				return_item
 			WHERE
-				balance = 0
+				completed_at IS NOT NULL
 		');
 
 		return $this->_load($result->flatten(), true);
