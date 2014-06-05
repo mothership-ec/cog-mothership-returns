@@ -519,5 +519,13 @@ class Create implements DB\TransactionalInterface
 		if ($return->item->orderItem and ! $this->_itemIsReturnable->isSatisfiedBy($return->item->orderItem)) {
 			throw new InvalidArgumentException('Returned order item is not satisifed by ItemIsReturnableSpecification');
 		}
+
+		if (empty($return->type)) {
+			throw new InvalidArgumentException('No type set on return');
+		}
+
+		if (empty($return->currencyID)) {
+			throw new InvalidArgumentException('No currency set on return');
+		}
 	}
 }
