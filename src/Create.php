@@ -183,6 +183,11 @@ class Create implements DB\TransactionalInterface
 		$this->_stockManager->setAutomated(true);
 		$this->_stockManager->createWithRawNote(true);
 
+		// Get the return item status
+		$statusCode = ($return->item->status)
+			? $return->item->status->code
+			: Statuses::AWAITING_RETURN;
+
 		// Set create authorship data if not already set
 		if (!$return->authorship->createdAt()) {
 			$return->authorship->create(
@@ -196,15 +201,19 @@ class Create implements DB\TransactionalInterface
 			INSERT INTO
 				`return`
 			SET
-				created_at  = :createdAt?i,
-				created_by  = :createdBy?i,
-				type        = :type?s,
-				currency_id = :currencyID?s
+				created_at   = :createdAt?i,
+				created_by   = :createdBy?i,
+				completed_at = :completedAt?i,
+				completed_by = :completedBy?i,
+				type         = :type?s,
+				currency_id  = :currencyID?s
 		", [
-			'createdAt'  => $return->authorship->createdAt(),
-			'createdBy'  => $return->authorship->createdBy(),
-			'type'       => $return->type,
-			'currencyID' => $return->currencyID,
+			'createdAt'   => $return->authorship->createdAt(),
+			'createdBy'   => $return->authorship->createdBy(),
+			'completedAt' => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdAt() : null,
+			'completedBy' => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdBy() : null,
+			'type'        => $return->type,
+			'currencyID'  => $return->currencyID,
 		]);
 
 		$this->_trans->setIDVariable('RETURN_ID');
@@ -320,11 +329,6 @@ class Create implements DB\TransactionalInterface
 				$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
 			}
 		}
-
-		// Get the return item status
-		$statusCode = ($return->item->status)
-			? $return->item->status->code
-			: Statuses::AWAITING_RETURN;
 
 		// If there is a related order item update its status
 		if ($return->item->orderItem) {
