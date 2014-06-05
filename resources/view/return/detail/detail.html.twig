@@ -179,6 +179,9 @@
 			<div class="column">
 				<h2>Return Details</h2>
 				<dl class="order-details">
+					<dt>Type</dt>
+					<dd>{{ return.type|title }}</dd>
+
 					{% if (returnItem.orderItem) %}
 						<dt>Order</dt>
 						<dd>
