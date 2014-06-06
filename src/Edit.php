@@ -393,7 +393,7 @@ class Edit implements DB\TransactionalInterface
 
 	protected function _setUpdatedReturnItems(Entity\OrderReturn $return)
 	{
-		$return->item->authorship->update($return->authorship->updatedAt(), $return->authorshipo->updatedBy());
+		$return->item->authorship->update($return->authorship->updatedAt(), $return->authorship->updatedBy());
 
 		$this->_trans->run("
 			UPDATE
