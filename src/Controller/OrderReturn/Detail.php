@@ -192,6 +192,19 @@ class Detail extends Controller
 			$result = $dispatcher->send($message);
 		}
 
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and $return->item->isReturnedItemProcessed()
+			and (
+				!$return->item->isExchangeResolution()
+				or $return->item->isExchanged()
+			)
+		) {
+			// Complete the return
+			$return = $this->get('return.edit')->complete($return);
+		}
+
 		return $this->redirect($viewURL);
 	}
 
@@ -224,6 +237,15 @@ class Detail extends Controller
 		$stockManager->commit();
 
 		$this->get('order.item.edit')->updateStatus($return->item->exchangeItem, Order\Statuses::AWAITING_DISPATCH);
+
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and $return->item->isReturnedItemProcessed()
+		) {
+			// Complete the return
+			$return = $this->get('return.edit')->complete($return);
+		}
 
 		return $this->redirect($viewURL);
 	}

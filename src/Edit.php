@@ -198,7 +198,11 @@ class Edit implements DB\TransactionalInterface
 			'returnID'         => $return->id,
 		));
 
-		if (!$this->_transOverriden and !$commit) {
+		if (0 == $return->item->remainingBalance) {
+			$this->complete($return, false);
+		}
+
+		if (!$this->_transOverriden and $commit) {
 			$this->_trans->commit();
 		}
 
@@ -334,32 +338,55 @@ class Edit implements DB\TransactionalInterface
 		return $return;
 	}
 
-	public function complete(Entity\OrderReturn $return)
+	public function complete(Entity\OrderReturn $return, $commit = true)
 	{
 		$this->_itemEdit->setTransaction($this->_trans);
 
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 		$return->item->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+
+		$this->_trans->run("
+			UPDATE
+				`return`
+			SET
+				updated_at   = :updatedAt?d,
+				updated_by   = :updatedBy?in,
+				completed_at = :completedAt?d,
+				completed_by = :completedBy?in
+			WHERE
+				return_id = :returnID?i
+		", [
+			'updatedAt'   => $return->item->authorship->updatedAt(),
+			'updatedBy'   => $return->item->authorship->updatedBy(),
+			'completedAt' => $return->item->authorship->updatedAt(),
+			'completedBy' => $return->item->authorship->updatedBy(),
+			'returnID'    => $return->id,
+		]);
 
 		$this->_trans->run("
 			UPDATE
 				return_item
 			SET
-				status_code = :status?i,
-				updated_at  = :updatedAt?d,
-				updated_by  = :updatedBy?in
+				status_code  = :status?i,
+				updated_at   = :updatedAt?d,
+				updated_by   = :updatedBy?in,
+				completed_at = :completedAt?d,
+				completed_by = :completedBy?in
 			WHERE
 				return_id = :returnID?i
 		", [
-			'status'    => Statuses::RETURN_COMPLETED,
-			'updatedAt' => $return->item->authorship->updatedAt(),
-			'updatedBy' => $return->item->authorship->updatedBy(),
-			'returnID'  => $return->id,
+			'status'      => Statuses::RETURN_COMPLETED,
+			'updatedAt'   => $return->item->authorship->updatedAt(),
+			'updatedBy'   => $return->item->authorship->updatedBy(),
+			'completedAt' => $return->item->authorship->updatedAt(),
+			'completedBy' => $return->item->authorship->updatedBy(),
+			'returnID'    => $return->id,
 		]);
 
 		// Complete the returned item
 		$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_COMPLETED);
 
-		if (!$this->_transOverriden) {
+		if (!$this->_transOverriden and $commit) {
 			$this->_trans->commit();
 		}
 
