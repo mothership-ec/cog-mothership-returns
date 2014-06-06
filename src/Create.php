@@ -53,7 +53,7 @@ use Message\Mothership\OrderReturn\Specification\ItemIsReturnableSpecification;
  */
 class Create implements DB\TransactionalInterface
 {
-	protected $_query;
+	protected $_trans;
 	protected $_currentUser;
 	protected $_eventDispatcher;
 
@@ -82,7 +82,7 @@ class Create implements DB\TransactionalInterface
 	protected $_transOverridden = false;
 
 	public function __construct(
-		DB\Transaction $query,
+		DB\Transaction $trans,
 		UserInterface $currentUser,
 		EventDispatcher $eventDispatcher,
 
@@ -111,7 +111,7 @@ class Create implements DB\TransactionalInterface
 
 		ItemIsReturnableSpecification $itemIsReturnable
 	) {
-		$this->_query                = $query;
+		$this->_trans                = $trans;
 		$this->_currentUser          = $currentUser;
 		$this->_eventDispatcher      = $eventDispatcher;
 
@@ -149,7 +149,7 @@ class Create implements DB\TransactionalInterface
 	 */
 	public function setTransaction(DB\Transaction $trans)
 	{
-		$this->_query = $trans;
+		$this->_trans = $trans;
 		$this->_transOverridden = true;
 
 		return $this;
@@ -171,20 +171,22 @@ class Create implements DB\TransactionalInterface
 
 		$this->_validate($return);
 
-		$this->_orderCreate       ->setTransaction($this->_query);
-		$this->_noteCreate        ->setTransaction($this->_query);
-		$this->_paymentCreate     ->setTransaction($this->_query);
-		$this->_refundCreate      ->setTransaction($this->_query);
-		$this->_stockManager      ->setTransaction($this->_query);
-		$this->_orderItemEdit     ->setTransaction($this->_query);
-		$this->_orderRefundCreate ->setTransaction($this->_query);
-		$this->_orderPaymentCreate->setTransaction($this->_query);
+		$this->_orderCreate       ->setTransaction($this->_trans);
+		$this->_noteCreate        ->setTransaction($this->_trans);
+		$this->_paymentCreate     ->setTransaction($this->_trans);
+		$this->_refundCreate      ->setTransaction($this->_trans);
+		$this->_stockManager      ->setTransaction($this->_trans);
+		$this->_orderItemEdit     ->setTransaction($this->_trans);
+		$this->_orderRefundCreate ->setTransaction($this->_trans);
+		$this->_orderPaymentCreate->setTransaction($this->_trans);
 
 		$this->_stockManager->setAutomated(true);
 		$this->_stockManager->createWithRawNote(true);
 
-		// Alias this to allow using it's constants
-		$stockLocations = $this->_stockLocations;
+		// Get the return item status
+		$statusCode = ($return->item->status)
+			? $return->item->status->code
+			: Statuses::AWAITING_RETURN;
 
 		// Set create authorship data if not already set
 		if (!$return->authorship->createdAt()) {
@@ -195,22 +197,26 @@ class Create implements DB\TransactionalInterface
 		}
 
 		// Create the return
-		$this->_query->run("
+		$this->_trans->run("
 			INSERT INTO
 				`return`
 			SET
-				created_at  = :createdAt?i,
-				created_by  = :createdBy?i,
-				type        = :type?s,
-				currency_id = :currencyID?s
+				created_at   = :createdAt?i,
+				created_by   = :createdBy?i,
+				completed_at = :completedAt?i,
+				completed_by = :completedBy?i,
+				type         = :type?s,
+				currency_id  = :currencyID?s
 		", [
-			'createdAt'  => $return->authorship->createdAt(),
-			'createdBy'  => $return->authorship->createdBy(),
-			'type'       => $return->type,
-			'currencyID' => $return->currencyID,
+			'createdAt'   => $return->authorship->createdAt(),
+			'createdBy'   => $return->authorship->createdBy(),
+			'completedAt' => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdAt() : null,
+			'completedBy' => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdBy() : null,
+			'type'        => $return->type,
+			'currencyID'  => $return->currencyID,
 		]);
 
-		$this->_query->setIDVariable('RETURN_ID');
+		$this->_trans->setIDVariable('RETURN_ID');
 		$return->id = '@RETURN_ID';
 
 		// Get the order for the return for quick reference
@@ -250,7 +256,7 @@ class Create implements DB\TransactionalInterface
 
 				$this->_paymentCreate->create($payment);
 
-				$this->_query->run("
+				$this->_trans->run("
 					INSERT INTO
 						`return_payment`
 					SET
@@ -283,7 +289,7 @@ class Create implements DB\TransactionalInterface
 
 				$this->_refundCreate->create($refund);
 
-				$this->_query->run("
+				$this->_trans->run("
 					INSERT INTO
 						`return_refund`
 					SET
@@ -313,7 +319,7 @@ class Create implements DB\TransactionalInterface
 			}
 
 			if (! $return->item->exchangeItem->stockLocation) {
-				$return->item->exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
+				$return->item->exchangeItem->stockLocation = $this->_stockLocations->getRoleLocation(StockLocations::SELL_ROLE);
 			}
 
 			$return->item->exchangeItem->order = $order;
@@ -323,11 +329,6 @@ class Create implements DB\TransactionalInterface
 				$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
 			}
 		}
-
-		// Get the return item status
-		$statusCode = ($return->item->status)
-			? $return->item->status->code
-			: Statuses::AWAITING_RETURN;
 
 		// If there is a related order item update its status
 		if ($return->item->orderItem) {
@@ -340,7 +341,7 @@ class Create implements DB\TransactionalInterface
 		}
 
 		// Get the values for the return item
-		$returnItemValues = [
+		$returnItemValues = array_merge((array) $return->item, [
 			'returnID'              => $return->id,
 			'orderID'               => (!$isStandalone and $order) ? $order->id : null,
 			'orderItemID'           => ($return->item->orderItem) ? $return->item->orderItem->id : null,
@@ -352,36 +353,11 @@ class Create implements DB\TransactionalInterface
 			'completedBy'           => ($statusCode == Statuses::RETURN_COMPLETED) ? $return->authorship->createdBy() : null,
 			'statusCode'            => $statusCode,
 			'reason'                => $return->item->reason->code,
-			'accepted'              => $return->item->accepted,
-			'balance'               => $return->item->balance,
-			'calculatedBalance'     => $return->item->calculatedBalance,
-			'remainingBalance'      => $return->item->remainingBalance,
-			'returnedValue'         => $return->item->returnedValue,
 			'returnedStockLocation' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->name : null,
-		];
-
-		// Merge in the order item fields, from the orderItem if it is set or
-		// just the item object.
-		$orderItemFields = [
-			'listPrice', 'actualPrice', 'net', 'discount', 'tax', 'gross',
-			'rrp', 'taxRate', 'productTaxRate', 'taxStrategy', 'productID',
-			'productName', 'unitID', 'unitRevision', 'sku', 'barcode',
-			'options', 'brand', 'weight'
-		];
-
-		foreach ($orderItemFields as $field) {
-			if ($return->item->orderItem
-				and (!property_exists($return->item, $field)
-					or !$return->item->$field)) {
-
-				$returnItemValues[$field] = $return->item->orderItem->$field;
-			} else {
-				$returnItemValues[$field] = $return->item->$field;
-			}
-		}
+		]);
 
 		// Create the return item
-		$itemResult = $this->_query->run("
+		$itemResult = $this->_trans->run("
 			INSERT INTO
 				`return_item`
 			SET
@@ -427,7 +403,7 @@ class Create implements DB\TransactionalInterface
 		// once an adjustment was added...
 		if (true === $return->item->accepted) {
 			if ($return->item->order) {
-				$this->_query->run(
+				$this->_trans->run(
 					"SET @STOCK_NOTE = CONCAT('Order #', CONCAT(:orderID?i, CONCAT(', Return #', :returnID?i)));",
 					[
 						'orderID'  => $return->item->order->id,
@@ -435,7 +411,7 @@ class Create implements DB\TransactionalInterface
 					]
 				);
 			} else {
-				$this->_query->run("SET @STOCK_NOTE = CONCAT('Standalone Return #', ?i);", $return->id);
+				$this->_trans->run("SET @STOCK_NOTE = CONCAT('Standalone Return #', ?i);", $return->id);
 			}
 
 			$this->_stockManager->setReason($this->_stockMovementReasons->get(
@@ -443,7 +419,7 @@ class Create implements DB\TransactionalInterface
 			));
 		}
 		if (!$isStandalone && $return->item->exchangeItem) {
-			$this->_query->run(
+			$this->_trans->run(
 				"SET @STOCK_NOTE = CONCAT('Order #', CONCAT(:orderID?i, CONCAT(', Return #', CONCAT(:returnID?i, ', Exchange Item requested'))));",
 				[
 					'orderID'  => $return->item->order->id,
@@ -482,14 +458,14 @@ class Create implements DB\TransactionalInterface
 				// Increment in hold stock
 				$this->_stockManager->increment(
 					$unit,
-					$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
+					$this->_stockLocations->getRoleLocation(StockLocations::HOLD_ROLE)
 				);
 			}
 		}
 
 		// Fire the created event
 		$event = new Event($return);
-		$event->setTransaction($this->_query);
+		$event->setTransaction($this->_trans);
 
 		$return = $this->_eventDispatcher->dispatch(
 			Events::CREATE_END,
@@ -498,17 +474,17 @@ class Create implements DB\TransactionalInterface
 
 		// Commit all the changes
 		if (!$this->_transOverridden) {
-			$this->_query->commit();
+			$this->_trans->commit();
 
 			// Re-load the return to ensure it is ready to be passed to the return
 			// slip file factory, and to be returned from the method.
-			$return = $this->_loader->getByID($this->_query->getIDVariable('RETURN_ID'));
+			$return = $this->_loader->getByID($this->_trans->getIDVariable('RETURN_ID'));
 
 			if ($statusCode === Statuses::AWAITING_RETURN) {
 				// This should probably be moved to an event ?
 				// Create the return slip and attach it to the return item
 				$document = $this->_returnSlip->save($return);
-				$this->_query->run("
+				$this->_trans->run("
 					UPDATE
 						`return`
 					SET
@@ -542,6 +518,14 @@ class Create implements DB\TransactionalInterface
 
 		if ($return->item->orderItem and ! $this->_itemIsReturnable->isSatisfiedBy($return->item->orderItem)) {
 			throw new InvalidArgumentException('Returned order item is not satisifed by ItemIsReturnableSpecification');
+		}
+
+		if (empty($return->type)) {
+			throw new InvalidArgumentException('No type set on return');
+		}
+
+		if (empty($return->currencyID)) {
+			throw new InvalidArgumentException('No currency set on return');
 		}
 	}
 }

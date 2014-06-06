@@ -43,6 +43,13 @@ class Assembler
 	protected $_currencyID;
 
 	/**
+	 * The type of the return, defaults to 'web'.
+	 *
+	 * @var string
+	 */
+	protected $_type = 'web';
+
+	/**
 	 * Construct the assembler.
 	 *
 	 * @param StatusCollection $statuses
@@ -132,6 +139,8 @@ class Assembler
 			$this->setReturnItemFromProductUnit($item);
 		}
 
+		// Ensure set values are applied to the new return
+		$this->_return->type       = $this->_type;
 		$this->_return->currencyID = $this->_currencyID;
 
 		return $this;
@@ -139,9 +148,6 @@ class Assembler
 
 	/**
 	 * Set the return item from an OrderItem.
-	 *
-	 * @todo   Verify how the returnedValue should be calculated.
-	 * @todo   Verify which value calculatedBalance should be taken from.
 	 *
 	 * @param  OrderItem $item
 	 * @return Assembler
@@ -247,8 +253,8 @@ class Assembler
 	}
 
 	/**
-	 * Set the note for the return. Attach the order if this is not a
-	 * standalone return and apply the default values.
+	 * Set the note for the return, defaults the raisedFrom and customerNotified
+	 * values if these have not already been set.
 	 *
 	 * @param  OrderNote $note
 	 * @return Assembler

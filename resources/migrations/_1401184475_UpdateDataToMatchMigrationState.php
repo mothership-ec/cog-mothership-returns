@@ -29,7 +29,6 @@ class _1401184475_UpdateDataToMatchMigrationState extends Migration
 		// calculated_balance from order_item.actual_price - exchange_item.actual_price
 		// actual_price from order_item.actual_price
 		// balance from calculated_balance
-		// actual_price from order_item.actual_price
 		$this->run("
 			UPDATE
 				return_item ri
@@ -44,8 +43,7 @@ class _1401184475_UpdateDataToMatchMigrationState extends Migration
 				ri.balance            = CASE
 					WHEN ri.balance IS NOT NULL THEN oi.actual_price - IFNULL(ei.actual_price, 0)
 					ELSE ri.balance = ri.balance
-				END,
-				ri.actual_price       = oi.actual_price
+				END
 		");
 
 		// completed_at from order_item.status.created_at (for 2200)

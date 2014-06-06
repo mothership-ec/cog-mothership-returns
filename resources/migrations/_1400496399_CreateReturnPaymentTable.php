@@ -7,7 +7,7 @@ class _1400496399_CreateReturnPaymentTable extends Migration
 	public function up()
 	{
 		$this->run("
-			CREATE TABLE `return_payment` (
+			CREATE TABLE IF NOT EXISTS `return_payment` (
 				`return_id` int(11) unsigned NOT NULL,
 				`payment_id` int(11) unsigned NOT NULL,
 				PRIMARY KEY (`return_id`, `payment_id`)
@@ -18,7 +18,7 @@ class _1400496399_CreateReturnPaymentTable extends Migration
 	public function down()
 	{
 		$this->run("
-			DROP `return_payment`
+			DROP TABLE IF EXISTS `return_payment`
 		");
 	}
 }

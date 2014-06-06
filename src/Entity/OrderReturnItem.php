@@ -23,6 +23,7 @@ class OrderReturnItem
 	public $note;
 	public $document;
 	public $returnedStockLocation;
+	public $returnedStock;
 
 	// Return Item
 	public $authorship;
@@ -84,7 +85,6 @@ class OrderReturnItem
 	public function isReceived()
 	{
 		return $this->status->code >= Statuses::RETURN_RECEIVED;
-			   // or $this->status->code == Order\Statuses::CANCELLED;
 	}
 
 	public function isAccepted()
@@ -94,7 +94,7 @@ class OrderReturnItem
 
 	public function isRejected()
 	{
-		return $this->accepted == false and $this->accepted !== null;
+		return $this->accepted === false;
 	}
 
 	public function isRefundResolution()
@@ -153,7 +153,6 @@ class OrderReturnItem
 
 	public function isReturnedItemProcessed()
 	{
-		return $this->status->code < Statuses::AWAITING_RETURN or
-			   $this->status->code > Statuses::RETURN_RECEIVED;
+		return $this->returnedStock;
 	}
 }

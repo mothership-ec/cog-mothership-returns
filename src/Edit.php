@@ -16,9 +16,11 @@ use Message\Mothership\Commerce\Payment;
  *
  * @author Laurence Roberts <laurence@message.co.uk>
  */
-class Edit
+class Edit implements DB\TransactionalInterface
 {
-	protected $_query;
+	protected $_trans;
+	protected $_transOverriden = false;
+
 	protected $_currentUser;
 	protected $_itemEdit;
 	protected $_refundCreate;
@@ -27,7 +29,7 @@ class Edit
 	protected $_orderPaymentCreate;
 
 	public function __construct(
-		DB\Query $query,
+		DB\Transaction $trans,
 		UserInterface $currentUser,
 		Order\Entity\Item\Edit $itemEdit,
 		Payment\Create $paymentCreate,
@@ -35,7 +37,7 @@ class Edit
 		Refund\Create $refundCreate,
 		Order\Entity\Refund\Create $orderRefundCreate
 	) {
-		$this->_query              = $query;
+		$this->_trans              = $trans;
 		$this->_currentUser        = $currentUser;
 		$this->_itemEdit           = $itemEdit;
 		$this->_paymentCreate      = $paymentCreate;
@@ -44,11 +46,19 @@ class Edit
 		$this->_orderRefundCreate  = $orderRefundCreate;
 	}
 
+	public function setTransaction(DB\Transaction $trans)
+	{
+		$this->_trans = $trans;
+		$this->_transOverriden = true;
+	}
+
 	public function setAsReceived(Entity\OrderReturn $return)
 	{
+		$this->_itemEdit->setTransaction($this->_trans);
+
 		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
-		$this->_query->run("
+		$this->_trans->run("
 			UPDATE
 				return_item
 			SET
@@ -68,7 +78,11 @@ class Edit
 			$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_RECEIVED);
 		}
 
-		$this->_setUpdatedReturn($return);
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
+
+		return $return;
 	}
 
 	public function accept(Entity\OrderReturn $return)
@@ -77,7 +91,7 @@ class Edit
 
 		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
-		$this->_query->run('
+		$this->_trans->run('
 			UPDATE
 				return_item
 			SET
@@ -92,7 +106,9 @@ class Edit
 			'updatedBy' => $return->authorship->updatedBy(),
 		));
 
-		$this->_setUpdatedReturnItems($return);
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
 
 		return $return;
 	}
@@ -103,7 +119,7 @@ class Edit
 
 		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
 
-		$this->_query->run('
+		$this->_trans->run('
 			UPDATE
 				return_item
 			SET
@@ -118,7 +134,9 @@ class Edit
 			'updatedBy' => $return->authorship->updatedBy(),
 		));
 
-		$this->_setUpdatedReturnItems($return);
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
 
 		return $return;
 	}
@@ -132,7 +150,7 @@ class Edit
 
 		$this->_validate($return);
 
-		$this->_query->run('
+		$this->_trans->run('
 			UPDATE
 				return_item
 			SET
@@ -149,10 +167,14 @@ class Edit
 			'returnID'  => $return->id,
 		));
 
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
+
 		return $return;
 	}
 
-	public function setRemainingBalance(Entity\OrderReturn $return, $remainingBalance)
+	public function setRemainingBalance(Entity\OrderReturn $return, $remainingBalance, $commit = true)
 	{
 		$return->item->remainingBalance = $remainingBalance;
 
@@ -160,7 +182,7 @@ class Edit
 
 		$this->_validate($return);
 
-		$this->_query->run('
+		$this->_trans->run('
 			UPDATE
 				return_item
 			SET
@@ -176,16 +198,23 @@ class Edit
 			'returnID'         => $return->id,
 		));
 
+		if (!$this->_transOverriden and !$commit) {
+			$this->_trans->commit();
+		}
+
 		return $return;
 	}
 
-	public function clearRemainingBalance(Entity\OrderReturn $return)
+	public function clearRemainingBalance(Entity\OrderReturn $return, $commit = true)
 	{
-		return $this->setRemainingBalance($return, 0);
+		return $this->setRemainingBalance($return, 0, $commit);
 	}
 
 	public function addPayment(Entity\OrderReturn $return, $method, $amount, $reference)
 	{
+		$this->_paymentCreate->setTransaction($this->_trans);
+		$this->_orderPaymentCreate->setTransaction($this->_trans);
+
 		// Create the payment
 		$payment = new Payment\Payment;
 
@@ -196,7 +225,7 @@ class Edit
 
 		$this->_paymentCreate->create($payment);
 
-		$this->_query->run("
+		$this->_trans->run("
 			INSERT INTO
 				`return_payment`
 			SET
@@ -219,11 +248,18 @@ class Edit
 		$this->_setUpdatedReturnItems($return);
 
 		// Set the new remaining balance of the return
-		$this->setRemainingBalance($return, $return->item->remainingBalance - $amount);
+		$this->setRemainingBalance($return, $return->item->remainingBalance - $amount, false);
+
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
 	}
 
 	public function refund(Entity\OrderReturn $return, $method, $amount, Order\Entity\Payment\Payment $payment = null, $reference = null)
 	{
+		$this->_refundCreate->setTransaction($this->_trans);
+		$this->_orderRefundCreate->setTransaction($this->_trans);
+
 		// Create the refund
 		$refund = new Refund\Refund;
 
@@ -236,7 +272,7 @@ class Edit
 
 		$this->_refundCreate->create($refund);
 
-		$this->_query->run("
+		$this->_trans->run("
 			INSERT INTO
 				`return_refund`
 			SET
@@ -259,7 +295,73 @@ class Edit
 		$this->_setUpdatedReturnItems($return);
 
 		// Set the new remaining balance of the return
-		$this->setRemainingBalance($return, $return->item->balance + $amount);
+		$this->setRemainingBalance($return, $return->item->balance + $amount, false);
+
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
+
+		return $return;
+	}
+
+	public function returnItemToStock(Entity\OrderReturn $return)
+	{
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+		$return->returnedStock = true;
+
+		$this->_validate($return);
+
+		$this->_trans->run('
+			UPDATE
+				return_item
+			SET
+				returned_stock = :returnedStock?b,
+				updated_at     = :updatedAt?d,
+				updated_by     = :updatedBy?in
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'returnedStock' => $return->returnedStock,
+			'updatedAt'     => $return->authorship->updatedAt(),
+			'updatedBy'     => $return->authorship->updatedBy(),
+			'returnID'      => $return->id,
+		));
+
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
+
+		return $return;
+	}
+
+	public function complete(Entity\OrderReturn $return)
+	{
+		$this->_itemEdit->setTransaction($this->_trans);
+
+		$return->item->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+
+		$this->_trans->run("
+			UPDATE
+				return_item
+			SET
+				status_code = :status?i,
+				updated_at  = :updatedAt?d,
+				updated_by  = :updatedBy?in
+			WHERE
+				return_id = :returnID?i
+		", [
+			'status'    => Statuses::RETURN_COMPLETED,
+			'updatedAt' => $return->item->authorship->updatedAt(),
+			'updatedBy' => $return->item->authorship->updatedBy(),
+			'returnID'  => $return->id,
+		]);
+
+		// Complete the returned item
+		$this->_itemEdit->updateStatus($return->item->orderItem, Statuses::RETURN_COMPLETED);
+
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
 
 		return $return;
 	}
@@ -271,7 +373,9 @@ class Edit
 
 	protected function _setUpdatedReturn(Entity\OrderReturn $return)
 	{
-		$this->_query->run("
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+
+		$this->_trans->run("
 			UPDATE
 				`return`
 			SET
@@ -289,7 +393,9 @@ class Edit
 
 	protected function _setUpdatedReturnItems(Entity\OrderReturn $return)
 	{
-		$this->_query->run("
+		$return->item->authorship->update($return->authorship->updatedAt(), $return->authorshipo->updatedBy());
+
+		$this->_trans->run("
 			UPDATE
 				return_item
 			SET
@@ -298,8 +404,8 @@ class Edit
 			WHERE
 				return_id = :returnID?i
 			", [
-				'updatedAt' => $return->authorship->updatedAt(),
-				'updatedBy' => $return->authorship->updatedBy(),
+				'updatedAt' => $return->item->authorship->updatedAt(),
+				'updatedBy' => $return->item->authorship->updatedBy(),
 				'returnID'  => $return->id,
 			]
 		);

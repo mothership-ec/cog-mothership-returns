@@ -18,7 +18,7 @@ class _1400690356_ChangeReturnedStockLocationColumn extends Migration
 
 		$this->run("
 			ALTER TABLE `return_item`
-			CHANGE `returned_stock_location` `returned_stock_location` varchar(255) NOT NULL
+			CHANGE `returned_stock_location` `returned_stock_location` varchar(255) DEFAULT 'web' NOT NULL
 		");
 	}
 

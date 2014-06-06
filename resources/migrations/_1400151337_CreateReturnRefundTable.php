@@ -7,7 +7,7 @@ class _1400151337_CreateReturnRefundTable extends Migration
 	public function up()
 	{
 		$this->run("
-			CREATE TABLE `return_refund` (
+			CREATE TABLE IF NOT EXISTS `return_refund` (
 				`return_id` int(11) unsigned NOT NULL,
 				`refund_id` int(11) unsigned NOT NULL,
 				PRIMARY KEY (`return_id`, `refund_id`)
@@ -18,7 +18,7 @@ class _1400151337_CreateReturnRefundTable extends Migration
 	public function down()
 	{
 		$this->run("
-			DROP `return_refund`
+			DROP TABLE IF EXISTS `return_refund`
 		");
 	}
 }

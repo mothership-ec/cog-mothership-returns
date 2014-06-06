@@ -5,12 +5,12 @@ There is a balance to pay for the item you wish to exchange your recent return f
 RETURN NUMBER: {{ return.getDisplayID() }}
 
 RETURNED ITEM:
-{{ return.item.description }} {{ return.item.listPrice|price }}
+{{ return.item.description }} {{ return.item.actualPrice|price }}
 
 EXCHANGE ITEM:
-{{ return.item.exchangeItem.description }} {{ return.item.exchangeItem.listPrice|price }}
+{{ return.item.exchangeItem.description }} {{ return.item.exchangeItem.actualPrice|price }}
 
 BALANCE DUE:
-{{ return.item.calculatedBalance|abs|price }}
+{{ return.item.balance|abs|price }}
 
 To pay your remaining balance please log in then visit this link: {{ url('ms.ecom.return.balance', {returnID: return.id}) }}

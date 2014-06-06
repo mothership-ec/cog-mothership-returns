@@ -11,8 +11,9 @@
 	<div class="container-content tall">
 		<section class="dual-column">
 			<h2 class="title">
-				{<a href="{ url('ms.commerce.product.edit.details', {productID: returnItem.productID}) }" data-live>{{ returnItem.productName }}</a>}
-				{{ returnItem.brand }} {{ returnItem.productName }}
+				<a href="{ url('ms.commerce.product.edit.details', {productID: returnItem.productID}) }" data-live>
+					{{ returnItem.brand }} {{ returnItem.productName }}
+				</a>
 			</h2>
 
 			<div class="content">
@@ -81,6 +82,11 @@
 									<dt>Date</dt>
 									<dd>{{ refund.authorship.createdAt()|date }}</dd>
 								</dl>
+							{% else %}
+								<dl class="order-details">
+									<dt>Refunds</dt>
+									<dd>No refunds have been made on this return</dd>
+								</dl>
 							{% endfor %}
 
 							{% for payment in return.payments %}
@@ -96,6 +102,11 @@
 
 									<dt>Date</dt>
 									<dd>{{ payment.authorship.createdAt()|date }}</dd>
+								</dl>
+							{% else %}
+								<dl class="order-details">
+									<dt>Payments</dt>
+									<dd>No payments have been made on this return</dd>
 								</dl>
 							{% endfor %}
 
@@ -148,7 +159,7 @@
 							{{ form_end(returned_item_form) }}
 						{% else %}
 							<dl class="order-details">
-								<dt>>Status</dt>
+								<dt>Status</dt>
 								<dd>{{ returnItem.status }}</dd>
 							</dl>
 						{% endif %}
@@ -168,6 +179,9 @@
 			<div class="column">
 				<h2>Return Details</h2>
 				<dl class="order-details">
+					<dt>Type</dt>
+					<dd>{{ return.type|title }}</dd>
+
 					{% if (returnItem.orderItem) %}
 						<dt>Order</dt>
 						<dd>

@@ -16,7 +16,7 @@
 			<dd>{{ return.item.productName }}, {{ return.item.options }}</dd>
 
 			<dt>Exchange Item</dt>
-			<dd>{{ return.item.exchangeItem.productName }}, {{ return.item.exchangeItem.options }}</dd>
+			<dd>{{ return.item.exchangeItem.getDescription() }}</dd>
 
 			<dt>Your balance</dt>
 			{% if return.item.payeeIsClient() %}

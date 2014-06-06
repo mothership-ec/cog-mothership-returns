@@ -102,12 +102,12 @@ class Detail extends Controller
 		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
 		// Clear the balance
-		if ($data['payee'] == 'none') {
+		if ($data['payee'] == static::PAYEE_NONE) {
 			$this->get('return.edit')->clearRemainingBalance($return);
 		}
 
 		// Process refund to the customer
-		elseif ($data['payee'] == 'customer') {
+		elseif ($data['payee'] == static::PAYEE_CUSTOMER) {
 			// Ensure the amount has been approved
 			if ($data['refund_approve'] == false) {
 				$this->addFlash('error', 'You must approve the refund to enact it');
@@ -253,26 +253,19 @@ class Detail extends Controller
 
 		$stockManager->commit();
 
-		$return->item->authorship->update(new \Message\Cog\ValueObject\DateTimeImmutable, $this->get('user.current')->id);
+		$return = $this->get('return.edit')->returnItemToStock($return);
 
-		$this->get('db.query')->run("
-			UPDATE
-				return_item
-			SET
-				status_code = :status?i,
-				updated_at  = :updatedAt?d,
-				updated_by  = :updatedBy?in
-			WHERE
-				return_id = :returnID?i
-		", [
-			'status'    => \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED,
-			'updatedAt' => $return->item->authorship->updatedAt(),
-			'updatedBy' => $return->item->authorship->updatedBy(),
-			'returnID'  => $return->id,
-		]);
-
-		// Complete the returned item
-		$this->get('order.item.edit')->updateStatus($return->item->orderItem, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and (
+				!$return->item->isExchangeResolution()
+				or $return->item->isExchanged()
+			)
+		) {
+			// Complete the return
+			$return = $this->get('return.edit')->complete($return);
+		}
 
 		return $this->redirect($viewURL);
 	}
@@ -324,7 +317,7 @@ class Detail extends Controller
 
 		$form->setAction($this->generateUrl('ms.commerce.return.edit.balance', array('returnID' => $return->id)));
 
-		$payee = 'none';
+		$payee = static::PAYEE_NONE;
 		if ($return->item->payeeIsClient())   $payee = static::PAYEE_CLIENT;
 		if ($return->item->payeeIsCustomer()) $payee = static::PAYEE_CUSTOMER;
 

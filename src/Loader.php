@@ -26,8 +26,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 
 	public function __construct(
 		DB\Query $query,
-		$reasons,
-		$statuses,
+		Collection\Collection $reasons,
+		Order\Status\Collection $statuses,
 		Refund\Loader $refundLoader,
 		Payment\Loader $paymentLoader,
 		Stock\Location\Collection $stockLocations,
@@ -92,10 +92,10 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 			WHERE
 				(
 					accepted != 0 AND
-					balance != 0
+					remaining_balance != 0
 				) OR (
 					accepted IS NULL AND
-					balance IS NULL
+					remaining_balance IS NULL
 				)
 		');
 
@@ -139,8 +139,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 			FROM
 				return_item
 			WHERE
-				balance IS NOT NULL AND
-				balance < 0 AND
+				remaining_balance > 0 AND
 				accepted = 1
 		');
 
@@ -155,9 +154,15 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 			FROM
 				return_item
 			WHERE
-				balance IS NOT NULL AND
-				balance > 0 AND
-				accepted = 1
+				accepted = 1 AND
+				completed_at IS NULL AND
+				(
+					remaining_balance < 0 OR
+					(
+						remaining_balance IS NULL AND
+						calculated_balance < 0
+					)
+				)
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -171,21 +176,12 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 			FROM
 				return_item
 			WHERE
-				exchange_item_id > 0 AND
-				accepted = 1
+				exchange_item_id IS NOT NULL AND
+				accepted = 1 AND
+				completed_at IS NULL
 		');
 
-		$returns = $this->_load($result->flatten(), true);
-
-		foreach ($returns as $i => $return) {
-			if (Statuses::RETURN_RECEIVED > $return->item->orderItem->status->code or
-				Order\Statuses::DISPATCHED <= $return->item->exchangeItem->status->code
-			) {
-				unset($returns[$i]);
-			}
-		}
-
-		return $returns;
+		return $this->_load($result->flatten(), true);
 	}
 
 	public function getCompleted()
@@ -196,7 +192,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 			FROM
 				return_item
 			WHERE
-				balance = 0
+				completed_at IS NOT NULL
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -291,6 +287,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 				remaining_balance       AS remainingBalance,
 				calculated_balance      AS calculatedBalance,
 				returned_value          AS returnedValue,
+				returned_stock          AS returnedStock,
 				list_price              AS listPrice,
 				actual_price            AS actualPrice,
 				tax_rate                AS taxRate,
@@ -366,7 +363,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 		$itemEntity->balance           = ($itemEntity->balance) ? (float) $itemEntity->balance : null;
 		$itemEntity->calculatedBalance = ($itemEntity->calculatedBalance) ? (float) $itemEntity->calculatedBalance : null;
 		$itemEntity->remainingBalance  = ($itemEntity->remainingBalance) ? (float) $itemEntity->remainingBalance : null;
-		$itemEntity->accepted          = (null !== $itemEntity->accepted ? (bool) $itemEntity->accepted : null);
+		$itemEntity->accepted          = (null !== $itemEntity->accepted) ? (bool) $itemEntity->accepted : null;
 		$itemEntity->listPrice         = (float) $itemEntity->listPrice;
 		$itemEntity->actualPrice       = (float) $itemEntity->actualPrice;
 		$itemEntity->net               = (float) $itemEntity->net;
@@ -406,6 +403,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Deleta
 		if ($itemResult->returned_stock_location and $this->_stockLocations->exists($itemResult->returned_stock_location)) {
 			$itemEntity->returnedStockLocation = $this->_stockLocations->get($itemResult->returned_stock_location);
 		}
+
+		$itemEntity->returnedStock = (bool) $itemEntity->returnedStock;
 
 		return $itemEntity;
 	}
