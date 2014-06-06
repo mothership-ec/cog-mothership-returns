@@ -304,6 +304,36 @@ class Edit implements DB\TransactionalInterface
 		return $return;
 	}
 
+	public function returnItemToStock(Entity\OrderReturn $return)
+	{
+		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
+		$return->returnedStock = true;
+
+		$this->_validate($return);
+
+		$this->_trans->run('
+			UPDATE
+				return_item
+			SET
+				returned_stock = :returnedStock?b,
+				updated_at     = :updatedAt?d,
+				updated_by     = :updatedBy?in
+			WHERE
+				return_id = :returnID?i
+		', array(
+			'returnedStock' => $return->returnedStock,
+			'updatedAt'     => $return->authorship->updatedAt(),
+			'updatedBy'     => $return->authorship->updatedBy(),
+			'returnID'      => $return->id,
+		));
+
+		if (!$this->_transOverriden) {
+			$this->_trans->commit();
+		}
+
+		return $return;
+	}
+
 	public function complete(Entity\OrderReturn $return)
 	{
 		$this->_itemEdit->setTransaction($this->_trans);

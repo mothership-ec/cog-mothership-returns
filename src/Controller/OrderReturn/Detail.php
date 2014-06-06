@@ -253,8 +253,19 @@ class Detail extends Controller
 
 		$stockManager->commit();
 
-		// Complete the return
-		$return = $this->get('return.edit')->complete($return);
+		$return = $this->get('return.edit')->returnItemToStock($return);
+
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and (
+				!$return->item->isExchangeResolution()
+				or $return->item->isExchanged()
+			)
+		) {
+			// Complete the return
+			$return = $this->get('return.edit')->complete($return);
+		}
 
 		return $this->redirect($viewURL);
 	}

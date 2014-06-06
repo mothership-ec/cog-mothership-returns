@@ -279,6 +279,7 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 				remaining_balance       AS remainingBalance,
 				calculated_balance      AS calculatedBalance,
 				returned_value          AS returnedValue,
+				returned_stock          AS returnedStock,
 				list_price              AS listPrice,
 				actual_price            AS actualPrice,
 				tax_rate                AS taxRate,
@@ -394,6 +395,8 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		if ($itemResult->returned_stock_location and $this->_stockLocations->exists($itemResult->returned_stock_location)) {
 			$itemEntity->returnedStockLocation = $this->_stockLocations->get($itemResult->returned_stock_location);
 		}
+
+		$itemEntity->returnedStock = (bool) $itemEntity->returnedStock;
 
 		return $itemEntity;
 	}

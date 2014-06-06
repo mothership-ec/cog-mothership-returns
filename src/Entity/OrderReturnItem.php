@@ -23,6 +23,7 @@ class OrderReturnItem
 	public $note;
 	public $document;
 	public $returnedStockLocation;
+	public $returnedStock;
 
 	// Return Item
 	public $authorship;
@@ -152,7 +153,6 @@ class OrderReturnItem
 
 	public function isReturnedItemProcessed()
 	{
-		return $this->status->code < Statuses::AWAITING_RETURN or
-			   $this->status->code > Statuses::RETURN_RECEIVED;
+		return $this->returnedStock;
 	}
 }
