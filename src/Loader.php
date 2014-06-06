@@ -14,7 +14,9 @@ use Message\Mothership\Commerce\Product\Stock;
 use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 
 
-class Loader extends Order\Entity\BaseLoader implements Order\Transaction\RecordLoaderInterface
+class Loader extends Order\Entity\BaseLoader implements
+	Order\Entity\DeletableLoaderInterface,
+	Order\Transaction\DeletableRecordLoaderInterface
 {
 	protected $_query;
 	protected $_reasons;
@@ -43,6 +45,21 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 
 		$this->_unitLoader->includeOutOfStock(true);
 		$this->_unitLoader->includeInvisible(true);
+	}
+
+	/**
+	 * Set whether to load deleted returns. Also sets include deleted on order loader.
+	 * 
+	 * @param  bool $bool True to load deleted refunds, false otherwise
+	 *
+	 * @return Loader     Returns $this for chainability
+	 */
+	public function includeDeleted($bool = true)
+	{
+		$this->_includeDeleted = (bool) $bool;
+		$this->_orderLoader->includeDeleted($this->_includeDeleted);
+
+		return $this;
 	}
 
 	public function getByID($id)
@@ -237,13 +254,6 @@ class Loader extends Order\Entity\BaseLoader implements Order\Transaction\Record
 		', $user->id);
 
 		return $this->_load($result->flatten(), true);
-	}
-
-	public function includeDeleted($bool = true)
-	{
-		$this->_includeDeleted = (bool) $bool;
-
-		return $this;
 	}
 
 	protected function _load($ids, $alwaysReturnArray = false)
