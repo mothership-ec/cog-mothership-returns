@@ -14,7 +14,9 @@ use Message\Mothership\Commerce\Product\Stock;
 use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
 
 
-class Loader extends Order\Entity\BaseLoader implements Order\Transaction\DeletableRecordLoaderInterface
+class Loader extends Order\Entity\BaseLoader implements
+	Order\Entity\DeletableLoaderInterface,
+	Order\Transaction\DeletableRecordLoaderInterface
 {
 	protected $_query;
 	protected $_reasons;
