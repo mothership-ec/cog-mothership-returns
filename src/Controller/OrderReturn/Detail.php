@@ -101,6 +101,8 @@ class Detail extends Controller
 		$data = $form->getFilteredData();
 		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
+		$forwardToRefund = false;
+
 		// Clear the balance
 		if ($data['payee'] == static::PAYEE_NONE) {
 			$this->get('return.edit')->clearRemainingBalance($return);
@@ -151,17 +153,7 @@ class Detail extends Controller
 				// Set the return's balance
 				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
 
-				// Forward to the refund controller
-				$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
-				return $this->forward($this->get('gateway')->getRefundControllerReference(), [
-					'payable'   => $return,
-					'reference' => $payment->reference,
-					'stages'    => [
-						'cancel'  => $controller . '#cancel',
-						'failure' => $controller . '#failure',
-						'success' => $controller . '#success',
-					],
-				]);
+				$forwardToRefund = true;
 			}
 			else {
 				// If refunding manually, just set the balance to the amount
@@ -203,6 +195,20 @@ class Detail extends Controller
 		) {
 			// Complete the return
 			$return = $this->get('return.edit')->complete($return);
+		}
+
+		if ($forwardToRefund) {
+			// Forward to the refund controller
+			$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
+			return $this->forward($this->get('gateway')->getRefundControllerReference(), [
+				'payable'   => $return,
+				'reference' => $payment->reference,
+				'stages'    => [
+					'cancel'  => $controller . '#cancel',
+					'failure' => $controller . '#failure',
+					'success' => $controller . '#success',
+				],
+			]);
 		}
 
 		return $this->redirect($viewURL);
