@@ -198,7 +198,7 @@
 					<dd>{{ returnItem.reason }}</dd>
 
 					<dt>Resolution</dt>
-					{% if return.isExchangeResolution %}
+					{% if returnItem.isExchangeResolution %}
 						<dd>
 							Exchange for <a href="{{ url('ms.commerce.product.edit.details', {productID: returnItem.exchangeItem.productID}) }}" data-live>{{ returnItem.exchangeItem.productName }} - {{ returnItem.exchangeItem.options }}</a>
 						</dd>
