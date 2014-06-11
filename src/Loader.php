@@ -49,7 +49,7 @@ class Loader extends Order\Entity\BaseLoader implements
 
 	/**
 	 * Set whether to load deleted returns. Also sets include deleted on order loader.
-	 * 
+	 *
 	 * @param  bool $bool True to load deleted refunds, false otherwise
 	 *
 	 * @return Loader     Returns $this for chainability
@@ -209,6 +209,7 @@ class Loader extends Order\Entity\BaseLoader implements
 				return_item
 			WHERE
 				accepted = 0
+			AND	status_code >= 2100
 		');
 
 		return $this->_load($result->flatten(), true);
