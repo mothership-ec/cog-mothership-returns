@@ -274,13 +274,13 @@ class Detail extends Controller
 		$stockManager->setNote(sprintf('Return #%s', $returnID));
 		$stockManager->setAutomated(true);
 
-		$stockManager->increment(
-			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->unitID), // unit
-			$this->get('stock.locations')->get($data['stock_location']) // location
-		);
+		$unit     = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->unitID);
+		$location = $this->get('stock.locations')->get($data['stock_location']);
 
+		$stockManager->increment($unit, $location);
 		$stockManager->commit();
 
+		$return->returnedStockLocation = $location;
 		$return = $this->get('return.edit')->returnItemToStock($return);
 
 		if (

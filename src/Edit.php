@@ -319,16 +319,18 @@ class Edit implements DB\TransactionalInterface
 			UPDATE
 				return_item
 			SET
-				returned_stock = :returnedStock?b,
-				updated_at     = :updatedAt?d,
-				updated_by     = :updatedBy?in
+				returned_stock_location = :returnedStockLocation?s,
+				returned_stock          = :returnedStock?b,
+				updated_at              = :updatedAt?d,
+				updated_by              = :updatedBy?in
 			WHERE
 				return_id = :returnID?i
 		', array(
-			'returnedStock' => $return->returnedStock,
-			'updatedAt'     => $return->authorship->updatedAt(),
-			'updatedBy'     => $return->authorship->updatedBy(),
-			'returnID'      => $return->id,
+			'returnedStockLocation' => $return->returnedStockLocation->name,
+			'returnedStock'         => $return->returnedStock,
+			'updatedAt'             => $return->authorship->updatedAt(),
+			'updatedBy'             => $return->authorship->updatedBy(),
+			'returnID'              => $return->id,
 		));
 
 		if (!$this->_transOverriden) {
