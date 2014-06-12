@@ -379,6 +379,7 @@ class Create implements DB\TransactionalInterface
 				remaining_balance       = :remainingBalance?fn,
 				returned_value          = :returnedValue?f,
 				returned_stock_location = :returnedStockLocation?s,
+				returned_stock          = :returnedStock?b,
 				list_price              = :listPrice?f,
 				actual_price            = :actualPrice?f,
 				net                     = :net?f,
