@@ -280,7 +280,7 @@ class Detail extends Controller
 		$stockManager->increment($unit, $location);
 		$stockManager->commit();
 
-		$return->returnedStockLocation = $location;
+		$return->item->returnedStockLocation = $location;
 		$return = $this->get('return.edit')->returnItemToStock($return);
 
 		if (
