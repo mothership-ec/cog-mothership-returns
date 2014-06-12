@@ -311,7 +311,7 @@ class Edit implements DB\TransactionalInterface
 	public function returnItemToStock(Entity\OrderReturn $return)
 	{
 		$return->authorship->update(new DateTimeImmutable, $this->_currentUser->id);
-		$return->returnedStock = true;
+		$return->item->returnedStock = true;
 
 		$this->_validate($return);
 
@@ -326,8 +326,8 @@ class Edit implements DB\TransactionalInterface
 			WHERE
 				return_id = :returnID?i
 		', array(
-			'returnedStockLocation' => $return->returnedStockLocation->name,
-			'returnedStock'         => $return->returnedStock,
+			'returnedStockLocation' => $return->item->returnedStockLocation->name,
+			'returnedStock'         => $return->item->returnedStock,
 			'updatedAt'             => $return->authorship->updatedAt(),
 			'updatedBy'             => $return->authorship->updatedBy(),
 			'returnID'              => $return->id,
