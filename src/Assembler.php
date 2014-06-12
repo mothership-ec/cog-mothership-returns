@@ -280,9 +280,10 @@ class Assembler
 	 * @param  StockLocation $location
 	 * @return Assembler
 	 */
-	public function setReturnedStockLocation(StockLocation $location)
+	public function setReturnedStockLocation(StockLocation $location, $returned = true)
 	{
 		$this->_return->item->returnedStockLocation = $location;
+		$this->_return->item->returnedStock         = $returned;
 
 		return $this;
 	}

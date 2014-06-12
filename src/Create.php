@@ -354,6 +354,7 @@ class Create implements DB\TransactionalInterface
 			'statusCode'            => $statusCode,
 			'reason'                => $return->item->reason->code,
 			'returnedStockLocation' => ($return->item->returnedStockLocation) ? $return->item->returnedStockLocation->name : null,
+			'returnedStock'         => $return->item->returnedStock,
 		]);
 
 		// Create the return item
