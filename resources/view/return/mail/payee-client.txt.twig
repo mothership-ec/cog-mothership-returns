@@ -9,7 +9,7 @@ RETURNED ITEM:
 
 {% if return.item.isExchangeResolution() %}
 EXCHANGE ITEM:
-{{ return.item.exchangeItem.description|raw }} {{ return.item.exchangeItem.listPrice|price }}
+{{ return.item.exchangeItem.description|raw }} {{ return.item.exchangeItem.actualPrice|price }}
 {% endif %}
 
 BALANCE DUE:
