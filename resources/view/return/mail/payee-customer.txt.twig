@@ -1,14 +1,14 @@
-Dear {{ return.order.user.title }} {{ return.order.user.name }}
+Dear {{ return.item.order.user.title }} {{ return.item.order.user.name }}
 
 We are happy to inform you that your returned item/s below have been refunded:
 
 RETURN NUMBER: {{ return.getDisplayID() }}
 
 REFUNDED ITEM:
-{{ return.item.description }} {{ return.item.listPrice|price }}
+{{ return.item.description }} {{ return.item.actualPrice|price }}
 
 REFUND DETAILS
-Your credit card / debit card has been credited {{ return.calculatedBalance|abs|price }}. Please allow 3-5 business days for your bank to process your refund.
+Your credit card / debit card has been credited {{ return.item.calculatedBalance|abs|price }}. Please allow 3-5 business days for your bank to process your refund.
 
 If you have any queries about your return please email: {{ email }}
 

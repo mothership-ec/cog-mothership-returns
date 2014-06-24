@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Bootstrap;
+namespace Message\Mothership\OrderReturn\Bootstrap\Routes;
 
 use Message\Cog\Bootstrap\RoutesInterface;
 

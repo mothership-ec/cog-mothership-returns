@@ -1,10 +1,10 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Bootstrap;
+namespace Message\Mothership\OrderReturn\Bootstrap\Routes;
 
 use Message\Cog\Bootstrap\RoutesInterface;
 
-class AccountRoutes implements RoutesInterface
+class Account implements RoutesInterface
 {
 	public function registerRoutes($router)
 	{

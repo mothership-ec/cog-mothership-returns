@@ -1,4 +1,4 @@
-Dear {{ return.order.user.title }} {{ return.order.user.name }}
+Dear {{ return.item.order.user.title }} {{ return.item.order.user.name }}
 
 We have received your returned items:
 
@@ -8,11 +8,11 @@ RETURNED ITEM:
 {{ return.item.description }}
 
 REASON FOR RETURN:
-{{ return.reason.name }}
+{{ return.item.reason.name }}
 
 REFUND OR EXCHANGE:
-{% if return.isRefundResolution %}
+{% if return.item.isRefundResolution %}
 Refund this item.
 {% else %}
-Exchange for {{ return.exchangeItem.description }}
+Exchange for {{ return.item.exchangeItem.description }}
 {% endif %}

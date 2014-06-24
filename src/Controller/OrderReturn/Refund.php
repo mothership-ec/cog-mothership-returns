@@ -25,9 +25,8 @@ class Refund extends Controller implements CompleteControllerInterface
 	{
 		$payment = null;
 
-		foreach ($payable->order->payments as $p) {
+		foreach ($payable->item->order->payments as $p) {
 			$payment = $p;
-			break;
 		}
 
 		$this->get('return.edit')->refund($payable, $method, $payable->getPayableAmount(), $payment, $reference);
