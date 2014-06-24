@@ -2,29 +2,74 @@
 
 namespace Message\Mothership\OrderReturn;
 
-use Message\User;
 use Message\Cog\DB;
-use Message\Mothership\Commerce\Order;
 use Message\Cog\ValueObject\DateTimeImmutable;
 
-class Loader extends Order\Entity\BaseLoader
+use Message\User;
+
+use Message\Mothership\Commerce\Order;
+use Message\Mothership\Commerce\Refund;
+use Message\Mothership\Commerce\Payment;
+use Message\Mothership\Commerce\Product\Stock;
+use Message\Mothership\Commerce\Product\Unit\Loader as UnitLoader;
+
+
+class Loader extends Order\Entity\BaseLoader implements
+	Order\Entity\DeletableLoaderInterface,
+	Order\Transaction\DeletableRecordLoaderInterface
 {
 	protected $_query;
 	protected $_reasons;
-	protected $_resolutions;
 	protected $_statuses;
+	protected $_refundLoader;
+	protected $_paymentLoader;
+	protected $_stockLocations;
+	protected $_includeDeleted = false;
 
-	public function __construct(DB\Query $query, $reasons, $resolutions, $statuses)
-	{
+	public function __construct(
+		DB\Query $query,
+		Collection\Collection $reasons,
+		Order\Status\Collection $statuses,
+		Refund\Loader $refundLoader,
+		Payment\Loader $paymentLoader,
+		Stock\Location\Collection $stockLocations,
+		UnitLoader $unitLoader
+	) {
 		$this->_query          = $query;
 		$this->_reasons        = $reasons;
-		$this->_resolutions    = $resolutions;
 		$this->_statuses       = $statuses;
+		$this->_refundLoader   = $refundLoader;
+		$this->_paymentLoader  = $paymentLoader;
+		$this->_stockLocations = $stockLocations;
+		$this->_unitLoader     = $unitLoader;
+
+		$this->_unitLoader->includeOutOfStock(true);
+		$this->_unitLoader->includeInvisible(true);
+	}
+
+	/**
+	 * Set whether to load deleted returns. Also sets include deleted on order loader.
+	 *
+	 * @param  bool $bool True to load deleted refunds, false otherwise
+	 *
+	 * @return Loader     Returns $this for chainability
+	 */
+	public function includeDeleted($bool = true)
+	{
+		$this->_includeDeleted = (bool) $bool;
+		$this->_orderLoader->includeDeleted($this->_includeDeleted);
+
+		return $this;
 	}
 
 	public function getByID($id)
 	{
 		return $this->_load($id, false);
+	}
+
+	public function getByRecordID($id)
+	{
+		return $this->getByID($id);
 	}
 
 	public function getAll()
@@ -33,7 +78,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -45,14 +90,14 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				(
 					accepted != 0 AND
-					balance != 0
+					remaining_balance != 0
 				) OR (
 					accepted IS NULL AND
-					balance IS NULL
+					remaining_balance IS NULL
 				)
 		');
 
@@ -63,14 +108,12 @@ class Loader extends Order\Entity\BaseLoader
 	{
 		$result = $this->_query->run('
 			SELECT
-				r.return_id,
-				s.status_code
+				return_id,
+				status_code
 			FROM
-				order_item_return r
-			RIGHT JOIN
-				order_item_status s ON r.item_id = s.item_id
+				return_item
 			ORDER BY
-				s.created_at DESC
+				created_at DESC
 		');
 
 		$unique = array();
@@ -96,10 +139,9 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
-				balance IS NOT NULL AND
-				balance < 0 AND
+				remaining_balance > 0 AND
 				accepted = 1
 		');
 
@@ -112,11 +154,17 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
-				balance IS NOT NULL AND
-				balance > 0 AND
-				accepted = 1
+				accepted = 1 AND
+				completed_at IS NULL AND
+				(
+					remaining_balance < 0 OR
+					(
+						remaining_balance IS NULL AND
+						calculated_balance < 0
+					)
+				)
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -126,25 +174,16 @@ class Loader extends Order\Entity\BaseLoader
 	{
 		$result = $this->_query->run('
 			SELECT
-				return_id, exchange_item_id
+				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
-				exchange_item_id > 0 AND
-				accepted = 1
+				exchange_item_id IS NOT NULL AND
+				accepted = 1 AND
+				completed_at IS NULL
 		');
 
-		$returns = $this->_load($result->flatten(), true);
-
-		foreach ($returns as $i => $return) {
-			if (Statuses::RETURN_RECEIVED > $return->item->status->code or
-				Order\Statuses::DISPATCHED <= $return->exchangeItem->status->code
-			) {
-				unset($returns[$i]);
-			}
-		}
-
-		return $returns;
+		return $this->_load($result->flatten(), true);
 	}
 
 	public function getCompleted()
@@ -153,9 +192,9 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
-				balance = 0
+				completed_at IS NOT NULL
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -167,9 +206,10 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				accepted = 0
+			AND	status_code >= 2100
 		');
 
 		return $this->_load($result->flatten(), true);
@@ -181,7 +221,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				order_id = ?i
 		', $order->id);
@@ -195,7 +235,7 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return
+				return_item
 			WHERE
 				item_id = ?i
 		', $item->id);
@@ -209,11 +249,9 @@ class Loader extends Order\Entity\BaseLoader
 			SELECT
 				return_id
 			FROM
-				order_item_return oir
-			LEFT JOIN
-				order_summary os ON oir.order_id = os.order_id
+				return
 			WHERE
-				os.user_id = ?i
+				created_by = ?i
 		', $user->id);
 
 		return $this->_load($result->flatten(), true);
@@ -229,64 +267,192 @@ class Loader extends Order\Entity\BaseLoader
 			return $alwaysReturnArray ? array() : false;
 		}
 
-		$result = $this->_query->run('
+		$returnsResult = $this->_query->run('
 			SELECT
-				*
+				*,
+				currency_id as currencyID
 			FROM
-				order_item_return
+				`return`
+			WHERE
+				return_id IN (?ij)
+			' . ($this->_includeDeleted ? '' : 'AND deleted_at IS NULL') . '
+		', array($ids));
+
+		$itemsResult = $this->_query->run('
+			SELECT
+				*,
+				return_item_id          AS id,
+				return_id               AS returnID,
+				order_id                AS orderID,
+				item_id                 AS orderItemID,
+				exchange_item_id        AS exchangeItemID,
+				note_id                 AS noteID,
+				remaining_balance       AS remainingBalance,
+				calculated_balance      AS calculatedBalance,
+				returned_value          AS returnedValue,
+				returned_stock          AS returnedStock,
+				list_price              AS listPrice,
+				actual_price            AS actualPrice,
+				tax_rate                AS taxRate,
+				product_tax_rate        AS productTaxRate,
+				tax_strategy            AS taxStrategy,
+				product_id              AS productID,
+				product_name            AS productName,
+				unit_id                 AS unitID,
+				unit_revision           AS unitRevision,
+				weight_grams            AS weight
+			FROM
+				return_item
 			WHERE
 				return_id IN (?ij)
 		', array($ids));
 
-		if (0 === count($result)) {
+		if (0 === count($returnsResult)) {
 			return $alwaysReturnArray ? array() : false;
 		}
 
-		$entities = $result->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
+		$returnEntities = $returnsResult->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturn');
+		$itemEntities   = $itemsResult->bindTo('Message\\Mothership\\OrderReturn\\Entity\\OrderReturnItem');
+
 		$return = array();
 
-		foreach ($entities as $key => $entity) {
-
-			$entity->id = $result[$key]->return_id;
+		foreach ($returnEntities as $key => $entity) {
+			$entity->id = $returnsResult[$key]->return_id;
 
 			// Add created authorship
 			$entity->authorship->create(
-				new DateTimeImmutable(date('c', $result[$key]->created_at)),
-				$result[$key]->created_by
+				new DateTimeImmutable(date('c', $returnsResult[$key]->created_at)),
+				$returnsResult[$key]->created_by
 			);
 
 			// Add updated authorship
-			if ($result[$key]->updated_at) {
+			if ($returnsResult[$key]->updated_at) {
 				$entity->authorship->update(
-					new DateTimeImmutable(date('c', $result[$key]->updated_at)),
-					$result[$key]->updated_by
+					new DateTimeImmutable(date('c', $returnsResult[$key]->updated_at)),
+					$returnsResult[$key]->updated_by
 				);
 			}
 
-			$entity->calculatedBalance = $result[$key]->calculated_balance;
+			// Add deleted authorship
+			if ($returnsResult[$key]->deleted_at) {
+				$entity->authorship->delete(
+					new DateTimeImmutable(date('c', $returnsResult[$key]->deleted_at)),
+					$returnsResult[$key]->deleted_by
+				);
+			}
 
-			$entity->order = $this->_orderLoader->getByID($result[$key]->order_id);
-			$entity->item = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->item_id);
+			// Load the first item into the return
+			// @todo Make this an array of items
+			foreach ($itemEntities as $itemKey => $item) {
+				if ($item->returnID == $entity->id) {
+					$entity->item = $this->_loadItem($itemsResult[$itemKey], $item, $entity);
+					break;
+				}
+			}
 
-			$entity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($result[$key]->exchange_item_id);
+			$entity->currencyID = $returnsResult[$key]->currency_id;
+			$entity->payments   = $this->_loadPayments($entity);
+			$entity->refunds    = $this->_loadRefunds($entity);
 
-			$entity->reason = $this->_reasons->get($result[$key]->reason);
-			$entity->resolution = $this->_resolutions->get($result[$key]->resolution);
-
-			// @todo this should load a single refund against the `return_id` column in `order_refund`
-			// $entity->refunds = $this->_orderLoader->getEntityLoader('refunds')->getByOrder($entity->order);
-
-			$entity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($result[$key]->document_id);
-
-			$entity->note = $this->_orderLoader->getEntityLoader('notes')->getByID($result[$key]->note_id);
-
-			// Add the entity into the order
-			// $entity->order->addEntity($entity);
-
-			$return[$result[$key]->return_id] = $entities[$key];
+			$return[$entity->id] = $entity;
 		}
 
 		return $alwaysReturnArray || count($return) > 1 ? $return : reset($return);
 	}
 
+	protected function _loadItem($itemResult, $itemEntity, $return)
+	{
+		// Cast decimals to float
+		$itemEntity->balance           = ($itemEntity->balance) ? (float) $itemEntity->balance : null;
+		$itemEntity->calculatedBalance = ($itemEntity->calculatedBalance) ? (float) $itemEntity->calculatedBalance : null;
+		$itemEntity->remainingBalance  = ($itemEntity->remainingBalance) ? (float) $itemEntity->remainingBalance : null;
+		$itemEntity->accepted          = (null !== $itemEntity->accepted) ? (bool) $itemEntity->accepted : null;
+		$itemEntity->listPrice         = (float) $itemEntity->listPrice;
+		$itemEntity->actualPrice       = (float) $itemEntity->actualPrice;
+		$itemEntity->net               = (float) $itemEntity->net;
+		$itemEntity->discount          = (float) $itemEntity->discount;
+		$itemEntity->tax               = (float) $itemEntity->tax;
+		$itemEntity->taxRate           = (float) $itemEntity->taxRate;
+		$itemEntity->productTaxRate    = (float) $itemEntity->productTaxRate;
+		$itemEntity->gross             = (float) $itemEntity->gross;
+		$itemEntity->rrp               = (float) $itemEntity->rrp;
+
+		// Only load the order and refunds if one is attached to the return
+		if ($itemEntity->orderID) {
+			$itemEntity->order = $this->_orderLoader->getByID($itemEntity->orderID);
+
+			// Grab the item from the order for easy access
+			if ($itemEntity->orderItemID) {
+				$itemEntity->orderItem = $itemEntity->order->items[$itemEntity->orderItemID];
+
+				$itemEntity->unit = $itemEntity->orderItem->getUnit();
+			}
+
+			$itemEntity->note = $this->_orderLoader->getEntityLoader('notes')->getByID($itemEntity->noteID, $itemEntity->order);
+			// $itemEntity->document = $this->_orderLoader->getEntityLoader('documents')->getByID($itemResult->documentID, $itemEntity->order);
+		}
+
+		if ($itemEntity->exchangeItemID) {
+			$itemEntity->exchangeItem = $this->_orderLoader->getEntityLoader('items')->getByID($itemEntity->exchangeItemID, ($itemEntity->order ?: null));
+		}
+
+		if (!$itemEntity->unit) {
+			$itemEntity->unit = $this->_unitLoader->getByID($itemEntity->unitID);
+		}
+
+		$itemEntity->reason = $this->_reasons->get($itemResult->reason);
+		$itemEntity->status = $this->_statuses->get($itemResult->status_code);
+
+		if ($itemResult->returned_stock_location and $this->_stockLocations->exists($itemResult->returned_stock_location)) {
+			$itemEntity->returnedStockLocation = $this->_stockLocations->get($itemResult->returned_stock_location);
+		}
+
+		$itemEntity->returnedStock = (bool) $itemEntity->returnedStock;
+
+		return $itemEntity;
+	}
+
+	public function _loadPayments($return)
+	{
+		$paymentIDs = $this->_query->run("
+			SELECT
+				payment_id
+			FROM
+				return_payment
+			WHERE
+				return_id = :returnID?i
+		", [
+			'returnID' => $return->id,
+		]);
+
+		$paymentIDs = $paymentIDs->flatten('payment_id');
+
+		$payments = $this->_paymentLoader->getByID($paymentIDs) ?: [];
+
+		if (! is_array($payments)) $payments = [$payments];
+
+		return $payments;
+	}
+
+	public function _loadRefunds($return)
+	{
+		$refundIDs = $this->_query->run("
+			SELECT
+				refund_id
+			FROM
+				return_refund
+			WHERE
+				return_id = :returnID?i
+		", [
+			'returnID' => $return->id,
+		]);
+
+		$refundIDs = $refundIDs->flatten('refund_id');
+
+		$refunds = $this->_refundLoader->getByID($refundIDs) ?: [];
+
+		if (! is_array($refunds)) $refunds = [$refunds];
+
+		return $refunds;
+	}
 }

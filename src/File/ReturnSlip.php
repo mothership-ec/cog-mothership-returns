@@ -40,7 +40,7 @@ class ReturnSlip implements ContainerAwareInterface
 		$path = $this->_getPath($filename);
 
 		$document = new Document;
-		$document->order = $return->order;
+		$document->order = $return->item->order;
 		$document->type = 'return-slip';
 		$document->file = new File($path);
 

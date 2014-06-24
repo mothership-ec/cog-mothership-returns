@@ -30,22 +30,7 @@ class Complete extends Controller implements CompleteControllerInterface
 		// afterwards
 		$amount = $payable->getPayableAmount();
 
-		// Adjust the return's balance
-		$newBalance = ($payable->balance > 0)
-			? $payable->balance - $amount
-			: $payable->balance + $amount;
-
-		$this->get('return.edit')->setBalance($payable, $newBalance);
-
-		// Append a new payment to the return's order
-		$payment            = new Payment;
-		$payment->method    = $method;
-		$payment->amount    = $amount;
-		$payment->reference = $reference;
-
-		$payable->order->payments->append($payment);
-
-		$this->get('order.payment.create')->create($payment);
+		$this->get('return.edit')->addPayment($payable, $method, $amount, $reference);
 
 		// Generate the successful url
 		$salt = $this->get('cfg')->payment->salt;

@@ -19,36 +19,39 @@
 				<th><span>Balance</span></th>
 				<th><span>Payee</span></th>
 			</tr>
-			</thead>
+		</thead>
+		<thead>
 			<tbody>
 				{% for return in returns %}
+
+					{# @todo replace this with a loop #}
+					{% set returnItem = return.item %}
+
 					<tr>
 						<td><a href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">{{ return.id }}</a></td>
-						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: return.order.id}) }}">{{ return.order.id }}</a></td>
-						<td>{{ return.item.productName }}</td>
+						<td><a href="{#{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }#}">{{ returnItem.order.id }}</a></td>
+						<td>{{ returnItem.productName }}</td>
 						<td>{{ return.authorship.createdAt|date }}</td>
-						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: return.order.user.id}) }}">{{ return.order.user.name }}</a></td>
-						<td>{{ return.resolution }}</td>
-						<td>{{ return.item.status }}</td>
+						<td><a href="{#{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }#}">{{ return.authorship.createdUser.name }}</a></td>
 						<td>
-							{% if not return.hasBalance %}
-								{% if return.payeeIsClient %}
-									{{ return.calculatedBalance|price }} (calculated)
-								{% elseif return.payeeIsCustomer %}
-									{{ return.calculatedBalance|price }} (calculated)
-								{% endif %}
+							{% if returnItem.isExchangeResolution %}
+								Exchange
 							{% else %}
-								{% if return.payeeIsClient %}
-									{{ return.balance|price }}
-								{% elseif return.payeeIsCustomer %}
-									{{ return.balance|price }}
-								{% endif %}
+								Refund
+							{% endif %}
+						</td>
+						<td>{{ returnItem.status }}</td>
+						<td>
+							{% if not returnItem.hasBalance %}
+								{{ returnItem.calculatedBalance|price }} (calculated)
+							{% else %}
+								{{ returnItem.balance|price }}
 							{% endif %}
 						</td>
 						<td>
-							{% if return.payeeIsClient %}
+							{% if returnItem.payeeIsClient %}
 								You
-							{% elseif return.payeeIsCustomer %}
+							{% elseif returnItem.payeeIsCustomer %}
 								Customer
 							{% endif %}
 						</tr>

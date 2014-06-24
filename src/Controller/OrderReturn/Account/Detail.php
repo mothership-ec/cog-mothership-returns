@@ -13,7 +13,7 @@ class Detail extends Controller
 		$user = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
 
-		if ($return->order->user->id != $user->id) {
+		if ($return->item->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
 
@@ -28,12 +28,12 @@ class Detail extends Controller
 		$user = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
 
-		if ($return->order->user->id != $user->id) {
+		if ($return->item->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
 
 		return $this->render('Message:Mothership:OrderReturn::return:blank', array(
-			'content' => file_get_contents($return->document->file)
+			'content' => file_get_contents($return->item->document->file)
 		));
 	}
 }

@@ -4,9 +4,8 @@ namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Account;
 
 use Message\Cog\Controller\Controller;
 
-use Message\Mothership\OrderReturn\Reasons;
-use Message\Mothership\OrderReturn\Resolutions;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
+use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
 use Message\Mothership\Commerce\Order;
 use Message\Mothership\Commerce\Order\Entity\Item\Item;
 use Message\Mothership\Commerce\Order\Entity\Note\Note;
@@ -34,7 +33,7 @@ class Create extends Controller
 		// Redirect to view a return if this item has already been returned and the return was not rejected.
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
-				if (! $return->isRejected()) {
+				if (! $return->item->isRejected()) {
 					return $this->redirectToRoute('ms.user.return.detail', array(
 						'returnID' => $return->id
 					));
@@ -72,7 +71,7 @@ class Create extends Controller
 		// Redirect to view a return if this item has already been returned and the return was not rejected.
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
-				if (! $return->isRejected()) {
+				if (! $return->item->isRejected()) {
 					return $this->redirectToRoute('ms.user.return.detail', array(
 						'returnID' => $return->id
 					));
@@ -102,7 +101,7 @@ class Create extends Controller
 		// Redirect to view a return if this item has already been returned and the return was not rejected.
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
-				if (! $return->isRejected()) {
+				if (! $return->item->isRejected()) {
 					return $this->redirectToRoute('ms.user.return.detail', array(
 						'returnID' => $return->id
 					));
@@ -191,14 +190,13 @@ class Create extends Controller
 	public function store($itemID)
 	{
 		$user = $this->get('user.current');
-		$item = $this->get('order.item.loader')->getByID($itemID);
+		$orderItem = $this->get('order.item.loader')->getByID($itemID);
 
-		if ($item->order->user->id != $user->id) {
-			throw new UnauthorizedHttpException('You are not authorised to view this page.', 'You are not authorised to
-				view this page.');
+		if (! $orderItem or $orderItem->order->user->id != $user->id) {
+			throw $this->createNotFoundException();
 		}
 
-		$confirmForm = $this->_confirmForm($item);
+		$confirmForm = $this->_confirmForm($orderItem);
 
 		if (! $confirmForm->isValid()) {
 			return $this->redirectToReferer();
@@ -206,81 +204,31 @@ class Create extends Controller
 
 		$data = $this->get('http.session')->get('return.data');
 
-		if (isset($data['note']) and ! empty($data['note'])) {
-			// Add the note to order
-			$note = new Note;
-			$note->order = $item->order;
-			$note->note = $data['note'];
-			$note->raisedFrom = 'return';
-			$note->customerNotified = 0;
-
-			$note = $this->get('order.note.create')->create($note);
-		}
-
-		$stockLocations = $this->get('stock.locations');
-
 		$reason = $this->get('return.reasons')->get($data['reason']);
-		$resolution = $this->get('return.resolutions')->get($data['resolution']);
 
-		$return = new OrderReturn;
-		$return->item = $item;
-		$return->order = $item->order;
-		$return->reason = $reason->code;
-		$return->resolution = $resolution->code;
-		$return->note = isset($note) ? $note : null;
+		$assembler = $this->get('return.assembler')
+			->setReturnItem($orderItem)
+			->setReason($reason);
 
-		if ($resolution->code == 'exchange') {
-			// Get the exchanged unit
-			$unit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
-
-			// Add this unit to the order
-			$exchangeItem = new Item;
-			$exchangeItem->order = $item->order;
-			$exchangeItem->populate($unit);
-			$exchangeItem->stockLocation = $stockLocations->getRoleLocation($stockLocations::SELL_ROLE);
-			$exchangeItem->status = clone $this->get('order.item.statuses')->get(OrderItemStatuses::HOLD);
-			$item->order->items->append($exchangeItem);
-			$return->exchangeItem = $this->get('order.item.create')->create($exchangeItem);
-
-			// Set the balance as the difference in price between the exchanged and returned items
-			$return->balance = $return->exchangeItem->gross - $item->gross;
+		if ($data['exchangeUnit']) {
+			$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
+			$assembler->setExchangeItem($exchangeUnit);
 		}
-		elseif ($resolution->code == 'refund') {
-			// Set the balance as the list price of the returned item
-			$return->balance = 0 - $item->gross;
+
+		if (isset($data['note']) and ! empty($data['note'])) {
+			$note = new Note;
+			$note->note = $data['note'];
+
+			$assembler->setNote($note);
 		}
+
+		$return = $assembler->getReturn();
 
 		$return = $this->get('return.create')->create($return);
 
-		if ($resolution->code == 'exchange') {
-			// Change stock for replacement item
-			$unit         = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID);
-			$stockManager = $this->get('stock.manager');
-
-			$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item requested.', $return->order->id, $return->id));
-
-			$stockManager->setReason(
-				$this->get('stock.movement.reasons')->get('exchange_item')
-			);
-
-			$stockManager->setAutomated(true);
-
-			// Decrement from sell stock
-			$stockManager->decrement(
-				$unit,
-				$exchangeItem->stockLocation
-			);
-
-			// Increment in hold stock
-			$stockManager->increment(
-				$unit,
-				$stockLocations->getRoleLocation($stockLocations::HOLD_ROLE)
-			);
-
-			$stockManager->commit();
-		}
-
-		return $this->redirect($this->generateUrl('ms.user.return.complete', array('returnID' => $return->id)));
+		return $this->redirect($this->generateUrl('ms.user.return.complete', [
+			'returnID' => $return->id
+		]));
 	}
 
 	/**
@@ -310,14 +258,10 @@ class Create extends Controller
 	 */
 	protected function _createForm($item)
 	{
-		$reasons = $resolutions = $units = array();
+		$reasons = $units = array();
 
 		foreach ($this->get('return.reasons') as $reason) {
 			$reasons[$reason->code] = $reason->name;
-		}
-
-		foreach ($this->get('return.resolutions') as $resolution) {
-			$resolutions[$resolution->code] = $resolution->name;
 		}
 
 		foreach ($this->get('product.loader')->getAll() as $product) {
@@ -339,7 +283,10 @@ class Create extends Controller
 		));
 
 		$form->add('resolution', 'choice', 'Do you require an exchange or refund?', array(
-			'choices' => $resolutions,
+			'choices' => [
+				'exchange' => 'Exchange',
+				'refund'   => 'Refund',
+			],
 			'empty_value' => '-- Please select a resolution --'
 		));
 
@@ -352,7 +299,7 @@ class Create extends Controller
 		return $form;
 	}
 
-	public function _noteForm($itemID, $action = 'ms.user.return.note')
+	protected function _noteForm($itemID, $action = 'ms.user.return.note')
 	{
 		$form = $this->get('form');
 
@@ -369,7 +316,7 @@ class Create extends Controller
 	 * @param  Item $item
 	 * @return [type]
 	 */
-	public function _confirmForm($item)
+	protected function _confirmForm($item)
 	{
 		$form = $this->get('form');
 

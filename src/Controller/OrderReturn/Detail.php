@@ -8,6 +8,10 @@ use Message\Mothership\OrderReturn;
 
 class Detail extends Controller
 {
+	const PAYEE_NONE     = 'none';
+	const PAYEE_CLIENT   = 'client';
+	const PAYEE_CUSTOMER = 'customer';
+
 	/**
 	 * Display the detail view of a return.
 	 *
@@ -70,7 +74,7 @@ class Detail extends Controller
 
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
 			$message->setSubject('Your ' . $this->get('cfg')->app->defaultEmailFrom->name .' return has been received - ' . $return->getDisplayID());
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => $data['message']
@@ -97,13 +101,15 @@ class Detail extends Controller
 		$data = $form->getFilteredData();
 		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
 
+		$forwardToRefund = false;
+
 		// Clear the balance
-		if ($data['payee'] == 'none') {
-			$this->get('return.edit')->clearBalance($return);
+		if ($data['payee'] == static::PAYEE_NONE) {
+			$this->get('return.edit')->clearRemainingBalance($return);
 		}
 
 		// Process refund to the customer
-		elseif ($data['payee'] == 'customer') {
+		elseif ($data['payee'] == static::PAYEE_CUSTOMER) {
 			// Ensure the amount has been approved
 			if ($data['refund_approve'] == false) {
 				$this->addFlash('error', 'You must approve the refund to enact it');
@@ -131,7 +137,8 @@ class Detail extends Controller
 			// If refunding automatically, process the payment
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order
-				foreach ($return->order->payments as $p) {
+				$payment = null;
+				foreach ($return->item->order->payments as $p) {
 					$payment = $p;
 				}
 
@@ -146,21 +153,12 @@ class Detail extends Controller
 				// Set the return's balance
 				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
 
-				// Forward to the refund controller
-				$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
-				return $this->forward($this->get('gateway')->getRefundControllerReference(), [
-					'payable'   => $return,
-					'reference' => $payment->reference,
-					'stages'    => [
-						'cancel'  => $controller . '#cancel',
-						'failure' => $controller . '#failure',
-						'success' => $controller . '#success',
-					],
-				]);
+				$forwardToRefund = true;
 			}
 			else {
-				// If refunding manually, just set the balance to 0 without checking for a payment
-				$return = $this->get('return.edit')->setBalance($return, 0);
+				// If refunding manually, just set the balance to the amount
+				// give without checking for a payment
+				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
 
 				// Refund the return
 				$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
@@ -168,14 +166,14 @@ class Detail extends Controller
 		}
 
 		// Notify customer they owe the outstanding balance
-		elseif ($data['payee'] == 'client') {
+		elseif ($data['payee'] == static::PAYEE_CLIENT) {
 			$this->get('return.edit')->setBalance($return, abs($data['balance_amount']));
 		}
 
 		// Send the message
 		if ($data['message']) {
 			$message = $this->get('mail.message');
-			$message->setTo($return->order->user->email, $return->order->user->getName());
+			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
 			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
 			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
 				'message' => $data['message']
@@ -184,6 +182,33 @@ class Detail extends Controller
 			$dispatcher = $this->get('mail.dispatcher');
 
 			$result = $dispatcher->send($message);
+		}
+
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and $return->item->isReturnedItemProcessed()
+			and (
+				!$return->item->isExchangeResolution()
+				or $return->item->isExchanged()
+			)
+		) {
+			// Complete the return
+			$return = $this->get('return.edit')->complete($return);
+		}
+
+		if ($forwardToRefund) {
+			// Forward to the refund controller
+			$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
+			return $this->forward($this->get('gateway')->getRefundControllerReference(), [
+				'payable'   => $return,
+				'reference' => $payment->reference,
+				'stages'    => [
+					'cancel'  => $controller . '#cancel',
+					'failure' => $controller . '#failure',
+					'success' => $controller . '#success',
+				],
+			]);
 		}
 
 		return $this->redirect($viewURL);
@@ -207,17 +232,26 @@ class Detail extends Controller
 
 		$stockManager = $this->get('stock.manager');
 		$stockManager->setReason($this->get('stock.movement.reasons')->get('exchange_item'));
-		$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item ready for fulfillment.', $return->order->id, $returnID));
+		$stockManager->setNote(sprintf('Order #%s, return #%s. Replacement item ready for fulfillment.', $return->item->order->id, $returnID));
 		$stockManager->setAutomated(true);
 
 		$stockManager->decrement(
-			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->exchangeItem->unitID),
+			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->exchangeItem->unitID),
 			$locations->getRoleLocation($locations::HOLD_ROLE)
 		);
 
 		$stockManager->commit();
 
-		$this->get('order.item.edit')->updateStatus($return->exchangeItem, Order\Statuses::AWAITING_DISPATCH);
+		$this->get('order.item.edit')->updateStatus($return->item->exchangeItem, Order\Statuses::AWAITING_DISPATCH);
+
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and $return->item->isReturnedItemProcessed()
+		) {
+			// Complete the return
+			$return = $this->get('return.edit')->complete($return);
+		}
 
 		return $this->redirect($viewURL);
 	}
@@ -240,15 +274,26 @@ class Detail extends Controller
 		$stockManager->setNote(sprintf('Return #%s', $returnID));
 		$stockManager->setAutomated(true);
 
-		$stockManager->increment(
-			$this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->unitID), // unit
-			$this->get('stock.locations')->get($data['stock_location']) // location
-		);
+		$unit     = $this->get('product.unit.loader')->includeOutOfStock(true)->getByID($return->item->unitID);
+		$location = $this->get('stock.locations')->get($data['stock_location']);
 
+		$stockManager->increment($unit, $location);
 		$stockManager->commit();
 
-		// Complete the returned item
-		$this->get('order.item.edit')->updateStatus($return->item, \Message\Mothership\OrderReturn\Statuses::RETURN_COMPLETED);
+		$return->item->returnedStockLocation = $location;
+		$return = $this->get('return.edit')->returnItemToStock($return);
+
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and (
+				!$return->item->isExchangeResolution()
+				or $return->item->isExchanged()
+			)
+		) {
+			// Complete the return
+			$return = $this->get('return.edit')->complete($return);
+		}
 
 		return $this->redirect($viewURL);
 	}
@@ -300,15 +345,15 @@ class Detail extends Controller
 
 		$form->setAction($this->generateUrl('ms.commerce.return.edit.balance', array('returnID' => $return->id)));
 
-		$payee = 'none';
-		if ($return->payeeIsClient()) $payee = 'client';
-		if ($return->payeeIsCustomer()) $payee = 'customer';
+		$payee = static::PAYEE_NONE;
+		if ($return->item->payeeIsClient())   $payee = static::PAYEE_CLIENT;
+		if ($return->item->payeeIsCustomer()) $payee = static::PAYEE_CUSTOMER;
 
 		$form->add('payee', 'choice', 'Payee', array(
 			'choices' => array(
-				'none' => 'Clear the balance',
-				'customer' => 'Refund the customer',
-				'client' => 'Notify customer of their outstanding balance'
+				static::PAYEE_NONE     => 'Clear the balance',
+				static::PAYEE_CUSTOMER => 'Refund the customer',
+				static::PAYEE_CLIENT   => 'Notify customer of their outstanding balance'
 			),
 			'expanded' => true,
 			'empty_value' => false,
@@ -319,7 +364,7 @@ class Detail extends Controller
 		$form->add('balance_amount', 'money', ' ', array(
 			'currency' => 'GBP',
 			'required' => false,
-			'data' => abs($return->calculatedBalance) // display the price as positive
+			'data' => abs($return->item->calculatedBalance) // display the price as positive
 		));
 
 		// payee == 'customer' || 'client'
@@ -339,7 +384,7 @@ class Detail extends Controller
 
 		$message = '';
 
-		if ($return->hasCalculatedBalance() and 'none' !== $payee) {
+		if ($return->item->hasCalculatedBalance() and $payee !== static::PAYEE_NONE) {
 			$message = $this->_getHtml('Message:Mothership:OrderReturn::return:mail:payee-' . $payee, array(
 				'return' => $return,
 				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,
