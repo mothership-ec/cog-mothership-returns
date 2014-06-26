@@ -64,7 +64,7 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 	 */
 	public function getPayableCurrency()
 	{
-		return $this->item->currencyID;
+		return $this->currencyID;
 	}
 
 	/**
