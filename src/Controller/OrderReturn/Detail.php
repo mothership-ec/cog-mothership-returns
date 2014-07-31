@@ -9,7 +9,7 @@ use Message\Mothership\OrderReturn;
 class Detail extends Controller
 {
 	const PAYEE_NONE     = 'none';
-	const PAYEE_CLIENT   = 'client';
+	const PAYEE_RETAILER = 'retailer';
 	const PAYEE_CUSTOMER = 'customer';
 
 	/**
@@ -166,7 +166,7 @@ class Detail extends Controller
 		}
 
 		// Notify customer they owe the outstanding balance
-		elseif ($data['payee'] == static::PAYEE_CLIENT) {
+		elseif ($data['payee'] == static::PAYEE_RETAILER) {
 			$this->get('return.edit')->setBalance($return, abs($data['balance_amount']));
 		}
 
@@ -328,7 +328,7 @@ class Detail extends Controller
 			'time_widget' => 'single_text',
 			'data' => new \DateTime()
 		));
-		$form->add('message', 'textarea', 'Message to customer (optional)', array(
+		$form->add('message', 'textarea', 'Message to customer', array(
 			'data' => $this->_getHtml('Message:Mothership:OrderReturn::return:mail:received', array(
 				'return'      => $return,
 				'companyName' => $this->get('cfg')->app->defaultEmailFrom->name,
@@ -346,28 +346,28 @@ class Detail extends Controller
 		$form->setAction($this->generateUrl('ms.commerce.return.edit.balance', array('returnID' => $return->id)));
 
 		$payee = static::PAYEE_NONE;
-		if ($return->item->payeeIsClient())   $payee = static::PAYEE_CLIENT;
-		if ($return->item->payeeIsCustomer()) $payee = static::PAYEE_CUSTOMER;
+		if ($return->item->payeeIsRetailer())   $payee = static::PAYEE_RETAILER;
+		if ($return->item->payeeIsCustomer())   $payee = static::PAYEE_CUSTOMER;
 
 		$form->add('payee', 'choice', 'Payee', array(
 			'choices' => array(
 				static::PAYEE_NONE     => 'Clear the balance',
 				static::PAYEE_CUSTOMER => 'Refund the customer',
-				static::PAYEE_CLIENT   => 'Notify customer of their outstanding balance'
+				static::PAYEE_RETAILER => 'Notify customer of their outstanding balance'
 			),
 			'expanded' => true,
 			'empty_value' => false,
 			'data' => $payee
 		));
 
-		// payee == 'customer' || 'client'
+		// payee == 'customer' || 'retailer'
 		$form->add('balance_amount', 'money', ' ', array(
 			'currency' => 'GBP',
 			'required' => false,
 			'data' => abs($return->item->calculatedBalance) // display the price as positive
 		));
 
-		// payee == 'customer' || 'client'
+		// payee == 'customer' || 'retailer'
 		$form->add('refund_approve', 'checkbox', 'Approve amount', array(
 			'required' => false,
 		));
@@ -392,7 +392,7 @@ class Detail extends Controller
 			));
 		}
 
-		$form->add('message', 'textarea', 'Message to customer (optional)', array(
+		$form->add('message', 'textarea', 'Message to customer', array(
 			'data' => $message
 		))->val()->optional();
 

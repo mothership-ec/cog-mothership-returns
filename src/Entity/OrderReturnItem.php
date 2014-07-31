@@ -123,7 +123,7 @@ class OrderReturnItem
 	}
 
 	/**
-	 * If the balance is owed by the client to be paid to the customer.
+	 * If the balance is owed by the retailer to be paid to the customer.
 	 *
 	 * @return bool
 	 */
@@ -134,11 +134,11 @@ class OrderReturnItem
 	}
 
 	/**
-	 * If the balance is owed by the customer to be paid to the client.
+	 * If the balance is owed by the customer to be paid to the retailer.
 	 *
 	 * @return bool
 	 */
-	public function payeeIsClient()
+	public function payeeIsRetailer()
 	{
 		if ($this->hasBalance()) return $this->balance > 0;
 		return $this->calculatedBalance > 0;
