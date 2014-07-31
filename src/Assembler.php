@@ -162,8 +162,8 @@ class Assembler
 		$returnItem->orderItem         = $item;
 		$returnItem->listPrice         = $item->listPrice;
 		$returnItem->actualPrice       = $item->actualPrice;
-		$returnItem->returnedValue     = $item->actualPrice;
-		$returnItem->calculatedBalance = 0 - $item->actualPrice;
+		$returnItem->returnedValue     = $item->gross;
+		$returnItem->calculatedBalance = 0 - $item->gross;
 		$returnItem->net               = $item->net;
 		$returnItem->discount          = $item->discount;
 		$returnItem->tax               = $item->tax;
