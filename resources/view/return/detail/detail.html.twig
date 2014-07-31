@@ -115,7 +115,7 @@
 								{% if not returnItem.hasRemainingBalance %}
 									<dd>No outstanding balance or payments</dd>
 								{% elseif returnItem.payeeIsCustomer %}
-									<dd>Awaiting your payment of {{ returnItem.balance|abs|price }}</dd>
+									<dd>Awaiting your refund of {{ returnItem.balance|abs|price }}</dd>
 								{% elseif returnItem.payeeIsRetailer %}
 									<dd>Awaiting customer's payment of {{ returnItem.balance|abs|price }}</dd>
 								{% endif %}
