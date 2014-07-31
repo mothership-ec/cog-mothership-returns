@@ -486,6 +486,7 @@ class Create implements DB\TransactionalInterface
 				// This should probably be moved to an event ?
 				// Create the return slip and attach it to the return item
 				$document = $this->_returnSlip->save($return);
+
 				$this->_trans->run("
 					UPDATE
 						`return`
@@ -497,6 +498,8 @@ class Create implements DB\TransactionalInterface
 					'documentID' => $document->id,
 					'returnID'   => $return->id,
 				]);
+
+				$this->_trans->commit();
 			}
 		}
 

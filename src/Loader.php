@@ -4,6 +4,7 @@ namespace Message\Mothership\OrderReturn;
 
 use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
+use Message\Cog\Filesystem\File;
 
 use Message\User;
 
@@ -18,12 +19,39 @@ class Loader extends Order\Entity\BaseLoader implements
 	Order\Entity\DeletableLoaderInterface,
 	Order\Transaction\DeletableRecordLoaderInterface
 {
+	/**
+	 * @var \Message\Cog\DB\Query
+	 */
 	protected $_query;
+
+	/**
+	 * @var Collection\Collection
+	 */
 	protected $_reasons;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Order\Status\Collection
+	 */
 	protected $_statuses;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Refund\Loader
+	 */
 	protected $_refundLoader;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Payment\Loader
+	 */
 	protected $_paymentLoader;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Product\Stock\Location\Collection
+	 */
 	protected $_stockLocations;
+
+	/**
+	 * @var bool
+	 */
 	protected $_includeDeleted = false;
 
 	public function __construct(
@@ -345,9 +373,12 @@ class Loader extends Order\Entity\BaseLoader implements
 			// @todo Make this an array of items
 			foreach ($itemEntities as $itemKey => $item) {
 				if ($item->returnID == $entity->id) {
+
 					$entity->item = $this->_loadItem($itemsResult[$itemKey], $item, $entity);
+
 					break;
 				}
+
 			}
 
 			$entity->currencyID = $returnsResult[$key]->currency_id;
@@ -409,6 +440,8 @@ class Loader extends Order\Entity\BaseLoader implements
 
 		$itemEntity->returnedStock = (bool) $itemEntity->returnedStock;
 
+		$itemEntity = $this->_loadDocument($itemEntity);
+
 		return $itemEntity;
 	}
 
@@ -454,5 +487,54 @@ class Loader extends Order\Entity\BaseLoader implements
 		if (! is_array($refunds)) $refunds = [$refunds];
 
 		return $refunds;
+	}
+
+	/**
+	 * Please don't think less of me for this. This returns refactor is horrible and will need to be re-refactored.
+	 * I am sorry. I could not inject the document loader without causing an infinite loop. I really am very sorry.
+	 *
+	 * - Thomas Marchant
+	 *
+	 * @param Entity\OrderReturnItem $item
+	 * @return Entity\OrderReturnItem
+	 */
+	protected function _loadDocument(Entity\OrderReturnItem $item)
+	{
+		$result = $this->_query->run('
+			SELECT
+				*,
+				document_id AS id
+			FROM
+				order_document
+			WHERE
+				order_id = :orderID?i
+			AND
+				type = :type?s
+		', [
+			'orderID' => $item->orderID,
+			'type'    => 'return-slip',
+		]);
+
+		$entities = $result->bindTo('Message\\Mothership\\Commerce\\Order\\Entity\\Document\\Document');
+		$docs     = [];
+
+		foreach ($result as $key => $row) {
+			$entities[$key]->authorship->create(
+				new DateTimeImmutable(date('c', $row->created_at)),
+				$row->created_by
+			);
+
+			$entities[$key]->file = new File($row->url);
+
+			if ($row->dispatch_id) {
+				$entities[$key]->dispatch = $entities[$key]->order->dispatches->get($row->dispatch_id);
+			}
+
+			$docs[$row->id] = $entities[$key];
+		}
+
+		$item->document = array_shift($docs);
+
+		return $item;
 	}
 }
