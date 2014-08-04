@@ -81,6 +81,8 @@ class Create implements DB\TransactionalInterface
 
 	protected $_transOverridden = false;
 
+	const MYSQL_ID_VAR = 'RETURN_ID';
+
 	public function __construct(
 		DB\Transaction $trans,
 		UserInterface $currentUser,
@@ -216,8 +218,8 @@ class Create implements DB\TransactionalInterface
 			'currencyID'  => $return->currencyID,
 		]);
 
-		$this->_trans->setIDVariable('RETURN_ID');
-		$return->id = '@RETURN_ID';
+		$this->_trans->setIDVariable(self::MYSQL_ID_VAR);
+		$return->id = '@' . self::MYSQL_ID_VAR;
 
 		// Get the order for the return for quick reference
 		$order = $return->item->order;
@@ -478,7 +480,7 @@ class Create implements DB\TransactionalInterface
 		if (!$this->_transOverridden) {
 			$this->_trans->commit();
 
-			$return->id = $this->_trans->getIDVariable('RETURN_ID');
+			$return->id = $this->_trans->getIDVariable(self::MYSQL_ID_VAR);
 
 			$this->_eventDispatcher->dispatch(
 				Events::CREATE_COMPLETE,
