@@ -478,30 +478,15 @@ class Create implements DB\TransactionalInterface
 		if (!$this->_transOverridden) {
 			$this->_trans->commit();
 
-			// Re-load the return to ensure it is ready to be passed to the return
-			// slip file factory, and to be returned from the method.
-			$return = $this->_loader->getByID($this->_trans->getIDVariable('RETURN_ID'));
+			$return->id = $this->_trans->getIDVariable('RETURN_ID');
 
-			if ($statusCode === Statuses::AWAITING_RETURN) {
-				// This should probably be moved to an event ?
-				// Create the return slip and attach it to the return item
-				$document = $this->_returnSlip->save($return);
-
-				$this->_trans->run("
-					UPDATE
-						`return`
-					SET
-						document_id = :documentID?i
-					WHERE
-						return_id = :returnID?i
-				", [
-					'documentID' => $document->id,
-					'returnID'   => $return->id,
-				]);
-
-				$this->_trans->commit();
-			}
+			$this->_eventDispatcher->dispatch(
+				Events::CREATE_COMPLETE,
+				$event
+			)->getReturn();
 		}
+
+
 
 		return $return;
 	}
