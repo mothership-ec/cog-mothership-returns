@@ -31,7 +31,7 @@ class Detail extends Controller
 		if ($return->item->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
-//		de($return->item);
+
 		return $this->render('Message:Mothership:OrderReturn::return:blank', array(
 			'content' => file_get_contents($return->item->document->file)
 		));
