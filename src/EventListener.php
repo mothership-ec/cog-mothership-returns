@@ -47,17 +47,15 @@ class EventListener extends BaseListener implements SubscriberInterface
 
 	public function saveDocument(Event $event)
 	{
-		$document = $this->get('file.return_slip')->save($event->getReturn());
+		$return     = $event->getReturn();
+		$statusCode = $return->item->status->code;
 
-		$statusCode = ($event->getReturn()->item->status)
-			? $event->getReturn()->item->status->code
-			: Statuses::AWAITING_RETURN;
-
+		// @todo Yes, I know the create decorator uses a transaction but it will have already been committed by
+		// this point. Don't judge me please! It's all Laurence's fault! He wrote all this nasty code and then went
+		// packing :(
 		if ($statusCode === Statuses::AWAITING_RETURN) {
+			$document = $this->get('file.return_slip')->save($return);
 
-			// @todo Yes, I know the create decorator uses a transaction but it will have already been committed by
-			// this point. Don't judge me please! It's all Laurence's fault! He wrote all this nasty code and then went
-			// packing :(
 			$this->get('db.query')->run("
 				UPDATE
 					`return`
@@ -67,7 +65,7 @@ class EventListener extends BaseListener implements SubscriberInterface
 					return_id = :returnID?i
 				", [
 					'documentID' => $document->id,
-					'returnID'   => $event->getReturn()->id,
+					'returnID'   => $return->id,
 				]
 			);
 		}

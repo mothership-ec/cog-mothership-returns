@@ -485,7 +485,7 @@ class Create implements DB\TransactionalInterface
 			$this->_eventDispatcher->dispatch(
 				Events::CREATE_COMPLETE,
 				$event
-			)->getReturn();
+			);
 		}
 
 		return $return;
