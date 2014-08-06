@@ -346,8 +346,13 @@ class Detail extends Controller
 		$form->setAction($this->generateUrl('ms.commerce.return.edit.balance', array('returnID' => $return->id)));
 
 		$payee = static::PAYEE_NONE;
-		if ($return->item->payeeIsRetailer())   $payee = static::PAYEE_RETAILER;
-		if ($return->item->payeeIsCustomer())   $payee = static::PAYEE_CUSTOMER;
+
+		if ($return->item->payeeIsRetailer())  {
+			$payee = static::PAYEE_RETAILER;
+		}
+		elseif ($return->item->payeeIsCustomer()) {
+			$payee = static::PAYEE_CUSTOMER;
+		}
 
 		$form->add('payee', 'choice', 'Payee', array(
 			'choices' => array(
