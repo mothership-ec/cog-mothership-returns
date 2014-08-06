@@ -50,13 +50,24 @@ class Assembler
 	protected $_type = 'web';
 
 	/**
+	 * @var \Message\Mothership\Commerce\Order\Status\Collection
+	 */
+	protected $_statuses;
+
+	/**
+	 * @var int
+	 */
+	protected $_defaultStatus;
+
+	/**
 	 * Construct the assembler.
 	 *
 	 * @param StatusCollection $statuses
 	 */
 	public function __construct(StatusCollection $statuses)
 	{
-		$this->_statuses = $statuses;
+		$this->_statuses      = $statuses;
+		$this->_setDefaultStatus();
 	}
 
 	/**
@@ -181,7 +192,7 @@ class Assembler
 		$returnItem->barcode           = $item->barcode;
 		$returnItem->options           = $item->options;
 		$returnItem->brand             = $item->brand;
-		$returnItem->weight            = $item->weight;
+		$returnItem->status            = $this->_defaultStatus;
 
 		return $this;
 	}
@@ -215,7 +226,7 @@ class Assembler
 		$returnItem->barcode           = $unit->barcode;
 		$returnItem->options           = implode($unit->options, ', ');
 		$returnItem->brand             = $unit->product->brand;
-		$returnItem->weight            = (int) $unit->weight;
+		$returnItem->status            = $this->_defaultStatus;
 
 		$this->_calculateTax($returnItem);
 
@@ -517,5 +528,10 @@ class Assembler
 	protected function _calculateInclusiveTax($amount, $rate)
 	{
 		return round(($amount / (100 + $rate)) * $rate, 2);
+	}
+
+	private function _setDefaultStatus()
+	{
+		$this->_defaultStatus = $this->_statuses->get(Statuses::AWAITING_RETURN);
 	}
 }
