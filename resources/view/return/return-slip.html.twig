@@ -43,11 +43,11 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for note in return.order.notes %}
+				{#{% for note in return.order.notes %}#}
 					<tr>
-						<td>{{ note.note }}</td>
+						<td>{{ return.item.note.note }}</td>
 					</tr>
-				{% endfor %}
+				{#{% endfor %}#}
 			</tbody>
 		</table>
 	</section>
