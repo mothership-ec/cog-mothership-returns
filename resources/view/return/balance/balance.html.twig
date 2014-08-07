@@ -26,7 +26,7 @@
 			{% endif %}
 		</dl>
 
-		{% if return.item.hasRemainingBalance() and return.item.payeeIsClient() %}
+		{% if return.item.hasRemainingBalance() and return.item.payeeIsRetailer() %}
 			{{ form_start(form) }}
 				<button class="button submit">Continue to secure payment</button>
 			{{ form_end(form) }}

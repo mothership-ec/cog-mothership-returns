@@ -21,17 +21,17 @@
 					<td>
 						<dl>
 							<dt>Name</dt>
-							<dd>{{ return.item.order.user.name }}</dd>
+							<dd>{{ return.order.user.name }}</dd>
 
 							<dt>Billing address</dt>
-							<dd>{{ return.item.order.getAddress('billing').flatten()|join('<br>')|raw }}</dd>
+							<dd>{{ return.order.getAddress('billing').flatten()|join('<br>')|raw }}</dd>
 
 							<dt>Email</dt>
-							<dd>{{ return.item.order.user.email }}</dd>
+							<dd>{{ return.order.user.email }}</dd>
 						</dl>
 					</td>
 					<td>{{ return.getDisplayID() }}</td>
-					<td>{{ return.authorship.createdAt|date }}</td>
+					<td>{{ return.createdAt|date }}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -43,11 +43,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for note in return.item.order.notes %}
-					<tr>
-						<td>{{ note.note }}</td>
-					</tr>
-				{% endfor %}
+				<tr>
+					<td>{{ return.item.note.note }}</td>
+				</tr>
 			</tbody>
 		</table>
 	</section>
@@ -67,7 +65,7 @@
 					<td>{{ return.item.getDescription }}</td>
 					<td>{{ return.item.reason }}</td>
 					<td>{{ return.item.exchangeItem.getDescription }}</td>
-					<td>{{ (return.item.calculatedBalance)|price }}</td>
+					<td>{{ (return.calculatedBalance)|price }}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -80,10 +78,10 @@
 
 		<dl>
 			<dt>Name</dt>
-			<dd>{{ return.item.order.user.name }}</dd>
+			<dd>{{ return.order.user.name }}</dd>
 
 			<dt>Delivery address</dt>
-			<dd>{{ return.item.order.getAddress('delivery').flatten()|join('<br>')|raw }}</dd>
+			<dd>{{ return.order.getAddress('delivery').flatten()|join('<br>')|raw }}</dd>
 		</dl>
 	</section>
 </article>

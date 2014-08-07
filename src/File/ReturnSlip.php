@@ -10,6 +10,12 @@ use Message\Mothership\Commerce\Order\Entity\Document\Document;
 
 class ReturnSlip implements ContainerAwareInterface
 {
+	/**
+	 * @var ContainerInterface
+	 */
+	protected $_container;
+
+	const FILE_SUFFIX = '-return-slip';
 
 	public function __construct(ContainerInterface $container)
 	{
@@ -33,7 +39,7 @@ class ReturnSlip implements ContainerAwareInterface
 			'return' => $return
 		));
 
-		$filename = $return->id . '-return-slip';
+		$filename = $return->id . self::FILE_SUFFIX;
 
 		$this->_createFile($filename, $html);
 
@@ -102,23 +108,6 @@ class ReturnSlip implements ContainerAwareInterface
 	}
 
 	/**
-	 * Save document info to database
-	 *
-	 * @param $fileName
-	 */
-	protected function _saveToDB($fileName)
-	{
-		list($orderID, $fileType) = explode('_', $fileName);
-
-		$document = new Document;
-		$document->order = $this->_orders[$orderID];
-		$document->type = $fileType;
-		$document->file = new File($this->_getPath($fileName));
-
-		$this->_container['order.document.create']->create($document);
-	}
-
-	/**
 	 * Create full path and extension for filename
 	 *
 	 * @param $filename
@@ -128,6 +117,7 @@ class ReturnSlip implements ContainerAwareInterface
 	protected function _getPath($filename)
 	{
 		$dirs = $this->_getDirs();
+
 		return array_pop($dirs) . '/' . $filename . '.html';
 	}
 
