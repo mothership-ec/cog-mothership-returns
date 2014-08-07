@@ -114,7 +114,9 @@
 								<dt>Status</dt>
 								{% if not returnItem.hasRemainingBalance %}
 									<dd>No outstanding balance or payments</dd>
-								{% elseif returnItem.payeeIsClient %}
+								{% elseif returnItem.payeeIsCustomer %}
+									<dd>Awaiting your refund of {{ returnItem.balance|abs|price }}</dd>
+								{% elseif returnItem.payeeIsRetailer %}
 									<dd>Awaiting customer's payment of {{ returnItem.balance|abs|price }}</dd>
 								{% endif %}
 							</dl>
@@ -185,7 +187,7 @@
 					{% if (returnItem.orderItem) %}
 						<dt>Order</dt>
 						<dd>
-							<a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">
+							<a href="{{ url('ms.commerce.order.detail.view', {orderID: returnItem.order.id}) }}">
 								{{ returnItem.order.id }}
 							</a>
 						</dd>
@@ -210,7 +212,7 @@
 						{% if not returnItem.hasRemainingBalance %}
 							<dt>Balance</dt>
 							<dd>Cleared</dd>
-						{% elseif returnItem.payeeIsClient %}
+						{% elseif returnItem.payeeIsRetailer %}
 							<dt>Customer Balance</dt>
 							<dd>{{ returnItem.balance|abs|price }}</dd>
 						{% elseif returnItem.payeeIsCustomer %}
@@ -218,7 +220,7 @@
 							<dd>{{ returnItem.balance|abs|price }}</dd>
 						{% endif %}
 					{% else %}
-						{% if returnItem.payeeIsClient %}
+						{% if returnItem.payeeIsRetailer %}
 							<dt>Customer Balance</dt>
 							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
 						{% elseif returnItem.payeeIsCustomer %}
@@ -239,7 +241,7 @@
 					{% endif %}
 
 					<dt>Created by</dt>
-					<dd>{{ returnItem.order.user.name }} on {{ returnItem.authorship.createdAt|date }}</dd>
+					<dd><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a> on {{ return.authorship.createdAt|date }}</dd>
 
 					{% if not returnItem.authorship.updatedAt is empty and not returnItem.authorship.updatedBy is empty %}
 						<dt>Updated by</dt>

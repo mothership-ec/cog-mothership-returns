@@ -162,8 +162,8 @@ class Assembler
 		$returnItem->orderItem         = $item;
 		$returnItem->listPrice         = $item->listPrice;
 		$returnItem->actualPrice       = $item->actualPrice;
-		$returnItem->returnedValue     = $item->actualPrice;
-		$returnItem->calculatedBalance = 0 - $item->actualPrice;
+		$returnItem->returnedValue     = $item->gross;
+		$returnItem->calculatedBalance = 0 - $item->gross;
 		$returnItem->net               = $item->net;
 		$returnItem->discount          = $item->discount;
 		$returnItem->tax               = $item->tax;
@@ -301,16 +301,30 @@ class Assembler
 		}
 
 		$this->_return->item->exchangeItem = $item = new OrderItem;
-
-		$item->listPrice = $unit->getPrice('retail', $this->_currencyID);
-		$item->rrp       = $unit->getPrice('rrp', $this->_currencyID);
-
 		$item->populate($unit);
+
+		$item->listPrice   = $unit->getPrice('retail', $this->_currencyID);
+		$item->actualPrice = $item->listPrice;
+		$item->rrp         = $unit->getPrice('rrp', $this->_currencyID);
+		$item->basePrice   = $item->actualPrice;
+
+		if ('inclusive' === $this->_return->item->taxStrategy
+			&& $this->_return->item->order
+			&& false === $this->_return->item->order->taxable
+		) {
+			$item->basePrice -= $this->_calculateInclusiveTax($item->actualPrice, $item->productTaxRate);
+			$item->gross   = $item->basePrice - $item->discount;
+			$item->taxRate = 0;
+			$item->tax     = 0;
+			$item->net     = $item->gross;
+		} else {
+			$this->_calculateTax($item);
+		}
 
 		$item->stockLocation = $stockLocation;
 
 		// Adjust the balance to reflect the exchange item
-		$balance = $item->listPrice - $this->_return->item->actualPrice;
+		$balance = $item->gross - $this->_return->item->gross;
 		$this->_return->item->calculatedBalance = $balance;
 
 		return $this;

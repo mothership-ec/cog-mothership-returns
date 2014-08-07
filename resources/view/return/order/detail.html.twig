@@ -24,7 +24,7 @@
 				{% if not returnItem.hasRemainingBalance %}
 					<dt>Balance</dt>
 					<dd>Cleared</dd>
-				{% elseif returnItem.payeeIsClient %}
+				{% elseif returnItem.payeeIsRetailer %}
 					<dt>Customer Balance</dt>
 					<dd>{{ returnItem.balance|abs|price }}</dd>
 				{% elseif returnItem.payeeIsCustomer %}
@@ -32,7 +32,7 @@
 					<dd>{{ returnItem.balance|abs|price }}</dd>
 				{% endif %}
 			{% else %}
-				{% if returnItem.payeeIsClient %}
+				{% if returnItem.payeeIsRetailer %}
 					<dt>Customer Balance</dt>
 					<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
 				{% elseif returnItem.payeeIsCustomer %}
@@ -53,7 +53,7 @@
 			{% endif %}
 
 			<dt>Created by</dt>
-			<dd>{{ returnItem.order.user.name }} on {{ returnItem.authorship.createdAt|date }}</dd>
+			<dd><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a> on {{ return.authorship.createdAt|date }}</dd>
 
 			{% if not returnItem.authorship.updatedAt is empty and not returnItem.authorship.updatedBy is empty %}
 				<dt>Updated by</dt>

@@ -29,10 +29,10 @@
 
 					<tr>
 						<td><a href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">{{ return.id }}</a></td>
-						<td><a href="{#{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }#}">{{ returnItem.order.id }}</a></td>
+						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">{{ returnItem.order.id }}</a></td>
 						<td>{{ returnItem.productName }}</td>
 						<td>{{ return.authorship.createdAt|date }}</td>
-						<td><a href="{#{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }#}">{{ return.authorship.createdUser.name }}</a></td>
+						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a></td>
 						<td>
 							{% if returnItem.isExchangeResolution %}
 								Exchange
@@ -49,7 +49,7 @@
 							{% endif %}
 						</td>
 						<td>
-							{% if returnItem.payeeIsClient %}
+							{% if returnItem.payeeIsRetailer %}
 								You
 							{% elseif returnItem.payeeIsCustomer %}
 								Customer
