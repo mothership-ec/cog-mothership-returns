@@ -81,6 +81,8 @@ class Create implements DB\TransactionalInterface
 
 	protected $_transOverridden = false;
 
+	const MYSQL_ID_VAR = 'RETURN_ID';
+
 	public function __construct(
 		DB\Transaction $trans,
 		UserInterface $currentUser,
@@ -216,28 +218,28 @@ class Create implements DB\TransactionalInterface
 			'currencyID'  => $return->currencyID,
 		]);
 
-		$this->_trans->setIDVariable('RETURN_ID');
-		$return->id = '@RETURN_ID';
+		$this->_trans->setIDVariable(self::MYSQL_ID_VAR);
+		$return->id = '@' . self::MYSQL_ID_VAR;
 
 		// Get the order for the return for quick reference
 		$order = $return->item->order;
 
 		// If this is a standalone exchange, create an order for entities to be
 		// attached to and representing the original sale.
-		if ($isStandalone and $return->item->exchangeItem) {
+		if ($isStandalone && $return->item->exchangeItem) {
 			$order = clone $this->_newOrder;
 		}
 
-		if ($order and ! $order->currencyID) {
+		if ($order && !$order->currencyID) {
 			$order->currencyID = $return->currencyID;
 		}
 
-		if ($order and ! $order->type) {
+		if ($order && !$order->type) {
 			$order->type = 'standalone-return';
 		}
 
 		// Create the related note if there is one
-		if ($order and $return->item->note) {
+		if ($order && $return->item->note) {
 			$return->item->note->order = $order;
 			$order->notes->append($return->item->note);
 
@@ -336,14 +338,14 @@ class Create implements DB\TransactionalInterface
 		}
 
 		// If this is a standalone return, create the new order
-		if ($isStandalone and $order) {
+		if ($isStandalone && $order) {
 			$this->_orderCreate->create($order);
 		}
 
 		// Get the values for the return item
 		$returnItemValues = array_merge((array) $return->item, [
 			'returnID'              => $return->id,
-			'orderID'               => (!$isStandalone and $order) ? $order->id : null,
+			'orderID'               => (!$isStandalone && $order) ? $order->id : null,
 			'orderItemID'           => ($return->item->orderItem) ? $return->item->orderItem->id : null,
 			'exchangeItemID'        => ($return->item->exchangeItem) ? $return->item->exchangeItem->id : null,
 			'noteID'                => ($return->item->note) ? $return->item->note->id : null,
@@ -478,26 +480,12 @@ class Create implements DB\TransactionalInterface
 		if (!$this->_transOverridden) {
 			$this->_trans->commit();
 
-			// Re-load the return to ensure it is ready to be passed to the return
-			// slip file factory, and to be returned from the method.
-			$return = $this->_loader->getByID($this->_trans->getIDVariable('RETURN_ID'));
+			$return->id = $this->_trans->getIDVariable(self::MYSQL_ID_VAR);
 
-			if ($statusCode === Statuses::AWAITING_RETURN) {
-				// This should probably be moved to an event ?
-				// Create the return slip and attach it to the return item
-				$document = $this->_returnSlip->save($return);
-				$this->_trans->run("
-					UPDATE
-						`return`
-					SET
-						document_id = :documentID?i
-					WHERE
-						return_id = :returnID?i
-				", [
-					'documentID' => $document->id,
-					'returnID'   => $return->id,
-				]);
-			}
+			$this->_eventDispatcher->dispatch(
+				Events::CREATE_COMPLETE,
+				$event
+			);
 		}
 
 		return $return;
