@@ -5,11 +5,11 @@ There is a balance to pay for the item you wish to exchange your recent return f
 RETURN NUMBER: {{ return.getDisplayID() }}
 
 RETURNED ITEM:
-{{ return.item.description }} {{ return.item.actualPrice|price }}
+{{ return.item.description }} {{ return.item.gross|price }}
 
 {% if return.item.isExchangeResolution() %}
 EXCHANGE ITEM:
-{{ return.item.exchangeItem.description|raw }} {{ return.item.exchangeItem.actualPrice|price }}
+{{ return.item.exchangeItem.description|raw }} {{ return.item.exchangeItem.gross|price }}
 {% endif %}
 
 BALANCE DUE:

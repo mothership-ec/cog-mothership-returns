@@ -3,7 +3,6 @@
 namespace Message\Mothership\OrderReturn;
 
 use Message\Cog\Event\SubscriberInterface;
-use Message\Cog\Event\Event;
 use Message\Cog\Event\EventListener as BaseListener;
 use Message\Mothership\ControlPanel\Event\BuildMenuEvent;
 use Message\Mothership\Commerce\Order\Events as OrderEvents;
@@ -19,12 +18,15 @@ class EventListener extends BaseListener implements SubscriberInterface
 	static public function getSubscribedEvents()
 	{
 		return array(
-			BuildMenuEvent::BUILD_MAIN_MENU => array(
+			BuildMenuEvent::BUILD_MAIN_MENU => [
 				'registerMainMenuItems'
-			),
-			OrderEvents::BUILD_ORDER_TABS => array(
+			],
+			OrderEvents::BUILD_ORDER_TABS => [
 				'registerTabItems'
-			),
+			],
+			Events::CREATE_COMPLETE => [
+		 		'saveDocument'
+			],
 		);
 	}
 
@@ -41,5 +43,31 @@ class EventListener extends BaseListener implements SubscriberInterface
 	public function registerTabItems(BuildOrderTabsEvent $event)
 	{
 		$event->addItem('ms.commerce.order.view.return', 'ms.commerce.return.listing-title');
+	}
+
+	public function saveDocument(Event $event)
+	{
+		$return     = $event->getReturn();
+		$statusCode = $return->item->status->code;
+
+		// @todo Yes, I know the create decorator uses a transaction but it will have already been committed by
+		// this point. Don't judge me please! It's all Laurence's fault! He wrote all this nasty code and then went
+		// packing :(
+		if ($statusCode === Statuses::AWAITING_RETURN) {
+			$document = $this->get('file.return_slip')->save($return);
+
+			$this->get('db.query')->run("
+				UPDATE
+					`return`
+				SET
+					document_id = :documentID?i
+				WHERE
+					return_id = :returnID?i
+				", [
+					'documentID' => $document->id,
+					'returnID'   => $return->id,
+				]
+			);
+		}
 	}
 }

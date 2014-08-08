@@ -4,6 +4,7 @@ namespace Message\Mothership\OrderReturn;
 
 use Message\Cog\DB;
 use Message\Cog\ValueObject\DateTimeImmutable;
+use Message\Cog\Filesystem\File;
 
 use Message\User;
 
@@ -18,12 +19,39 @@ class Loader extends Order\Entity\BaseLoader implements
 	Order\Entity\DeletableLoaderInterface,
 	Order\Transaction\DeletableRecordLoaderInterface
 {
+	/**
+	 * @var \Message\Cog\DB\Query
+	 */
 	protected $_query;
+
+	/**
+	 * @var Collection\Collection
+	 */
 	protected $_reasons;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Order\Status\Collection
+	 */
 	protected $_statuses;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Refund\Loader
+	 */
 	protected $_refundLoader;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Payment\Loader
+	 */
 	protected $_paymentLoader;
+
+	/**
+	 * @var \Message\Mothership\Commerce\Product\Stock\Location\Collection
+	 */
 	protected $_stockLocations;
+
+	/**
+	 * @var bool
+	 */
 	protected $_includeDeleted = false;
 
 	public function __construct(
@@ -270,6 +298,8 @@ class Loader extends Order\Entity\BaseLoader implements
 		$returnsResult = $this->_query->run('
 			SELECT
 				*,
+				return_id as id,
+				document_id as documentID,
 				currency_id as currencyID
 			FROM
 				`return`
@@ -317,7 +347,6 @@ class Loader extends Order\Entity\BaseLoader implements
 		$return = array();
 
 		foreach ($returnEntities as $key => $entity) {
-			$entity->id = $returnsResult[$key]->return_id;
 
 			// Add created authorship
 			$entity->authorship->create(
@@ -345,12 +374,14 @@ class Loader extends Order\Entity\BaseLoader implements
 			// @todo Make this an array of items
 			foreach ($itemEntities as $itemKey => $item) {
 				if ($item->returnID == $entity->id) {
+
 					$entity->item = $this->_loadItem($itemsResult[$itemKey], $item, $entity);
+
 					break;
 				}
+
 			}
 
-			$entity->currencyID = $returnsResult[$key]->currency_id;
 			$entity->payments   = $this->_loadPayments($entity);
 			$entity->refunds    = $this->_loadRefunds($entity);
 
@@ -409,6 +440,8 @@ class Loader extends Order\Entity\BaseLoader implements
 
 		$itemEntity->returnedStock = (bool) $itemEntity->returnedStock;
 
+		$itemEntity = $this->_loadDocument($itemEntity, $return);
+
 		return $itemEntity;
 	}
 
@@ -454,5 +487,22 @@ class Loader extends Order\Entity\BaseLoader implements
 		if (! is_array($refunds)) $refunds = [$refunds];
 
 		return $refunds;
+	}
+
+	/**
+	 * @param Entity\OrderReturnItem $item
+	 * @return Entity\OrderReturnItem
+	 */
+	protected function _loadDocument(Entity\OrderReturnItem $item, Entity\OrderReturn $return)
+	{
+		$documentLoader = $this->_orderLoader->getEntityLoader('documents');
+
+		if ($item->orderID) {
+			// The fact the document ID is saved against the return but the document object is part of the
+			// item is SO STUPID
+			$item->document = $documentLoader->getByID($return->documentID);
+		}
+
+		return $item;
 	}
 }

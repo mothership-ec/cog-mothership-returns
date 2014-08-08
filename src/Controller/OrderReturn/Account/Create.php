@@ -34,20 +34,20 @@ class Create extends Controller
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
 				if (! $return->item->isRejected()) {
-					return $this->redirectToRoute('ms.user.return.detail', array(
-						'returnID' => $return->id
-					));
+					return $this->redirectToRoute('ms.user.return.detail', [
+						'returnID' => $return->id,
+					]);
 				}
 			}
 		}
 
 		$form = $this->_createForm($item);
 
-		return $this->render('Message:Mothership:OrderReturn::return:account:create', array(
+		return $this->render('Message:Mothership:OrderReturn::return:account:create', [
 			'user' => $user,
 			'item' => $item,
 			'form' => $form
-		));
+		]);
 	}
 
 	public function note($itemID)
@@ -56,15 +56,9 @@ class Create extends Controller
 		$item = $this->get('order.item.loader')->getByID($itemID);
 
 		$createForm	= $this->_createForm($item);
-		$createData	= $createForm->getFilteredData();
+		$data       = $createForm->getFilteredData();
 
-		if (!empty($createData)) {
-			$this->get('http.session')->set('return.data', $createData);
-		}
-
-		$form = $this->_noteForm($itemID, 'ms.user.return.note.process');
-
-		if ($item->order->user->id != $user->id) {
+		if (!$item || $item->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
 
@@ -72,18 +66,33 @@ class Create extends Controller
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
 				if (! $return->item->isRejected()) {
-					return $this->redirectToRoute('ms.user.return.detail', array(
+					return $this->redirectToRoute('ms.user.return.detail', [
 						'returnID' => $return->id
-					));
+					]);
 				}
 			}
 		}
 
-		return $this->render('Message:Mothership:OrderReturn::return:account:note', array(
+		if (!empty($data)) {
+			$reason = $this->get('return.reasons')->get($data['reason']);
+
+			$assembler = $this->get('return.session')
+				->setReturnItem($item)
+				->setReason($reason);
+
+			if ($data['exchangeUnit']) {
+				$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
+				$assembler->setExchangeItem($exchangeUnit);
+			}
+		}
+
+		$form = $this->_noteForm($itemID, 'ms.user.return.note.process');
+
+		return $this->render('Message:Mothership:OrderReturn::return:account:note', [
 			'form'	=> $form,
 			'user'	=> $user,
 			'item'	=> $item,
-		));
+		]);
 	}
 
 	public function noteAction($itemID)
@@ -92,8 +101,6 @@ class Create extends Controller
 		$item = $this->get('order.item.loader')->getByID($itemID);
 		$form = $this->_noteForm($itemID);
 
-		$sessionData = (array) $this->get('http.session')->get('return.data');
-
 		if ($item->order->user->id != $user->id) {
 			throw $this->createNotFoundException();
 		}
@@ -102,25 +109,29 @@ class Create extends Controller
 		if ($exists = $this->get('return.loader')->getByItem($item)) {
 			foreach ($exists as $return) {
 				if (! $return->item->isRejected()) {
-					return $this->redirectToRoute('ms.user.return.detail', array(
+					return $this->redirectToRoute('ms.user.return.detail', [
 						'returnID' => $return->id
-					));
+					]);
 				}
 			}
 		}
 
 		if ($form->isValid() && $data = $form->getFilteredData()) {
-			$data = array_merge($sessionData, $data);
-			$this->get('http.session')->set('return.data', $data);
-			return $this->redirectToRoute('ms.user.return.confirm', array(
-				'itemID'	=> $itemID,
-			));
+			if (isset($data['note']) and !empty($data['note'])) {
+				$note = new Note;
+				$note->note = $data['note'];
+
+				$this->get('return.session')->setNote($note);
+			}
+
+			return $this->redirectToRoute('ms.user.return.confirm', [
+				'itemID' => $itemID,
+			]);
 		}
 
-		return $this->redirectToRoute('ms.user.return.create', array(
-			'itemID'	=> $itemID,
-		));
-
+		return $this->redirectToRoute('ms.user.return.create', [
+			'itemID' => $itemID,
+		]);
 	}
 
 	/**
@@ -138,21 +149,18 @@ class Create extends Controller
 			throw $this->createNotFoundException();
 		}
 
-		$data = $this->get('http.session')->get('return.data');
-		$balance = 0;
+		$return = $this->get('return.session')->getReturn();
 
 		// Get translated messages for exchanges and refunds
-		if ($data['resolution'] == 'exchange') {
-			$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
-			$resolutionMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.resolution.exchange', array(
-				'%item%' => $exchangeUnit->product->name
-			));
-			$balance = $exchangeUnit->getPrice('retail', $item->order->currencyID) - $item->gross;
-		}
-		else {
-			$balance = -$item->gross;
+		if ($return->item->isExchangeResolution()) {
+			$resolutionMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.resolution.exchange', [
+				'%item%' => $return->item->exchangeItem->getDescription(),
+			]);
+		} else {
 			$resolutionMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.resolution.refund');
 		}
+
+		$balance = $return->item->calculatedBalance;
 
 		if ($balance > 0) {
 			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.pay');
@@ -165,20 +173,17 @@ class Create extends Controller
 			$balanceMessage = $this->get('translator')->trans('ms.commerce.return.confirmation.balance.none');
 		}
 
-		// Set $data on session
-		$this->get('http.session')->set('return.data', $data);
-
 		$confirmForm = $this->_confirmForm($item);
 
-		return $this->render('Message:Mothership:OrderReturn::return:account:confirm', array(
-			'user' => $user,
-			'item' => $item,
-			'data' => $data,
-			'balance' => $balance,
+		return $this->render('Message:Mothership:OrderReturn::return:account:confirm', [
+			'user'              => $user,
+			'item'              => $item,
+			'data'              => $return->item->note,
+			'balance'           => $balance,
 			'resolutionMessage' => $resolutionMessage,
-			'balanceMessage' => $balanceMessage,
-			'confirmForm' => $confirmForm,
-		));
+			'balanceMessage'    => $balanceMessage,
+			'confirmForm'       => $confirmForm,
+		]);
 	}
 
 	/**
@@ -202,27 +207,7 @@ class Create extends Controller
 			return $this->redirectToReferer();
 		}
 
-		$data = $this->get('http.session')->get('return.data');
-
-		$reason = $this->get('return.reasons')->get($data['reason']);
-
-		$assembler = $this->get('return.assembler')
-			->setReturnItem($orderItem)
-			->setReason($reason);
-
-		if ($data['exchangeUnit']) {
-			$exchangeUnit = $this->get('product.unit.loader')->getByID($data['exchangeUnit']);
-			$assembler->setExchangeItem($exchangeUnit);
-		}
-
-		if (isset($data['note']) and ! empty($data['note'])) {
-			$note = new Note;
-			$note->note = $data['note'];
-
-			$assembler->setNote($note);
-		}
-
-		$return = $assembler->getReturn();
+		$return = $this->get('return.session')->getReturn();
 
 		$return = $this->get('return.create')->create($return);
 
@@ -242,12 +227,12 @@ class Create extends Controller
 		$user = $this->get('user.current');
 		$return = $this->get('return.loader')->getByID($returnID);
 
-		$this->get('http.session')->remove('return.data');
+		$this->get('http.session')->remove('return.session');
 
-		return $this->render('Message:Mothership:OrderReturn::return:account:complete', array(
-			'user' => $user,
+		return $this->render('Message:Mothership:OrderReturn::return:account:complete', [
+			'user'   => $user,
 			'return' => $return
-		));
+		]);
 	}
 
 	/**
@@ -258,7 +243,7 @@ class Create extends Controller
 	 */
 	protected function _createForm($item)
 	{
-		$reasons = $units = array();
+		$reasons = $units = [];
 
 		foreach ($this->get('return.reasons') as $reason) {
 			$reasons[$reason->code] = $reason->name;
@@ -275,24 +260,24 @@ class Create extends Controller
 
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.user.return.note', array('itemID' => $item->id)));
+		$form->setAction($this->generateUrl('ms.user.return.note', ['itemID' => $item->id]));
 
-		$form->add('reason', 'choice', 'Why are you returning the item?', array(
+		$form->add('reason', 'choice', 'Why are you returning the item?', [
 			'choices' => $reasons,
 			'empty_value' => '-- Please select a reason --'
-		));
+		]);
 
-		$form->add('resolution', 'choice', 'Do you require an exchange or refund?', array(
+		$form->add('resolution', 'choice', 'Do you require an exchange or refund?', [
 			'choices' => [
 				'exchange' => 'Exchange',
 				'refund'   => 'Refund',
 			],
 			'empty_value' => '-- Please select a resolution --'
-		));
+		]);
 
-		$form->add('exchangeUnit', 'choice', 'Choose a replacement item', array(
+		$form->add('exchangeUnit', 'choice', 'Choose a replacement item', [
 			'choices' => $units
-		))->val()->optional();
+		])->val()->optional();
 
 		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
 
@@ -303,7 +288,7 @@ class Create extends Controller
 	{
 		$form = $this->get('form');
 
-		$form->setMethod('POST')->setAction($this->generateUrl($action, array('itemID' => $itemID)));
+		$form->setMethod('POST')->setAction($this->generateUrl($action, ['itemID' => $itemID]));
 
 		$form->add('note', 'textarea', 'Additional notes')->val()->optional();
 
@@ -320,7 +305,7 @@ class Create extends Controller
 	{
 		$form = $this->get('form');
 
-		$form->setAction($this->generateUrl('ms.user.return.store', array('itemID' => $item->id)));
+		$form->setAction($this->generateUrl('ms.user.return.store', ['itemID' => $item->id]));
 
 		$form->add('terms', 'checkbox', 'By clicking here you agree to the terms and conditions of returns');
 
