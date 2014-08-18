@@ -253,7 +253,9 @@ class Create extends Controller
 			$productUnits = $this->get('product.unit.loader')->getByProduct($product);
 			if ($productUnits and count($productUnits)) {
 				foreach ($productUnits as $unit) {
-					$units[$product->displayName][$unit->id] = implode($unit->options, ',');
+					if($unit->visible && !array_sum($unit->stock) == 0) {
+						$units[$product->displayName][$unit->id] = implode($unit->options, ',');
+					}
 				}
 			}
 		}
