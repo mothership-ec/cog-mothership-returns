@@ -1,6 +1,6 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Report\SalesData;
+namespace Message\Mothership\OrderReturn\Report\ReturnsData;
 
 use Message\Cog\DB\QueryBuilderFactory;
 

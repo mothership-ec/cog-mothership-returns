@@ -178,10 +178,15 @@ class Services implements ServicesInterface
 		};
 
 		$services['return.report.sales-data'] = function($c) {
-			//this will return a collection
 			return [
-				new OrderReturn\Report\SalesData\ExchangesData($c['db.query.builder.factory']),
-				new OrderReturn\Report\SalesData\ReturnsData($c['db.query.builder.factory']),
+				new OrderReturn\Report\ReturnsData\ExchangesData($c['db.query.builder.factory']),
+				new OrderReturn\Report\ReturnsData\ReturnsData($c['db.query.builder.factory']),
+			];
+		};
+
+		$services['return.report.transaction-data'] = function($c) {
+			return [
+				new OrderReturn\Report\ReturnsData\RefundsData($c['db.query.builder.factory']),
 			];
 		};
 
