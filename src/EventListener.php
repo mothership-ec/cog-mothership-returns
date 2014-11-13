@@ -5,9 +5,14 @@ namespace Message\Mothership\OrderReturn;
 use Message\Cog\Event\SubscriberInterface;
 use Message\Cog\Event\Event;
 use Message\Cog\Event\EventListener as BaseListener;
+
 use Message\Mothership\ControlPanel\Event\BuildMenuEvent;
+
+use Message\Mothership\Commerce\Events as CommerceEvents;
 use Message\Mothership\Commerce\Order\Events as OrderEvents;
 use Message\Mothership\Commerce\Order\Event\BuildOrderTabsEvent;
+
+use Message\Mothership\Report\Event as ReportEvents;
 
 /**
  * Event listener for building the OrderReturn's menu.
@@ -25,6 +30,9 @@ class EventListener extends BaseListener implements SubscriberInterface
 			OrderEvents::BUILD_ORDER_TABS => array(
 				'registerTabItems'
 			),
+			CommerceEvents::SALES_REPORT => [
+				'buildSalesReport'
+			],
 		);
 	}
 
@@ -41,5 +49,12 @@ class EventListener extends BaseListener implements SubscriberInterface
 	public function registerTabItems(BuildOrderTabsEvent $event)
 	{
 		$event->addItem('ms.commerce.order.view.return', 'ms.commerce.return.listing-title');
+	}
+
+	public function buildSalesReport(ReportEvents\ReportEvent $event)
+	{
+		foreach ($this->get('return.report.sales-data') as $query) {
+			$event->addQueryBuilder($query->getQueryBuilder());
+		}
 	}
 }
