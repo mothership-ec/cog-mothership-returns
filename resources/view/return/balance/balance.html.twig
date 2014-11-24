@@ -20,7 +20,7 @@
 
 			<dt>Your balance</dt>
 			{% if return.item.hasRemainingBalance() %}
-				<dd>{{ return.item.remainingBalance|price }} remaining</dd>
+				<dd>{{ return.item.remainingBalance|price(return.payableCurrency) }} remaining</dd>
 			{% else %}
 				<dd>You have no remaining balance to pay</dd>
 			{% endif %}
