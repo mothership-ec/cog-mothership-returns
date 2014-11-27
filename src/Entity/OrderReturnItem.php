@@ -44,6 +44,7 @@ class OrderReturnItem
 	public $gross           = 0;
 	public $rrp             = 0;
 	public $taxRate         = 0;
+	public $taxes           = [];
 	public $productTaxRate  = 0;
 	public $taxStrategy;
 
@@ -57,6 +58,7 @@ class OrderReturnItem
 	public $barcode;
 	public $options;
 	public $brand;
+
 
 	public function __construct()
 	{
