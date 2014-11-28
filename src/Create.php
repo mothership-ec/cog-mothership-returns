@@ -407,7 +407,7 @@ class Create implements DB\TransactionalInterface
 		$tokens  = [];
 		$inserts = [];
 		$idToken = '@LAST_RETURN_ITEM_ID_' . uniqid();
-		foreach ($item->taxes as $type => $rate) {
+		foreach ($return->item->taxes as $type => $rate) {
 			$tokens[] = '(?i, ?s, ?f)';
 			
 			$inserts[] = $idToken;
@@ -415,10 +415,10 @@ class Create implements DB\TransactionalInterface
 			$inserts[] = $rate;
 		}
 
-		$this->_query->add(
+		$this->_trans->run(
 			"SET $idToken = LAST_INSERT_ID();
 			INSERT INTO 
-				`return_item_tax` (`item_id`, `tax_type`, `tax_rate`) 
+				`return_item_tax` (`return_item_id`, `tax_type`, `tax_rate`) 
 			VALUES " . implode(',', $tokens) . ";",
 			$inserts
 		);
