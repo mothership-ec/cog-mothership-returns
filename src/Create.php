@@ -403,6 +403,26 @@ class Create implements DB\TransactionalInterface
 				weight_grams            = :weight?i
 		", $returnItemValues);
 
+		// Insert item tax rates
+		$tokens  = [];
+		$inserts = [];
+		$idToken = '@LAST_RETURN_ITEM_ID_' . uniqid();
+		foreach ($item->taxes as $type => $rate) {
+			$tokens[] = '(?i, ?s, ?f)';
+			
+			$inserts[] = $idToken;
+			$inserts[] = $type;
+			$inserts[] = $rate;
+		}
+
+		$this->_query->add(
+			"SET $idToken = LAST_INSERT_ID();
+			INSERT INTO 
+				`return_item_tax` (`item_id`, `tax_type`, `tax_rate`) 
+			VALUES " . implode(',', $tokens) . ";",
+			$inserts
+		);
+
 		// set stock manager's properties, because we can't change them anymore
 		// once an adjustment was added...
 		if (true === $return->item->accepted) {
