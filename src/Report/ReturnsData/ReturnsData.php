@@ -38,7 +38,7 @@ class ReturnsData
 			->select('user.user_id AS "User_id"')
 			->from('return_item AS item')
 			->join('`return`', 'item.return_id = return.return_id')
-			->leftJoin('order_address', 'item.order_id = order_address.order_id AND order_address.type = "delivery" AND order_address.deleted_at IS NULL')
+			->leftJoin('order_address', 'item.order_id = order_address.order_id AND order_address.type = "delivery"') // AND order_address.deleted_at IS NULL
 			->leftJoin('user', 'return.created_by = user.user_id')
 			->where('item.status_code >= 2200')
 			->where('item.product_id NOT IN (9)')

@@ -39,7 +39,7 @@ class ExchangesData
 			->from('order_item AS item')
 			->join('order_summary', 'item.order_id = order_summary.order_id')
 			->join('return_item', 'return_item.exchange_item_id = item.item_id')
-			->leftJoin('order_address', 'order_summary.order_id = order_address.order_id AND order_address.type = "delivery" AND order_address.deleted_at IS NULL')
+			->leftJoin('order_address', 'order_summary.order_id = order_address.order_id AND order_address.type = "delivery"') // AND order_address.deleted_at IS NULL
 			->leftJoin('user', 'order_summary.user_id = user.user_id')
 			->where('return_item.status_code >= 2200')
 			->where('item.product_id NOT IN (9)')
