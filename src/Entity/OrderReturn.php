@@ -2,7 +2,7 @@
 
 namespace Message\Mothership\OrderReturn\Entity;
 
-use Message\Cog\ValueObject\Authorship;
+use Message\Cog\ValueObject;
 
 use Message\Mothership\Commerce\Payable\PayableInterface;
 use Message\Mothership\Commerce\Order\Entity\EntityInterface;
@@ -29,7 +29,7 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 
 	public function __construct()
 	{
-		$this->authorship = new Authorship;
+		$this->authorship = new ValueObject\Authorship;
 	}
 
 	public function getDisplayID()
@@ -83,5 +83,13 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 	public function getPayableTransactionID()
 	{
 		return 'RETURN-' . $this->id;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getPayments()
+	{
+		return new $this->payments;
 	}
 }
