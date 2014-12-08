@@ -23,7 +23,7 @@ class _1417011425_ReturnItemTaxes extends Migration
 				'VAT',
 				tax_rate,
 				tax
-			FROM order_item WHERE tax > 0;
+			FROM return_item WHERE tax > 0;
 		");
 	}
 
