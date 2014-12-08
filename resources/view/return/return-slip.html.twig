@@ -65,7 +65,7 @@
 					<td>{{ return.item.getDescription }}</td>
 					<td>{{ return.item.reason }}</td>
 					<td>{{ return.item.exchangeItem.getDescription }}</td>
-					<td>{{ (return.calculatedBalance)|price }}</td>
+					<td>{{ (return.item.calculatedBalance)|price(return.payableCurrency) }}</td>
 				</tr>
 			</tbody>
 		</table>
