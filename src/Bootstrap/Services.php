@@ -53,8 +53,7 @@ class Services implements ServicesInterface
 
 		$services['return.assembler'] = $services->factory(function($c) {
 			$assembler = new OrderReturn\Assembler(
-				$c['order.item.statuses'],
-				$c['product.tax.resolver']
+				$c['order.item.statuses']
 			);
 
 			$assembler->setCurrency('GBP');

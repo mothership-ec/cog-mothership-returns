@@ -18,7 +18,6 @@ use Message\Mothership\Ecommerce\OrderItemStatuses;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
 use Message\Mothership\OrderReturn\Statuses as ReturnStatuses;
-use Message\Mothership\Commerce\Product\Tax\TaxLoader;
 
 /**
  * Assembler for creating returns.
@@ -61,21 +60,14 @@ class Assembler
 	protected $_defaultStatus;
 
 	/**
-	 * The tax loader for product tax loading
-	 * @var [type]
-	 */
-	private $_taxLoader;
-
-	/**
 	 * Construct the assembler.
 	 *
 	 * @param StatusCollection $statuses
 	 */
-	public function __construct(StatusCollection $statuses, TaxLoader $taxLoader)
+	public function __construct(StatusCollection $statuses)
 	{
 		$this->_statuses      = $statuses;
 		$this->_setDefaultStatus();
-		$this->_taxLoader = $taxLoader;
 	}
 
 	/**
@@ -201,7 +193,6 @@ class Assembler
 		$returnItem->options           = $item->options;
 		$returnItem->brand             = $item->brand;
 		$returnItem->status            = $this->_defaultStatus;
-		$returnItem->taxes             = $item->getTaxRates();
 
 		return $this;
 	}
@@ -236,15 +227,6 @@ class Assembler
 		$returnItem->options           = implode($unit->options, ', ');
 		$returnItem->brand             = $unit->product->brand;
 		$returnItem->status            = $this->_defaultStatus;
-
-		$taxRates = $this->_taxLoader->getProductTaxRates(
-			$unit->product,
-			$this->_return->getPayableAddress('delivery')
-		);
-
-		foreach ($taxRates as $rate) {
-			$returnItem->taxes[$rate->getType()] = $rate->getRate();
-		}
 
 		$this->_calculateTax($returnItem);
 
