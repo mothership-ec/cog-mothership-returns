@@ -15,7 +15,7 @@
 					<dd>{{ return.item.description }}</dd>
 
 					<dt>Amount</dt>
-					<dd>{{ return.item.balance|abs|price }}</dd>
+					<dd>{{ return.item.balance|abs|price(return.payableCurrency) }}</dd>
 				</dl>
 			{% endfor %}
 

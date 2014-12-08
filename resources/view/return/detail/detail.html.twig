@@ -74,7 +74,7 @@
 									<dd>You refunded the customer</dd>
 
 									<dt>Amount </dt>
-									<dd>{{ refund.amount|price }}</dd>
+									<dd>{{ refund.amount|price(refund.payableCurrency) }}</dd>
 
 									<dt>Method</dt>
 									<dd>{{ refund.method.getDisplayName() }}</dd>
@@ -95,7 +95,7 @@
 									<dd>The customer paid you</dd>
 
 									<dt>Amount </dt>
-									<dd>{{ payment.amount|price }}</dd>
+									<dd>{{ payment.amount|price(payment.currencyID) }}</dd>
 
 									<dt>Method</dt>
 									<dd>{{ payment.method.getDisplayName() }}</dd>
@@ -115,9 +115,9 @@
 								{% if not returnItem.hasRemainingBalance %}
 									<dd>No outstanding balance or payments</dd>
 								{% elseif returnItem.payeeIsCustomer %}
-									<dd>Awaiting your refund of {{ returnItem.balance|abs|price }}</dd>
+									<dd>Awaiting your refund of {{ returnItem.balance|abs|price(returnItem.order.currencyID) }}</dd>
 								{% elseif returnItem.payeeIsRetailer %}
-									<dd>Awaiting customer's payment of {{ returnItem.balance|abs|price }}</dd>
+									<dd>Awaiting customer's payment of {{ returnItem.balance|abs|price(returnItem.order.currencyID) }}</dd>
 								{% endif %}
 							</dl>
 						{% endif %}
@@ -214,21 +214,21 @@
 							<dd>Cleared</dd>
 						{% elseif returnItem.payeeIsRetailer %}
 							<dt>Customer Balance</dt>
-							<dd>{{ returnItem.balance|abs|price }}</dd>
+							<dd>{{ returnItem.balance|abs|price(returnItem.order.currencyID) }}</dd>
 						{% elseif returnItem.payeeIsCustomer %}
 							<dt>Your Balance</dt>
-							<dd>{{ returnItem.balance|abs|price }}</dd>
+							<dd>{{ returnItem.balance|abs|price(returnItem.order.currencyID) }}</dd>
 						{% endif %}
 					{% else %}
 						{% if returnItem.payeeIsRetailer %}
 							<dt>Customer Balance</dt>
-							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
+							<dd>{{ returnItem.calculatedBalance|abs|price(returnItem.order.currencyID) }}</dd>
 						{% elseif returnItem.payeeIsCustomer %}
 							<dt>Your Balance</dt>
-							<dd>{{ returnItem.calculatedBalance|abs|price }}</dd>
+							<dd>{{ returnItem.calculatedBalance|abs|price(returnItem.order.currencyID) }}</dd>
 						{% else %}
 							<dt>Balance</dt>
-							<dd>{{ 0|price }}</dd>
+							<dd>{{ 0|price(returnItem.order.currencyID) }}</dd>
 						{% endif %}
 					{% endif %}
 

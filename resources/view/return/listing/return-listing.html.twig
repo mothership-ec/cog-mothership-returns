@@ -23,7 +23,6 @@
 		<thead>
 			<tbody>
 				{% for return in returns %}
-
 					{# @todo replace this with a loop #}
 					{% set returnItem = return.item %}
 
@@ -43,9 +42,9 @@
 						<td>{{ returnItem.status }}</td>
 						<td>
 							{% if not returnItem.hasBalance %}
-								{{ returnItem.calculatedBalance|price }} (calculated)
+								{{ returnItem.calculatedBalance|price(return.getPayableCurrency) }} (calculated)
 							{% else %}
-								{{ returnItem.balance|price }}
+								{{ returnItem.balance|price(return.payableCurrency) }}
 							{% endif %}
 						</td>
 						<td>

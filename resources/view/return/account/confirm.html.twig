@@ -12,7 +12,7 @@
 
 	<p><strong>{{ resolutionMessage }}</strong></p>
 
-	<p>{{ balanceMessage }} <strong>{{ balance|price }}</strong></p>
+	<p>{{ balanceMessage }} <strong>{{ balance|price(item.order.currencyID) }}</strong></p>
 
 
 	<dl>
