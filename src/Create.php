@@ -247,7 +247,6 @@ class Create implements DB\TransactionalInterface
 				$this->_noteCreate->create($return->item->note);
 			}
 		}
-
 		// Create the related payments if there are any
 		if ($return->payments) {
 			foreach ($return->payments as $payment) {
@@ -255,8 +254,6 @@ class Create implements DB\TransactionalInterface
 				if (! $payment->currencyID) {
 					$payment->currencyID = $return->currencyID;
 				}
-
-				$this->_paymentCreate->create($payment);
 
 				$this->_trans->run("
 					INSERT INTO
@@ -268,6 +265,7 @@ class Create implements DB\TransactionalInterface
 					'returnID'  => $return->id,
 					'paymentID' => $payment->id,
 				]);
+				$this->_paymentCreate->create($payment);
 
 				if ($order) {
 					$orderPayment = new OrderPayment($payment);
@@ -328,10 +326,10 @@ class Create implements DB\TransactionalInterface
 			$order->items->append($return->item->exchangeItem);
 
 			if (! $isStandalone) {
+
 				$return->item->exchangeItem = $this->_orderItemCreate->create($return->item->exchangeItem);
 			}
 		}
-
 		// If there is a related order item update its status
 		if ($return->item->orderItem) {
 			$this->_orderItemEdit->updateStatus($return->item->orderItem, $statusCode);
@@ -402,6 +400,29 @@ class Create implements DB\TransactionalInterface
 				brand                   = :brand?s,
 				weight_grams            = :weight?i
 		", $returnItemValues);
+
+		// Insert item tax rates
+		$tokens  = [];
+		$inserts = [];
+		$this->_trans->setIDVariable(self::MYSQL_ID_VAR);
+		$idToken = '@' . self::MYSQL_ID_VAR;
+		foreach ($return->item->taxes as $type => $rate) {
+			$tokens[] = '(?i, ?s, ?f, ?f)';
+			
+			$inserts[] = $idToken;
+			$inserts[] = $type;
+			$inserts[] = $rate;
+			$inserts[] = $return->item->net * $rate/100;
+		}
+
+		if ($inserts) {
+			$this->_trans->run(
+				"INSERT INTO 
+					`return_item_tax` (`return_item_id`, `tax_type`, `tax_rate`, `tax_amount`) 
+				VALUES " . implode(',', $tokens) . ";",
+				$inserts
+			);
+		}
 
 		// set stock manager's properties, because we can't change them anymore
 		// once an adjustment was added...
