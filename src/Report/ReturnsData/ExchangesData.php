@@ -3,16 +3,52 @@
 namespace Message\Mothership\OrderReturn\Report\ReturnsData;
 
 use Message\Cog\DB\QueryBuilderFactory;
+use Message\Mothership\Report\Filter;
 
 class ExchangesData
 {
 	private $_builderFactory;
+	private $_filters;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param QueryBuilderFactory   $builderFactory
+	 */
 	public function __construct(QueryBuilderFactory $builderFactory)
 	{
 		$this->_builderFactory = $builderFactory;
 	}
 
+	/**
+	 * Sets the filters from the report.
+	 *
+	 * @param Filter\Collection $filters
+	 *
+	 * @return  $this  Return $this for chainability
+	 */
+	public function setFilters(Filter\Collection $filters)
+	{
+		$this->_filters = $filters;
+
+		return $this;
+	}
+
+	/**
+	 * Gets all EXCHANGE ITEM data where:
+	 * Return status is COMPLETED (2200).
+	 * Product is not a VOUCHER.
+	 *
+	 * All columns must match the other sub-queries used in SALES_REPORT.
+	 * This because all subqueries are UNIONED together.
+	 *
+	 * @todo   Uncomment 'AND order_address.deleted_at IS NULL' when
+	 *         deletable address functionality is merged.
+	 *
+	 * @todo   Get VOUCHER ID from config file.
+	 *
+	 * @return Query
+	 */
 	public function getQueryBuilder()
 	{
 		$data = $this->_builderFactory->getQueryBuilder();
@@ -44,6 +80,50 @@ class ExchangesData
 			->where('return_item.status_code >= 2200')
 			->where('item.product_id NOT IN (9)')
 		;
+
+		// Filter dates
+		if($this->_filters->exists('date_range')) {
+
+			$defaultDate = 'return_item.completed_at BETWEEN UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 12 MONTH)) AND UNIX_TIMESTAMP(NOW())';
+
+			$dateFilter = $this->_filters->get('date_range');
+
+			if($date = $dateFilter->getStartDate()) {
+				$data->where('return_item.completed_at > ?d', [$date->format('U')]);
+				$defaultDate = NULL;
+			}
+
+			if($date = $dateFilter->getEndDate()) {
+				$data->where('return_item.completed_at < ?d', [$date->format('U')]);
+				$defaultDate = NULL;
+			}
+
+			if($defaultDate) {
+				$data->where($defaultDate);
+			}
+		}
+
+		// Filter currency
+		if($this->_filters->exists('currency')) {
+			$currency = $this->_filters->get('currency');
+			if($currency = $currency->getChoices()) {
+				is_array($currency) ?
+					$data->where('order_summary.currency_id IN (?js)', [$currency]) :
+					$data->where('order_summary.currency_id = (?s)', [$currency])
+				;
+			}
+		}
+
+		// Filter source
+		if($this->_filters->exists('source')) {
+			$source = $this->_filters->get('source');
+			if($source = $source->getChoices()) {
+				is_array($source) ?
+					$data->where('order_summary.type IN (?js)', [$source]) :
+					$data->where('order_summary.type = (?s)', [$source])
+				;
+			}
+		}
 
 		return $data;
 	}

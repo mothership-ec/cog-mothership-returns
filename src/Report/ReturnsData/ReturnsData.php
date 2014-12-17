@@ -3,16 +3,52 @@
 namespace Message\Mothership\OrderReturn\Report\ReturnsData;
 
 use Message\Cog\DB\QueryBuilderFactory;
+use Message\Mothership\Report\Filter;
 
 class ReturnsData
 {
 	private $_builderFactory;
+	private $_filters;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param QueryBuilderFactory   $builderFactory
+	 */
 	public function __construct(QueryBuilderFactory $builderFactory)
 	{
 		$this->_builderFactory = $builderFactory;
 	}
 
+	/**
+	 * Sets the filters from the report.
+	 *
+	 * @param Filter\Collection $filters
+	 *
+	 * @return  $this  Return $this for chainability
+	 */
+	public function setFilters(Filter\Collection $filters)
+	{
+		$this->_filters = $filters;
+
+		return $this;
+	}
+
+	/**
+	 * Gets all RETURNS data where:
+	 * Return status is COMPLETED (2200).
+	 * Product is not a VOUCHER.
+	 *
+	 * All columns must match the other sub-queries used in SALES_REPORT.
+	 * This because all subqueries are UNIONED together.
+	 *
+	 * @todo   Uncomment 'AND order_address.deleted_at IS NULL' when
+	 *         deletable address functionality is merged.
+	 *
+	 * @todo   Get VOUCHER ID from config file.
+	 *
+	 * @return Query
+	 */
 	public function getQueryBuilder()
 	{
 		$data = $this->_builderFactory->getQueryBuilder();
@@ -39,14 +75,58 @@ class ReturnsData
 			->from('return_item AS item')
 			->join('`return`', 'item.return_id = return.return_id')
 			->leftJoin('order_address', 'item.order_id = order_address.order_id AND order_address.type = "delivery"') // AND order_address.deleted_at IS NULL
-			->leftJoin('user', 'return.created_by = user.user_id')
+			->leftJoin('order_summary', 'item.order_id = order_summary.order_id')
+			->leftJoin('user', 'order_summary.user_id = user.user_id')
 			->where('item.status_code >= 2200')
 			->where('item.product_id NOT IN (9)')
 		;
 
+		// Filter dates
+		if($this->_filters->exists('date_range')) {
+
+			$defaultDate = 'item.completed_at BETWEEN UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 12 MONTH)) AND UNIX_TIMESTAMP(NOW())';
+
+			$dateFilter = $this->_filters->get('date_range');
+
+			if($date = $dateFilter->getStartDate()) {
+				$data->where('item.completed_at > ?d', [$date->format('U')]);
+				$defaultDate = NULL;
+			}
+
+			if($date = $dateFilter->getEndDate()) {
+				$data->where('item.completed_at < ?d', [$date->format('U')]);
+				$defaultDate = NULL;
+			}
+
+			if($defaultDate) {
+				$data->where($defaultDate);
+			}
+		}
+
+		// Filter currency
+		if($this->_filters->exists('currency')) {
+			$currency = $this->_filters->get('currency');
+			if($currency = $currency->getChoices()) {
+				is_array($currency) ?
+					$data->where('return.currency_id IN (?js)', [$currency]) :
+					$data->where('return.currency_id = (?s)', [$currency])
+				;
+			}
+		}
+
+		// Filter source
+		if($this->_filters->exists('source')) {
+			$source = $this->_filters->get('source');
+			if($source = $source->getChoices()) {
+				is_array($source) ?
+					$data->where('return.type IN (?js)', [$source]) :
+					$data->where('return.type = (?s)', [$source])
+				;
+			}
+		}
+
 		return $data;
 	}
 }
-
 
 

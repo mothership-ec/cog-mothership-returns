@@ -57,14 +57,14 @@ class EventListener extends BaseListener implements SubscriberInterface
 	public function buildSalesReport(ReportEvents\ReportEvent $event)
 	{
 		foreach ($this->get('return.report.sales-data') as $query) {
-			$event->addQueryBuilder($query->getQueryBuilder());
+			$event->addQueryBuilder($query->setFilters($event->getFilters())->getQueryBuilder());
 		}
 	}
 
 	public function buildTransactionReport(ReportEvents\ReportEvent $event)
 	{
 		foreach ($this->get('return.report.transaction-data') as $query) {
-			$event->addQueryBuilder($query->getQueryBuilder());
+			$event->addQueryBuilder($query->setFilters($event->getFilters())->getQueryBuilder());
 		}
 	}
 
