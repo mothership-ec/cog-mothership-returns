@@ -8,6 +8,7 @@ use Message\Mothership\Report\Filter;
 class RefundsData
 {
 	private $_builderFactory;
+	private $_filters;
 
 	/**
 	 * Constructor.
@@ -60,8 +61,8 @@ class RefundsData
 			->leftJoin('return_refund','refund.refund_id = return_refund.refund_id')
 			->join('user','user.user_id = refund.created_by')		;
 
-		// Filter date
-		if($this->_filters->count('date_range')) {
+		// Filter dates
+		if($this->_filters->exists('date_range')) {
 
 			$dateFilter = $this->_filters->get('date_range');
 
@@ -71,10 +72,6 @@ class RefundsData
 
 			if($date = $dateFilter->getEndDate()) {
 				$data->where('refund.created_at < ?d', [$date->format('U')]);
-			}
-
-			if(!$dateFilter->getStartDate() && !$dateFilter->getEndDate()) {
-				$data->where('refund.created_at BETWEEN UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 MONTH)) AND UNIX_TIMESTAMP(NOW())');
 			}
 		}
 

@@ -84,22 +84,14 @@ class ReturnsData
 		// Filter dates
 		if($this->_filters->exists('date_range')) {
 
-			$defaultDate = 'item.completed_at BETWEEN UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 12 MONTH)) AND UNIX_TIMESTAMP(NOW())';
-
 			$dateFilter = $this->_filters->get('date_range');
 
 			if($date = $dateFilter->getStartDate()) {
 				$data->where('item.completed_at > ?d', [$date->format('U')]);
-				$defaultDate = NULL;
 			}
 
 			if($date = $dateFilter->getEndDate()) {
 				$data->where('item.completed_at < ?d', [$date->format('U')]);
-				$defaultDate = NULL;
-			}
-
-			if($defaultDate) {
-				$data->where($defaultDate);
 			}
 		}
 
