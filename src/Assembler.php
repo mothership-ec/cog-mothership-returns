@@ -18,6 +18,7 @@ use Message\Mothership\Ecommerce\OrderItemStatuses;
 use Message\Mothership\OrderReturn\Entity\OrderReturn;
 use Message\Mothership\OrderReturn\Entity\OrderReturnItem;
 use Message\Mothership\OrderReturn\Statuses as ReturnStatuses;
+use Message\Mothership\Commerce\Product\Tax\TaxLoader;
 
 /**
  * Assembler for creating returns.
@@ -50,13 +51,31 @@ class Assembler
 	protected $_type = 'web';
 
 	/**
+	 * @var \Message\Mothership\Commerce\Order\Status\Collection
+	 */
+	protected $_statuses;
+
+	/**
+	 * @var int
+	 */
+	protected $_defaultStatus;
+
+	/**
+	 * The tax loader for product tax loading
+	 * @var [type]
+	 */
+	private $_taxLoader;
+
+	/**
 	 * Construct the assembler.
 	 *
 	 * @param StatusCollection $statuses
 	 */
-	public function __construct(StatusCollection $statuses)
+	public function __construct(StatusCollection $statuses, TaxLoader $taxLoader)
 	{
-		$this->_statuses = $statuses;
+		$this->_statuses      = $statuses;
+		$this->_setDefaultStatus();
+		$this->_taxLoader = $taxLoader;
 	}
 
 	/**
@@ -162,8 +181,8 @@ class Assembler
 		$returnItem->orderItem         = $item;
 		$returnItem->listPrice         = $item->listPrice;
 		$returnItem->actualPrice       = $item->actualPrice;
-		$returnItem->returnedValue     = $item->actualPrice;
-		$returnItem->calculatedBalance = 0 - $item->actualPrice;
+		$returnItem->returnedValue     = $item->gross;
+		$returnItem->calculatedBalance = 0 - $item->gross;
 		$returnItem->net               = $item->net;
 		$returnItem->discount          = $item->discount;
 		$returnItem->tax               = $item->tax;
@@ -181,7 +200,8 @@ class Assembler
 		$returnItem->barcode           = $item->barcode;
 		$returnItem->options           = $item->options;
 		$returnItem->brand             = $item->brand;
-		$returnItem->weight            = $item->weight;
+		$returnItem->status            = $this->_defaultStatus;
+		$returnItem->taxes             = $item->getTaxRates();
 
 		return $this;
 	}
@@ -215,7 +235,16 @@ class Assembler
 		$returnItem->barcode           = $unit->barcode;
 		$returnItem->options           = implode($unit->options, ', ');
 		$returnItem->brand             = $unit->product->brand;
-		$returnItem->weight            = (int) $unit->weight;
+		$returnItem->status            = $this->_defaultStatus;
+
+		$taxRates = $this->_taxLoader->getProductTaxRates(
+			$unit->product,
+			$this->_return->getPayableAddress('delivery')
+		);
+
+		foreach ($taxRates as $rate) {
+			$returnItem->taxes[$rate->getType()] = $rate->getRate();
+		}
 
 		$this->_calculateTax($returnItem);
 
@@ -301,16 +330,30 @@ class Assembler
 		}
 
 		$this->_return->item->exchangeItem = $item = new OrderItem;
-
-		$item->listPrice = $unit->getPrice('retail', $this->_currencyID);
-		$item->rrp       = $unit->getPrice('rrp', $this->_currencyID);
-
 		$item->populate($unit);
+
+		$item->listPrice   = $unit->getPrice('retail', $this->_currencyID);
+		$item->actualPrice = $item->listPrice;
+		$item->rrp         = $unit->getPrice('rrp', $this->_currencyID);
+		$item->basePrice   = $item->actualPrice;
+
+		if ('inclusive' === $this->_return->item->taxStrategy
+			&& $this->_return->item->order
+			&& false === $this->_return->item->order->taxable
+		) {
+			$item->basePrice -= $this->_calculateInclusiveTax($item->actualPrice, $item->productTaxRate);
+			$item->gross   = $item->basePrice - $item->discount;
+			$item->taxRate = 0;
+			$item->tax     = 0;
+			$item->net     = $item->gross;
+		} else {
+			$this->_calculateTax($item);
+		}
 
 		$item->stockLocation = $stockLocation;
 
 		// Adjust the balance to reflect the exchange item
-		$balance = $item->listPrice - $this->_return->item->actualPrice;
+		$balance = $item->gross - $this->_return->item->gross;
 		$this->_return->item->calculatedBalance = $balance;
 
 		return $this;
@@ -517,5 +560,10 @@ class Assembler
 	protected function _calculateInclusiveTax($amount, $rate)
 	{
 		return round(($amount / (100 + $rate)) * $rate, 2);
+	}
+
+	private function _setDefaultStatus()
+	{
+		$this->_defaultStatus = $this->_statuses->get(Statuses::AWAITING_RETURN);
 	}
 }

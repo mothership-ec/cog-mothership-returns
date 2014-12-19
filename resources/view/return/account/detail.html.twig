@@ -27,7 +27,7 @@
 		{% endif %}
 
 		<dt>Balance</dt>
-		<dd>{{ return.balance|price }}</dd>
+		<dd>{{ return.balance|price(return.payableCurrency) }}</dd>
 	</dl>
 </article>
 

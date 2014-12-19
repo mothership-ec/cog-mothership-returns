@@ -18,6 +18,8 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface
 	public $id;
 	public $authorship;
 
+	public $documentID;
+
 	public $type;
 	public $currencyID;
 

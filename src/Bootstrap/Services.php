@@ -30,6 +30,16 @@ class Services implements ServicesInterface
 			return $entities;
 		});
 
+		$services['return.session'] = function($c) {
+			if (!$c['http.session']->get('return.session')) {
+				$returnAssembler = $c['return.assembler'];
+
+				$c['http.session']->set('return.session', $returnAssembler);
+			}
+
+			return $c['http.session']->get('return.session');
+		};
+
 		$services['return.loader'] = $services->factory(function($c) {
 			return $c['order.loader']->getEntityLoader('returns');
 		});
@@ -43,7 +53,8 @@ class Services implements ServicesInterface
 
 		$services['return.assembler'] = $services->factory(function($c) {
 			$assembler = new OrderReturn\Assembler(
-				$c['order.item.statuses']
+				$c['order.item.statuses'],
+				$c['product.entity_loaders']->get('taxes')
 			);
 
 			$assembler->setCurrency('GBP');

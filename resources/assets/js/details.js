@@ -5,7 +5,7 @@ $(function()
 		var val;
 		val = $('#form_payee input[name="form[payee]"]:checked').val();
 
-		if ('client' == val || 'none' == val) {
+		if ('retailer' == val || 'none' == val) {
 			$('#form_refund_method').parents('.field-wrap').hide(0);
 		}
 		else {
