@@ -56,11 +56,14 @@ class Refunds implements FilterableInterface
 			->select('method')
 			->select('-amount')
 			->select('"Refund" AS type')
-			->select('return_id AS order_return_id')
+			->select('order_id AS order_id')
+			->select('return_id AS return_id')
 			->select('reference')
 			->from('refund')
 			->leftJoin('return_refund','refund.refund_id = return_refund.refund_id')
-			->join('user','user.user_id = refund.created_by')		;
+			->leftJoin('order_refund', 'refund.refund_id = order_refund.refund_id')
+			->join('user','user.user_id = refund.created_by')
+		;
 
 		// Filter dates
 		if($this->_filters->exists('date_range')) {
