@@ -1,11 +1,12 @@
 <?php
 
-namespace Message\Mothership\OrderReturn\Report\ReturnsData;
+namespace Message\Mothership\OrderReturn\Report\AppendQuery;
 
 use Message\Cog\DB\QueryBuilderFactory;
-use Message\Mothership\Report\Filter;
+use Message\Mothership\Report\Filter\Collection as FilterCollection;
+use Message\Mothership\Report\Report\AppendQuery\FilterableInterface;
 
-class ExchangesData
+class Exchanges implements FilterableInterface
 {
 	private $_builderFactory;
 	private $_filters;
@@ -27,7 +28,7 @@ class ExchangesData
 	 *
 	 * @return  $this  Return $this for chainability
 	 */
-	public function setFilters(Filter\Collection $filters)
+	public function setFilters(FilterCollection $filters)
 	{
 		$this->_filters = $filters;
 
