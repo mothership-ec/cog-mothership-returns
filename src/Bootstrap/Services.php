@@ -187,5 +187,19 @@ class Services implements ServicesInterface
 		$services['order.item.specification.returnable'] = function($c) {
 			return new OrderReturn\Specification\ItemIsReturnableSpecification;
 		};
+
+		$services['return.report.sales-data'] = function($c) {
+			return new \Message\Mothership\Report\Report\AppendQuery\Collection([
+				new OrderReturn\Report\AppendQuery\Exchanges($c['db.query.builder.factory']),
+				new OrderReturn\Report\AppendQuery\Returns($c['db.query.builder.factory']),
+			]);
+		};
+
+		$services['return.report.transaction-data'] = function($c) {
+			return new \Message\Mothership\Report\Report\AppendQuery\Collection([
+				new OrderReturn\Report\AppendQuery\Refunds($c['db.query.builder.factory']),
+			]);
+		};
+
 	}
 }
