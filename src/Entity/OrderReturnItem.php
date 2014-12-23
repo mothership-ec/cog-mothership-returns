@@ -46,6 +46,7 @@ class OrderReturnItem
 	public $taxRate         = 0;
 	public $productTaxRate  = 0;
 	public $taxStrategy;
+	public $taxes;
 
 	// Order Item Product
 	public $productID;

@@ -29,11 +29,11 @@
 	"require": {
 		"php": ">=5.4.0",
 
-		"message/cog"                     : "~3.0",
-		"message/cog-mothership-commerce" : ">=3.3.1",
-		"message/cog-mothership-ecommerce": "~2.0",
-		"message/cog-mothership-cp"       : "~1.1"
+		"message/cog"                     : "~3.8",
+		"message/cog-mothership-commerce" : "~4.5",
+		"message/cog-mothership-ecommerce": "~2.0"
 	},
 	"suggest": {
+                "message/cog-mothership-reports" : "Module for displaying reports"
 	}
 }
