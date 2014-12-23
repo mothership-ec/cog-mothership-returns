@@ -20,13 +20,13 @@
 
 			<dt>Your balance</dt>
 			{% if return.item.hasRemainingBalance() %}
-				<dd>{{ return.item.remainingBalance|price }} remaining</dd>
+				<dd>{{ return.item.remainingBalance|price(return.payableCurrency) }} remaining</dd>
 			{% else %}
 				<dd>You have no remaining balance to pay</dd>
 			{% endif %}
 		</dl>
 
-		{% if return.item.hasRemainingBalance() and return.item.payeeIsClient() %}
+		{% if return.item.hasRemainingBalance() and return.item.payeeIsRetailer() %}
 			{{ form_start(form) }}
 				<button class="button submit">Continue to secure payment</button>
 			{{ form_end(form) }}

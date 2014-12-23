@@ -43,11 +43,9 @@
 				</tr>
 			</thead>
 			<tbody>
-				{% for note in return.order.notes %}
-					<tr>
-						<td>{{ note.note }}</td>
-					</tr>
-				{% endfor %}
+				<tr>
+					<td>{{ return.item.note.note }}</td>
+				</tr>
 			</tbody>
 		</table>
 	</section>
@@ -65,9 +63,9 @@
 			<tbody>
 				<tr>
 					<td>{{ return.item.getDescription }}</td>
-					<td>{{ return.reason }}</td>
-					<td>{{ return.exchangeItem.getDescription }}</td>
-					<td>{{ (return.calculatedBalance)|price }}</td>
+					<td>{{ return.item.reason }}</td>
+					<td>{{ return.item.exchangeItem.getDescription }}</td>
+					<td>{{ (return.item.calculatedBalance)|price(return.payableCurrency) }}</td>
 				</tr>
 			</tbody>
 		</table>
