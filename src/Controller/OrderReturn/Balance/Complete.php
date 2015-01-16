@@ -2,13 +2,16 @@
 
 namespace Message\Mothership\OrderReturn\Controller\OrderReturn\Balance;
 
+use Message\Mothership\OrderReturn\Event;
+use Message\Mothership\OrderReturn\Events;
+
 use Message\Cog\Controller\Controller;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Message\Mothership\Commerce\Payment\MethodInterface;
 use Message\Mothership\Commerce\Payable\PayableInterface;
-use Message\Mothership\Commerce\Order\Entity\Payment\Payment;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Message\Mothership\Ecommerce\Controller\Gateway\CompleteControllerInterface;
+
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Controller for completing a balance payment on a customer's exchange.
@@ -87,6 +90,9 @@ class Complete extends Controller implements CompleteControllerInterface
 		}
 
 		$return = $this->get('return.loader')->getByID($returnID);
+
+		$event = new Event($return);
+		$this->get('event.dispatcher')->dispatch(Events::PAYMENT_SUCCESS, $event);
 
 		return $this->render('Message:Mothership:OrderReturn::return:balance:success', [
 			'return' => $return
