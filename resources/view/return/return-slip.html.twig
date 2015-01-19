@@ -21,13 +21,13 @@
 					<td>
 						<dl>
 							<dt>Name</dt>
-							<dd>{{ return.order.user.name }}</dd>
+							<dd>{{ return.item.order.user.name }}</dd>
 
 							<dt>Billing address</dt>
-							<dd>{{ return.order.getAddress('billing').flatten()|join('<br>')|raw }}</dd>
+							<dd>{{ return.item.order.getAddress('billing').flatten()|join('<br>')|raw }}</dd>
 
 							<dt>Email</dt>
-							<dd>{{ return.order.user.email }}</dd>
+							<dd>{{ return.item.order.user.email }}</dd>
 						</dl>
 					</td>
 					<td>{{ return.getDisplayID() }}</td>
@@ -36,18 +36,22 @@
 			</tbody>
 		</table>
 
-		<table>
-			<thead>
-				<tr>
-					<th>Notes</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>{{ return.item.note.note }}</td>
-				</tr>
-			</tbody>
-		</table>
+		{% if return.item.order.notes|length > 0 %}
+			<table>
+				<thead>
+					<tr>
+						<th>Notes</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for note in return.item.order.notes %}
+						<tr>
+							<td>{{ note.note }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% endif %}
 	</section>
 
 	<section class="breakdown">
@@ -64,7 +68,13 @@
 				<tr>
 					<td>{{ return.item.getDescription }}</td>
 					<td>{{ return.item.reason }}</td>
-					<td>{{ return.item.exchangeItem.getDescription }}</td>
+						<td>
+							{% if return.item.exchangeItem.getDescription %}
+								{{ return.item.exchangeItem.getDescription }}
+							{% else %}
+								n/a
+							{% endif %}
+						</td>
 					<td>{{ (return.item.calculatedBalance)|price(return.payableCurrency) }}</td>
 				</tr>
 			</tbody>
@@ -78,10 +88,10 @@
 
 		<dl>
 			<dt>Name</dt>
-			<dd>{{ return.order.user.name }}</dd>
+			<dd>{{ return.item.order.user.name }}</dd>
 
 			<dt>Delivery address</dt>
-			<dd>{{ return.order.getAddress('delivery').flatten()|join('<br>')|raw }}</dd>
+			<dd>{{ return.item.order.getAddress('delivery').flatten()|join('<br>')|raw }}</dd>
 		</dl>
 	</section>
 </article>
