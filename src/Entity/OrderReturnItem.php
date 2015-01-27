@@ -130,8 +130,7 @@ class OrderReturnItem
 	 */
 	public function payeeIsCustomer()
 	{
-		if ($this->hasBalance()) return $this->balance < 0;
-		return $this->calculatedBalance < 0;
+		return $this->hasBalance() ? $this->balance < 0 : $this->calculatedBalance < 0;
 	}
 
 	/**
@@ -141,15 +140,13 @@ class OrderReturnItem
 	 */
 	public function payeeIsRetailer()
 	{
-		if ($this->hasBalance()) return $this->balance > 0;
-		return $this->calculatedBalance > 0;
+		return $this->hasBalance() ? $this->balance > 0 : $this->calculatedBalance > 0;
 	}
 
 	public function isExchanged()
 	{
-		if (! $this->isExchangeResolution()) return false;
-
-		return $this->exchangeItem->status->code >= Order\Statuses::AWAITING_DISPATCH;
+		return $this->isExchangeResolution() ?
+			$this->exchangeItem->status->code >= Order\Statuses::AWAITING_DISPATCH : false;
 	}
 
 	public function isReturnedItemProcessed()

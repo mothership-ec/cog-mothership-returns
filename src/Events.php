@@ -6,4 +6,5 @@ final class Events
 {
 	const CREATE_END      = 'return.create.end';
 	const CREATE_COMPLETE = 'return.create.complete';
+	const PAYMENT_SUCCESS = 'return.payment.success';
 }
