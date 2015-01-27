@@ -1,4 +1,18 @@
 {% extends 'Message:Mothership:User::account:account-layout' %}
+
+{% block javascripts %}
+	{{ parent() }}
+	{% javascripts
+	'@Message:Mothership:OrderReturn::resources/assets/js/returns-fe.js'
+
+	output='/assets/js/ms_returns-*.js'
+	filter='?jsmin'
+	%}
+	<script src="{{ asset_url }}"></script>
+	{% endjavascripts %}
+{% endblock %}
+
+
 {% block title %}Return an Item | {{ app.cfg.app.name }}{% endblock %}
 
 {% block account_content %}
