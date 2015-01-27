@@ -30,7 +30,7 @@
 		"php": ">=5.4.0",
 
 		"message/cog"                     : "~3.8",
-		"message/cog-mothership-commerce" : "~4.5",
+		"message/cog-mothership-commerce" : "~4.7",
 		"message/cog-mothership-ecommerce": "~2.0"
 	},
 	"suggest": {
