@@ -57,7 +57,7 @@ class Services implements ServicesInterface
 				$c['product.entity_loaders']->get('taxes')
 			);
 
-			$assembler->setCurrency('GBP');
+			$assembler->setCurrency($c['currency']);
 
 			return $assembler;
 		});
