@@ -75,6 +75,10 @@ class OrderReturn implements EntityInterface, PayableInterface, RecordInterface,
 	 */
 	public function getPayableAddress($type)
 	{
+		if (null === $this->item->order) {
+			return null;
+		}
+
 		return $this->item->order->getPayableAddress($type);
 	}
 
