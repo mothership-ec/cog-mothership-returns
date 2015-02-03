@@ -9,6 +9,7 @@ use Message\Mothership\Commerce\Order\Entity\Item\Item as OrderItem;
 use Message\Mothership\Commerce\Order\Entity\Note\Note as OrderNote;
 use Message\Mothership\Commerce\Order\Status\Collection as StatusCollection;
 use Message\Mothership\Commerce\Product\Stock\Location\Location as StockLocation;
+use Message\Mothership\Commerce\Address\Address;
 
 use Message\Mothership\Ecommerce\OrderItemStatuses;
 
@@ -64,16 +65,23 @@ class Assembler
 	private $_taxLoader;
 
 	/**
+	 * @var Address
+	 */
+	private $_defaultAddress;
+
+	/**
 	 * Construct the assembler.
 	 *
 	 * @param StatusCollection $statuses
 	 * @param TaxLoader $taxLoader
+	 * @param $defaultAddress
 	 */
-	public function __construct(StatusCollection $statuses, TaxLoader $taxLoader)
+	public function __construct(StatusCollection $statuses, TaxLoader $taxLoader, Address $defaultAddress)
 	{
-		$this->_statuses      = $statuses;
+		$this->_statuses       = $statuses;
 		$this->_setDefaultStatus();
-		$this->_taxLoader = $taxLoader;
+		$this->_taxLoader      = $taxLoader;
+		$this->_defaultAddress = $defaultAddress;
 	}
 
 	/**
@@ -237,9 +245,11 @@ class Assembler
 		$returnItem->brand             = $unit->product->brand;
 		$returnItem->status            = $this->_defaultStatus;
 
+		$address = $this->_return->getPayableAddress('delivery') ?: $this->_defaultAddress;
+
 		$taxRates = $this->_taxLoader->getProductTaxRates(
 			$unit->product,
-			$this->_return->getPayableAddress('delivery')
+			$address
 		);
 
 		foreach ($taxRates as $rate) {
