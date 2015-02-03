@@ -54,10 +54,11 @@ class Services implements ServicesInterface
 		$services['return.assembler'] = $services->factory(function($c) {
 			$assembler = new OrderReturn\Assembler(
 				$c['order.item.statuses'],
-				$c['product.entity_loaders']->get('taxes')
+				$c['product.entity_loaders']->get('taxes'),
+				$c['return.default_address']
 			);
 
-			$assembler->setCurrency('GBP');
+			$assembler->setCurrency($c['currency']);
 
 			return $assembler;
 		});
@@ -113,6 +114,10 @@ class Services implements ServicesInterface
 				$c['user.current']
 			);
 		});
+
+		$services['return.default_address'] = function($c) {
+			return $c['product.tax.default_address'];
+		};
 
 		// Register files
 		$services['file.return_slip'] = $services->factory(function($c) {
@@ -200,6 +205,5 @@ class Services implements ServicesInterface
 				new OrderReturn\Report\AppendQuery\Refunds($c['db.query.builder.factory']),
 			]);
 		};
-
 	}
 }
