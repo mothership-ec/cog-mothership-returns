@@ -58,7 +58,7 @@ class Services implements ServicesInterface
 				$c['return.default_address']
 			);
 
-			$assembler->setCurrency('GBP');
+			$assembler->setCurrency($c['currency']);
 
 			return $assembler;
 		});

@@ -2,9 +2,6 @@
 
 namespace Message\Mothership\OrderReturn;
 
-use LogicException;
-use InvalidArgumentException;
-
 use Message\Mothership\Commerce\Refund\Refund;
 use Message\Mothership\Commerce\Payment\Payment;
 use Message\Mothership\Commerce\Product\Unit\Unit as ProductUnit;
@@ -148,6 +145,8 @@ class Assembler
 	 * Set the return item from either an OrderItem or ProductUnit.
 	 *
 	 * @param  OrderItem|ProductUnit $item
+	 * @throws \InvalidArgumentException
+	 *
 	 * @return Assembler
 	 */
 	public function setReturnItem($item)
@@ -156,7 +155,7 @@ class Assembler
 		$isProductUnit = ($item instanceof ProductUnit);
 
 		if (! $isOrderItem and ! $isProductUnit) {
-			throw new InvalidArgumentException("You can only set a return item from an OrderItem or ProductUnit");
+			throw new \InvalidArgumentException("You can only set a return item from an OrderItem or ProductUnit");
 		}
 
 		$this->_return = new OrderReturn;
@@ -279,12 +278,14 @@ class Assembler
 	 * Set the reason for the return onto the return item.
 	 *
 	 * @param  Collection\Item $reason
+	 * @throws \LogicException
+	 *
 	 * @return Assembler
 	 */
 	public function setReason(Collection\Item $reason)
 	{
 		if (! $this->_return->item) {
-			throw new LogicException("You can not set a reason without having previously set a return item");
+			throw new \LogicException("You can not set a reason without having previously set a return item");
 		}
 
 		$this->_return->item->reason = $reason;
@@ -317,7 +318,9 @@ class Assembler
 	/**
 	 * Set the stock location for the returned item to be placed into.
 	 *
-	 * @param  StockLocation $location
+	 * @param StockLocation $location
+	 * @param $returned
+	 *
 	 * @return Assembler
 	 */
 	public function setReturnedStockLocation(StockLocation $location, $returned = true)
@@ -331,13 +334,16 @@ class Assembler
 	/**
 	 * Set the exchange item from a ProductUnit.
 	 *
-	 * @param  ProductUnit $unit
+	 * @param ProductUnit $unit
+	 * @param null | StockLocation $stockLocation
+	 * @throws \LogicException
+	 *
 	 * @return Assembler
 	 */
 	public function setExchangeItem(ProductUnit $unit, StockLocation $stockLocation = null)
 	{
 		if (! $this->_return->item) {
-			throw new LogicException("You can not set the exchange item without having previously set the return item");
+			throw new \LogicException("You can not set the exchange item without having previously set the return item");
 		}
 
 		$this->_return->item->exchangeItem = $item = new OrderItem;
@@ -348,18 +354,23 @@ class Assembler
 		$item->rrp         = $unit->getPrice('rrp', $this->_currencyID);
 		$item->basePrice   = $item->actualPrice;
 
-		if ('inclusive' === $this->_return->item->taxStrategy
-			&& $this->_return->item->order
-			&& false === $this->_return->item->order->taxable
-		) {
-			$item->basePrice -= $this->_calculateInclusiveTax($item->actualPrice, $item->productTaxRate);
-			$item->gross   = $item->basePrice - $item->discount;
-			$item->taxRate = 0;
-			$item->tax     = 0;
-			$item->net     = $item->gross;
-		} else {
-			$this->_calculateTax($item);
+		$taxRates = $this->_taxLoader->getProductTaxRates(
+			$unit->product,
+			$this->_return->getPayableAddress('delivery')
+		);
+
+		// Re-evaluate tax rates for address
+		$taxes = [];
+		$item->taxRate = 0;
+
+		foreach ($taxRates as $rate) {
+			$taxes[$rate->getType()] = $rate->getRate();
+			$item->taxRate += $rate->getRate();
 		}
+
+		$item->setTaxRates($taxes);
+
+		$this->_calculateTax($item);
 
 		$item->stockLocation = $stockLocation;
 
@@ -532,8 +543,9 @@ class Assembler
 	/**
 	 * Calculates tax for return item
 	 *
-	 * @todo REFACTOR! This should be its own class (tax helper or something?)
-	 *       and not copied from the Item EventListener in commerce!
+	 * @todo This method is a legacy method that now only calculates tax rates for the sake of appearing in the database.
+	 *       For a start, redundant data that is otherwise calculated on the fly probably should not be stored in the
+	 *       database, but at the very least they should be calculated in the same manner
 	 */
 	protected function _calculateTax($returnItem)
 	{
