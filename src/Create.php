@@ -82,6 +82,7 @@ class Create implements DB\TransactionalInterface
 	protected $_transOverridden = false;
 
 	const MYSQL_ID_VAR = 'RETURN_ID';
+	const MYSQL_ITEM_ID_VAR = 'RETURN_ITEM_ID';
 
 	public function __construct(
 		DB\Transaction $trans,
@@ -404,8 +405,8 @@ class Create implements DB\TransactionalInterface
 		// Insert item tax rates
 		$tokens  = [];
 		$inserts = [];
-		$this->_trans->setIDVariable(self::MYSQL_ID_VAR);
-		$idToken = '@' . self::MYSQL_ID_VAR;
+		$this->_trans->setIDVariable(self::MYSQL_ITEM_ID_VAR);
+		$idToken = '@' . self::MYSQL_ITEM_ID_VAR;
 		foreach ($return->item->taxes as $type => $rate) {
 			$tokens[] = '(?i, ?s, ?f, ?f)';
 			
