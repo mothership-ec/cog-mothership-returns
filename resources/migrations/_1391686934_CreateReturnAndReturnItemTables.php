@@ -43,7 +43,7 @@ class _1391686934_CreateReturnAndReturnItemTables extends Migration
 				accepted                 tinyint(1) NULL,
 				balance                  decimal(10,2) NULL,
 				calculated_balance       decimal(10,2) NOT NULL,
-				returned_value           decimal(10,2) NOT NULL,
+				returned_value           decimal(10,2) NOT NULL DEFAULT 0,
 				return_stock_location_id int(11) unsigned NULL,
 
 				list_price               decimal(10,2) unsigned NOT NULL,
