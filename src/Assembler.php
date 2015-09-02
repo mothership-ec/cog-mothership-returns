@@ -142,6 +142,25 @@ class Assembler
 	}
 
 	/**
+	 * Set the default address for the return assembler. Used for calculating tax for exchanged product.
+	 *
+	 * @param Address $address
+	 * @throws \LogicException      Throws exception if the item has already been set on the return
+	 *
+	 * @return Assembler
+	 */
+	public function setDefaultAddress(Address $address)
+	{
+		if (null !== $this->_return && $this->_return->item) {
+			throw new \LogicException('Cannot set default address after an item has been added to the return');
+		}
+
+		$this->_defaultAddress = $address;
+
+		return $this;
+	}
+
+	/**
 	 * Set the return item from either an OrderItem or ProductUnit.
 	 *
 	 * @param  OrderItem|ProductUnit $item
@@ -356,7 +375,7 @@ class Assembler
 
 		$taxRates = $this->_taxLoader->getProductTaxRates(
 			$unit->product,
-			$this->_return->getPayableAddress('delivery')
+			$this->_return->getPayableAddress('delivery') ?: $this->_defaultAddress
 		);
 
 		// Re-evaluate tax rates for address
