@@ -367,7 +367,7 @@ class Detail extends Controller
 
 		// payee == 'customer' || 'retailer'
 		$form->add('balance_amount', 'money', ' ', array(
-			'currency' => $return->item->order->currencyID,
+			'currency' => $return->item->order? $return->item->order->currencyID  : $this->get('currency.company'),
 			'required' => false,
 			'data' => abs($return->item->calculatedBalance) // display the price as positive
 		));
