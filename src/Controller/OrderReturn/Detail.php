@@ -103,6 +103,12 @@ class Detail extends Controller
 
 		$forwardToRefund = false;
 
+		if ($data['payee'] !== static::PAYEE_NONE && $data['balance_amount'] <= 0) {
+			$this->addFlash('error', 'ms.commerce.return.balance.zero');
+
+			return $this->redirectToReferer();
+		}
+
 		// Clear the balance
 		if ($data['payee'] == static::PAYEE_NONE) {
 			$this->get('return.edit')->clearRemainingBalance($return);
