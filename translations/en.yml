@@ -13,4 +13,4 @@ ms.commerce:
         refund: You will receive a refund of
         none: Your balance is
     balance:
-      zero: Cannot process balance of less than zero
+      zero: Cannot process balance of zero or less
