@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.1
+
+- Error more gracefully when a user attempts to process a refund of zero
+
 ## 5.1.0
 
 - Added `setDefaultAddress()` method to `Assembler` class
