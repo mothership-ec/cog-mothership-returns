@@ -144,6 +144,7 @@ class Detail extends Controller
 			if ($data['refund_method'] == 'automatic') {
 				// Get the payment against the order
 				$payment = null;
+
 				foreach ($return->item->order->payments as $p) {
 					$payment = $p;
 				}
@@ -203,10 +204,12 @@ class Detail extends Controller
 			$return = $this->get('return.edit')->complete($return);
 		}
 
+		$gateway = $this->get('payment.gateway.loader')->getGatewayByPayment($payment->payment);
+
 		if ($forwardToRefund) {
 			// Forward to the refund controller
 			$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
-			return $this->forward($this->get('gateway')->getRefundControllerReference(), [
+			return $this->forward($gateway->getRefundControllerReference(), [
 				'payable'   => $return,
 				'reference' => $payment->reference,
 				'stages'    => [
