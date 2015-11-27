@@ -108,12 +108,6 @@ class EventListener extends BaseListener implements SubscriberInterface
 	 */
 	public function checkStatus(SetOrderStatusEvent $event)
 	{
-		// If there are any retuns on the order then it will be marked as PROCESSING
-		if ($event->getStatus() !== OrderStatuses::PROCESSING) {
-			return;
-		}
-
-
 		$itemStatuses = array_fill_keys(array_keys($this->get('order.item.statuses')->all()), 0);
 		$numItems     = $event->getOrder()->items->count();
 
@@ -131,7 +125,7 @@ class EventListener extends BaseListener implements SubscriberInterface
 		// Exclude return completed
 		$numItems = $numItems - $itemStatuses[Statuses::RETURN_COMPLETED];
 
-		// All items cancelled
+		// All items cancelled (or refunded)
 		if ($numItems === $itemStatuses[OrderStatuses::CANCELLED]) {
 			return $event->setStatus(OrderStatuses::CANCELLED);
 		}
