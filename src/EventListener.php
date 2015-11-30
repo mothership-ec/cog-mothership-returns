@@ -41,9 +41,9 @@ class EventListener extends BaseListener implements SubscriberInterface
 			Events::CREATE_COMPLETE => [
 		 		'saveDocument'
 			],
-			OrderEvents::SET_STATUS => array(
-				array('checkStatus'),
-			),
+			OrderEvents::SET_STATUS => [
+				['checkStatus'],
+			],
 		];
 	}
 
