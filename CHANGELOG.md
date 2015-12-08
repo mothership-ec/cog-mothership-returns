@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.2.0
+
+- Resolve issue where returned items would appear in fulfillment even after the order had been completed
+- Added `EventListener::checkStatus()` event listener to set returned item status accurately
+- Removed broken `return.gateway` service
+- Refactor `Controller\OrderReturn\Detail::processBalance()` to use gateway assigned to payment when refunding
+- Update `cog-mothership-ecommerce` dependency to 3.7
+
 ## 5.1.1
 
 - Error more gracefully when a user attempts to process a refund of zero
