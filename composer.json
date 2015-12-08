@@ -34,7 +34,7 @@
 
     "mothership-ec/cog"                      : "~4.10",
     "mothership-ec/cog-mothership-commerce"  : "~5.0",
-    "mothership-ec/cog-mothership-ecommerce" : "~3.0",
+    "mothership-ec/cog-mothership-ecommerce" : "~3.7",
     "mothership-ec/cog-mothership-reports"   : "~2.0"
   },
   "suggest": {
