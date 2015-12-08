@@ -178,17 +178,6 @@ class Services implements ServicesInterface
 			return $reasons;
 		});
 
-		$services['return.gateway'] = $services->factory(function($c) {
-			return new \Message\Mothership\Commerce\Gateway\Sagepay(
-				'SagePay_Server',
-				$c['user.current'],
-				$c['http.request.master'],
-				$c['cache'],
-				$c['order'],
-				$c['cfg']
-			);
-		});
-
 		$services['order.item.specification.returnable'] = function($c) {
 			return new OrderReturn\Specification\ItemIsReturnableSpecification;
 		};
