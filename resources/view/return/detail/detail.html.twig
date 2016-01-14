@@ -52,7 +52,7 @@
 					{% if returnItem.isAccepted %}
 
 						{# Show the balance form if not yet enacted #}
-						{% if not returnItem.hasBalance %}
+						{% if returnItem.remainingBalance and returnItem.remainingBalance is not null %}
 							<h2>Outstanding Balance</h2>
 							{{ form_start(balance_form) }}
 								{{ form_row(balance_form.payee) }}
