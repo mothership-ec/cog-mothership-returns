@@ -194,20 +194,6 @@ class Detail extends Controller
 			$return = $returnEdit->complete($return);
 		}
 
-		// Send the message
-		if ($data['message']) {
-			$message = $this->get('mail.message');
-			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
-			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
-			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
-				'message' => $data['message']
-			));
-
-			$dispatcher = $this->get('mail.dispatcher');
-
-			$result = $dispatcher->send($message);
-		}
-
 		if ($forwardToRefund) {
 			$gateway = $this->get('payment.gateway.loader')->getGatewayByPayment($payment->payment);
 
@@ -227,6 +213,20 @@ class Detail extends Controller
 		}
 
 		$transaction->commit();
+
+		// Send the message
+		if ($data['message']) {
+			$message = $this->get('mail.message');
+			$message->setTo($return->item->order->user->email, $return->item->order->user->getName());
+			$message->setSubject('Your return has been updated - ' . $this->get('cfg')->app->defaultEmailFrom->name);
+			$message->setView('Message:Mothership:OrderReturn::return:mail:template', array(
+				'message' => $data['message']
+			));
+
+			$dispatcher = $this->get('mail.dispatcher');
+
+			$result = $dispatcher->send($message);
+		}
 
 		return $response;
 	}

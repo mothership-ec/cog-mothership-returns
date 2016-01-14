@@ -186,12 +186,14 @@ class Edit implements DB\TransactionalInterface
 			UPDATE
 				return_item
 			SET
+				balance           = :balance?f,
 				remaining_balance = :remainingBalance?f,
 				updated_at        = :updatedAt?d,
 				updated_by        = :updatedBy?in
 			WHERE
 				return_id = :returnID?i
 		', array(
+			'balance'          => $return->item->balance,
 			'remainingBalance' => $remainingBalance,
 			'updatedAt'        => $return->authorship->updatedAt(),
 			'updatedBy'        => $return->authorship->updatedBy(),
