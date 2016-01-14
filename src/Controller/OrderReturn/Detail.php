@@ -16,7 +16,7 @@ class Detail extends Controller
 	 * Display the detail view of a return.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function view($returnID)
 	{
@@ -36,7 +36,7 @@ class Detail extends Controller
 	 * Process the accept / reject request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function acceptOrReject($returnID)
 	{
@@ -59,7 +59,7 @@ class Detail extends Controller
 	 * Process the received request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processReceived($returnID)
 	{
@@ -92,7 +92,7 @@ class Detail extends Controller
 	 * Process the balance request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processBalance($returnID)
 	{
@@ -227,7 +227,7 @@ class Detail extends Controller
 	 * Process the exchange request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processExchange($returnID)
 	{
@@ -269,7 +269,7 @@ class Detail extends Controller
 	 * Process the returned item.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processReturnedItem($returnID)
 	{
