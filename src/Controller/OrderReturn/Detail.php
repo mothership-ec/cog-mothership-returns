@@ -204,9 +204,9 @@ class Detail extends Controller
 			$return = $this->get('return.edit')->complete($return);
 		}
 
-		$gateway = $this->get('payment.gateway.loader')->getGatewayByPayment($payment->payment);
-
 		if ($forwardToRefund) {
+			$gateway = $this->get('payment.gateway.loader')->getGatewayByPayment($payment->payment);
+
 			// Forward to the refund controller
 			$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
 			return $this->forward($gateway->getRefundControllerReference(), [
