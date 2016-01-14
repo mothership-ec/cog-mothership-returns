@@ -96,7 +96,7 @@ class Services implements ServicesInterface
 			);
 		});
 
-		$services['return.edit'] = $services->factory(function($c) {
+		$services['return.edit'] = function($c) {
 			return new OrderReturn\Edit(
 				$c['db.transaction'],
 				$c['user.current'],
@@ -106,7 +106,7 @@ class Services implements ServicesInterface
 				$c['refund.create'],
 				$c['order.refund.create']
 			);
-		});
+		};
 
 		$services['return.delete'] = $services->factory(function($c) {
 			return new OrderReturn\Delete(

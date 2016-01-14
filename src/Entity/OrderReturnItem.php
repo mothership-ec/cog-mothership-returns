@@ -113,6 +113,21 @@ class OrderReturnItem
 		return $this->balance !== null;
 	}
 
+	public function toBeReconciled()
+	{
+		if ($this->hasBalance()) {
+			return true;
+		}
+
+		if ($this->payeeIsCustomer()) {
+
+		}
+
+		if ($this->payeeIsRetailer()) {
+
+		}
+	}
+
 	public function hasCalculatedBalance()
 	{
 		return $this->calculatedBalance != 0;
