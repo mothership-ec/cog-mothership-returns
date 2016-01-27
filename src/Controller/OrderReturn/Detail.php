@@ -16,7 +16,7 @@ class Detail extends Controller
 	 * Display the detail view of a return.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function view($returnID)
 	{
@@ -36,7 +36,7 @@ class Detail extends Controller
 	 * Process the accept / reject request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function acceptOrReject($returnID)
 	{
@@ -59,7 +59,7 @@ class Detail extends Controller
 	 * Process the received request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processReceived($returnID)
 	{
@@ -92,7 +92,7 @@ class Detail extends Controller
 	 * Process the balance request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processBalance($returnID)
 	{
@@ -100,6 +100,10 @@ class Detail extends Controller
 		$form = $this->_balanceForm($return);
 		$data = $form->getFilteredData();
 		$viewURL = $this->generateUrl('ms.commerce.return.view', array('returnID' => $return->id));
+
+		$transaction = $this->get('db.transaction');
+		$returnEdit = $this->get('return.edit');
+		$returnEdit->setTransaction($transaction);
 
 		$forwardToRefund = false;
 
@@ -111,7 +115,7 @@ class Detail extends Controller
 
 		// Clear the balance
 		if ($data['payee'] == static::PAYEE_NONE) {
-			$this->get('return.edit')->clearRemainingBalance($return);
+			$returnEdit->clearRemainingBalance($return);
 		}
 
 		// Process refund to the customer
@@ -158,24 +162,57 @@ class Detail extends Controller
 				}
 
 				// Set the return's balance
-				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
+				$return = $returnEdit->setBalance($return, 0 - $amount);
 
 				$forwardToRefund = true;
 			}
 			else {
 				// If refunding manually, just set the balance to the amount
 				// give without checking for a payment
-				$return = $this->get('return.edit')->setBalance($return, 0 - $amount);
+				$return = $returnEdit->setBalance($return, 0 - $amount);
 
 				// Refund the return
-				$return = $this->get('return.edit')->refund($return, $method, $amount, $payment);
+				$return = $returnEdit->refund($return, $method, $amount, $payment);
 			}
 		}
 
 		// Notify customer they owe the outstanding balance
 		elseif ($data['payee'] == static::PAYEE_RETAILER) {
-			$this->get('return.edit')->setBalance($return, abs($data['balance_amount']));
+			$returnEdit->setBalance($return, abs($data['balance_amount']));
 		}
+
+		if (
+			$return->item->hasBalance()
+			and !$return->item->hasRemainingBalance()
+			and $return->item->isReturnedItemProcessed()
+			and (
+				!$return->item->isExchangeResolution()
+				or $return->item->isExchanged()
+			)
+		) {
+			// Complete the return
+			$return = $returnEdit->complete($return);
+		}
+
+		if ($forwardToRefund) {
+			$gateway = $this->get('payment.gateway.loader')->getGatewayByPayment($payment->payment);
+
+			// Forward to the refund controller
+			$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
+			$response = $this->forward($gateway->getRefundControllerReference(), [
+				'payable'   => $return,
+				'reference' => $payment->reference,
+				'stages'    => [
+					'cancel'  => $controller . '#cancel',
+					'failure' => $controller . '#failure',
+					'success' => $controller . '#success',
+				],
+			]);
+		} else {
+			$response = $this->redirect($viewURL);
+		}
+
+		$transaction->commit();
 
 		// Send the message
 		if ($data['message']) {
@@ -191,43 +228,14 @@ class Detail extends Controller
 			$result = $dispatcher->send($message);
 		}
 
-		if (
-			$return->item->hasBalance()
-			and !$return->item->hasRemainingBalance()
-			and $return->item->isReturnedItemProcessed()
-			and (
-				!$return->item->isExchangeResolution()
-				or $return->item->isExchanged()
-			)
-		) {
-			// Complete the return
-			$return = $this->get('return.edit')->complete($return);
-		}
-
-		$gateway = $this->get('payment.gateway.loader')->getGatewayByPayment($payment->payment);
-
-		if ($forwardToRefund) {
-			// Forward to the refund controller
-			$controller = 'Message:Mothership:OrderReturn::Controller:OrderReturn:Refund';
-			return $this->forward($gateway->getRefundControllerReference(), [
-				'payable'   => $return,
-				'reference' => $payment->reference,
-				'stages'    => [
-					'cancel'  => $controller . '#cancel',
-					'failure' => $controller . '#failure',
-					'success' => $controller . '#success',
-				],
-			]);
-		}
-
-		return $this->redirect($viewURL);
+		return $response;
 	}
 
 	/**
 	 * Process the exchange request.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processExchange($returnID)
 	{
@@ -269,7 +277,7 @@ class Detail extends Controller
 	 * Process the returned item.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function processReturnedItem($returnID)
 	{
