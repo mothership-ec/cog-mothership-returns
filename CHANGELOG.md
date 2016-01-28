@@ -1,5 +1,14 @@
 # Changelog
 
+## 5.3.0
+
+- Prevent returns from being partially updated when an error is thrown during the process
+- `return.edit` service is now a singleton
+- When processing a balance, the transaction in the `Edit` class is overridden, and committed at the end of the controller
+- Once a balance has been successfully processed, a confirmation email is sent to the customer, where before it was sent half way through the process
+- Resolve issue where and error would be thrown when attempting to load a payment gateway if no payment is present
+- Balance is now always saved when editing a return
+
 ## 5.2.0
 
 - Resolve issue where returned items would appear in fulfillment even after the order had been completed
