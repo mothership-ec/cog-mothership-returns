@@ -12,7 +12,7 @@ class Detail extends Controller
 	 * Display the detail view of a return.
 	 *
 	 * @param  int $returnID
-	 * @return Message\Cog\HTTP\Response
+	 * @return \Message\Cog\HTTP\Response
 	 */
 	public function view($returnID)
 	{
