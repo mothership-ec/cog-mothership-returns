@@ -52,6 +52,14 @@ class Returns implements FilterableInterface
 	{
 		$data = $this->_builderFactory->getQueryBuilder();
 
+		$voids = $this->_builderFactory->getQueryBuilder()
+			->select('transaction_record.record_id', true)
+			->from('transaction')
+			->joinUsing('transaction_record', 'transaction_id')
+			->where('transaction.type = ?s', ['return'])
+			->where('transaction.voided_at IS NOT NULL')
+		;
+
 		$data
 			->select('item.completed_at AS "Date"')
 			->select('return.currency_id AS "Currency"')
@@ -79,6 +87,7 @@ class Returns implements FilterableInterface
 			->leftJoin('product', 'item.product_id = product.product_id')
 			->where('product.type != "voucher"')
 			->where('item.status_code >= 2200')
+			->where('item.return_id NOT IN (?q)', [$voids]) // Ignore voided returns
 		;
 
 		// Filter dates
