@@ -56,7 +56,7 @@ class Returns implements FilterableInterface
 			->select('transaction_record.record_id', true)
 			->from('transaction')
 			->joinUsing('transaction_record', 'transaction_id')
-			->where('transaction.type = ?s', ['return'])
+			->where('transaction_record.type = ?s', ['return'])
 			->where('transaction.voided_at IS NOT NULL')
 		;
 
