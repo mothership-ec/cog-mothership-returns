@@ -88,6 +88,7 @@ class Returns implements FilterableInterface
 			->where('product.type != "voucher"')
 			->where('item.status_code >= 2200')
 			->where('item.return_id NOT IN (?q)', [$voids]) // Ignore voided returns
+			->where('return.deleted_at IS NULL')
 		;
 
 		// Filter dates
