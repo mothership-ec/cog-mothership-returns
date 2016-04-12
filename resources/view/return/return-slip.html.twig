@@ -1,88 +1,91 @@
 {% extends "Message:Mothership:Ecommerce::fulfillment:picking:htmlWrapper" %}
 
 {% block content %}
-<article class="return print">
-	<header>
-		<p class="brand">{{ merchant.companyName }}</p>
-		<h1>Customer - Returns</h1>
-	</header>
-
-	<section class="customer">
-		<table>
-			<thead>
-				<tr>
-					<th>Customer details</th>
-					<th>RFR Number</th>
-					<th>RFR Date</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>
-						<dl>
-							<dt>Name</dt>
-							<dd>{{ return.order.user.name }}</dd>
-
-							<dt>Billing address</dt>
-							<dd>{{ return.order.getAddress('billing').flatten()|join('<br>')|raw }}</dd>
-
-							<dt>Email</dt>
-							<dd>{{ return.order.user.email }}</dd>
-						</dl>
-					</td>
-					<td>{{ return.getDisplayID() }}</td>
-					<td>{{ return.createdAt|date }}</td>
-				</tr>
-			</tbody>
-		</table>
-
-		<table>
-			<thead>
-				<tr>
-					<th>Notes</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>{{ return.item.note.note }}</td>
-				</tr>
-			</tbody>
-		</table>
-	</section>
-
-	<section class="breakdown">
-		<table>
-			<thead>
-				<tr>
-					<td>Returned item</td>
-					<td>Reason</td>
-					<td>Replacement</td>
-					<td>Balance</td>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td>{{ return.item.getDescription }}</td>
-					<td>{{ return.item.reason }}</td>
-					<td>{{ return.item.exchangeItem.getDescription }}</td>
-					<td>{{ (return.item.calculatedBalance)|price(return.payableCurrency) }}</td>
-				</tr>
-			</tbody>
-		</table>
-	</section>
-
-	<section class="return-delivery">
+<button onclick="window.print();" type="submit" class="button small save">Print</button>
+<div id="wrapper">
+	<div class="page">
 		<header>
-			<h2>Return Delivery Details</h2>
+			<p class="brand">{{ merchant.companyName }}</p>
+			<h1>Customer - Returns</h1>
 		</header>
 
-		<dl>
-			<dt>Name</dt>
-			<dd>{{ return.order.user.name }}</dd>
+		<section class="customer">
+			<table>
+				<thead>
+					<tr>
+						<th>Customer details</th>
+						<th>RFR Number</th>
+						<th>RFR Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							<dl>
+								<dt>Name</dt>
+								<dd>{{ return.order.user.name }}</dd>
 
-			<dt>Delivery address</dt>
-			<dd>{{ return.order.getAddress('delivery').flatten()|join('<br>')|raw }}</dd>
-		</dl>
-	</section>
-</article>
+								<dt>Billing address</dt>
+								<dd>{{ return.order.getAddress('billing').flatten()|join('<br>')|raw }}</dd>
+
+								<dt>Email</dt>
+								<dd>{{ return.order.user.email }}</dd>
+							</dl>
+						</td>
+						<td>{{ return.getDisplayID() }}</td>
+						<td>{{ return.createdAt|date }}</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<table>
+				<thead>
+					<tr>
+						<th>Notes</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>{{ return.item.note.note }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+
+		<section class="breakdown">
+			<table>
+				<thead>
+					<tr>
+						<td>Returned item</td>
+						<td>Reason</td>
+						<td>Replacement</td>
+						<td>Balance</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>{{ return.item.getDescription }}</td>
+						<td>{{ return.item.reason }}</td>
+						<td>{{ return.item.exchangeItem.getDescription }}</td>
+						<td>{{ (return.item.calculatedBalance)|price(return.payableCurrency) }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+
+		<section class="return-delivery">
+			<header>
+				<h2>Return Delivery Details</h2>
+			</header>
+
+			<dl>
+				<dt>Name</dt>
+				<dd>{{ return.order.user.name }}</dd>
+
+				<dt>Delivery address</dt>
+				<dd>{{ return.order.getAddress('delivery').flatten()|join('<br>')|raw }}</dd>
+			</dl>
+		</section>
+	</div>
+</div>
 {% endblock %}
