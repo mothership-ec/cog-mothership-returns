@@ -25,13 +25,20 @@
 				{% for return in returns %}
 					{# @todo replace this with a loop #}
 					{% set returnItem = return.item %}
-
 					<tr>
 						<td><a href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">{{ return.id }}</a></td>
 						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">{{ returnItem.order.id }}</a></td>
 						<td>{{ returnItem.productName }}</td>
 						<td>{{ return.authorship.createdAt|date }}</td>
-						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a></td>
+						<td>
+							{% if returnItem.order.user.id %}
+								<a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a>
+							{% elseif return.authorship.createdUser.id %}
+								<a href="{{ url('ms.cp.user.admin.detail.edit', {userID: return.authorship.createdUser.id}) }}">{{ return.authorship.createdUser.name }}</a>
+							{% else %}
+								{{ return.authorship.createdUser.name }}
+							{% endif %}
+						</td>
 						<td>
 							{% if returnItem.isExchangeResolution %}
 								Exchange
@@ -53,7 +60,7 @@
 							{% elseif returnItem.payeeIsCustomer %}
 								Customer
 							{% endif %}
-						</tr>
+						</td>
 					</tr>
 				{% endfor %}
 			</tbody>
