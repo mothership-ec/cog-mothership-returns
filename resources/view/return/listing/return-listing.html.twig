@@ -39,8 +39,6 @@
 						<td>
 							{% if returnItem.order.user.id %}
 								<a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a>
-							{% else %}
-								{{ return.authorship.createdUser.name }}
 							{% endif %}
 						</td>
 						<td>
