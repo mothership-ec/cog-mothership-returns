@@ -95,6 +95,17 @@ class Returns implements FilterableInterface
 			}
 		}
 
+		// Filter brands
+		if ($this->_filters->exists('brand')) {
+			$brands = $this->_filters->get('brand');
+			if($brands = $brands->getChoices()) {
+				is_array($brands) ?
+					$data->where('product.brand IN (?js)', [$brands]) :
+					$data->where('product.brand = (?s)', [$brands])
+				;
+			}
+		}
+
 		// Filter currency
 		if($this->_filters->exists('currency')) {
 			$currency = $this->_filters->get('currency');
@@ -120,5 +131,3 @@ class Returns implements FilterableInterface
 		return $data;
 	}
 }
-
-
