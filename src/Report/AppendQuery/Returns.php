@@ -5,6 +5,7 @@ namespace Message\Mothership\OrderReturn\Report\AppendQuery;
 use Message\Cog\DB\QueryBuilderFactory;
 use Message\Mothership\Report\Filter;
 use Message\Mothership\Report\Report\AppendQuery\FilterableInterface;
+use Message\Mothership\Report\Filter\ModifyQueryInterface;
 
 class Returns implements FilterableInterface
 {
@@ -95,14 +96,10 @@ class Returns implements FilterableInterface
 			}
 		}
 
-		// Filter brands
-		if ($this->_filters->exists('brand')) {
-			$brands = $this->_filters->get('brand');
-			if($brands = $brands->getChoices()) {
-				is_array($brands) ?
-					$data->where('product.brand IN (?js)', [$brands]) :
-					$data->where('product.brand = (?s)', [$brands])
-				;
+		// Apply filters
+		foreach ($this->_filters as $filter) {
+			if ($filter instanceof ModifyQueryInterface) {
+				$filter->apply($data);
 			}
 		}
 
