@@ -5,6 +5,7 @@ namespace Message\Mothership\OrderReturn\Report\AppendQuery;
 use Message\Cog\DB\QueryBuilderFactory;
 use Message\Mothership\Report\Filter;
 use Message\Mothership\Report\Report\AppendQuery\FilterableInterface;
+use Message\Mothership\Report\Filter\ModifyQueryInterface;
 
 class Returns implements FilterableInterface
 {
@@ -95,6 +96,13 @@ class Returns implements FilterableInterface
 			}
 		}
 
+		// Apply filters
+		foreach ($this->_filters as $filter) {
+			if ($filter instanceof ModifyQueryInterface) {
+				$filter->apply($data);
+			}
+		}
+
 		// Filter currency
 		if($this->_filters->exists('currency')) {
 			$currency = $this->_filters->get('currency');
@@ -120,5 +128,3 @@ class Returns implements FilterableInterface
 		return $data;
 	}
 }
-
-
