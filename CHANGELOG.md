@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.4.0
+
+- `Report\AppendQuery\Returns` loops through filters to check for ones that implement `ModifyQueryInterface`, allowing for more automated filtering
+- `Report\Appendquery\Exchanges` checks from brand filter
+- Increased Reports dependency to 2.1
+
 ## 5.3.0
 
 - Prevent returns from being partially updated when an error is thrown during the process
