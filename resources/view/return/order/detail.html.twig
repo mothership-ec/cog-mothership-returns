@@ -51,10 +51,10 @@
 				<dt>Note</dt>
 				<dd>{{ returnItem.note.note }}</dd>
 			{% endif %}
-
-			<dt>Created by</dt>
-			<dd><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a> on {{ return.authorship.createdAt|date }}</dd>
-
+			{% if returnItem.order.user.id %}
+				<dt>Created by</dt>
+				<dd><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a> on {{ return.authorship.createdAt|date }}</dd>
+			{% endif %}
 			{% if not returnItem.authorship.updatedAt is empty and not returnItem.authorship.updatedBy is empty %}
 				<dt>Updated by</dt>
 				<dd>{{ returnItem.authorship.updatedBy }} <span>at</span> {{ returnItem.authorship.updatedAt|date }}</dd>
