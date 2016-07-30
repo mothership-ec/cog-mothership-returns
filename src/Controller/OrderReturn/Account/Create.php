@@ -250,13 +250,20 @@ class Create extends Controller
 		}
 
 		foreach ($this->get('product.loader')->getAll() as $product) {
-			$productUnits = $this->get('product.unit.loader')->getByProduct($product);
+			$productUnits = $this->get('product.unit.loader')
+				->includeOutOfStock(false)
+				->includeInvisible(false)
+				->getByProduct($product)
+			;
+
 			if ($productUnits and count($productUnits)) {
 				foreach ($productUnits as $unit) {
 					$units[$product->displayName ?: $product->name][$unit->id] = implode($unit->options, ',');
 				}
 			}
 		}
+
+		ksort($units);
 
 		$form = $this->get('form');
 
