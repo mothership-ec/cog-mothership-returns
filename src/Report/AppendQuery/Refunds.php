@@ -63,6 +63,7 @@ class Refunds implements FilterableInterface
 			->leftJoin('return_refund','refund.refund_id = return_refund.refund_id')
 			->leftJoin('order_refund', 'refund.refund_id = order_refund.refund_id')
 			->join('user','user.user_id = refund.created_by')
+			->where('refund.deleted_at IS NULL')
 		;
 
 		// Filter dates
