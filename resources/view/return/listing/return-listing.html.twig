@@ -28,10 +28,20 @@
 
 					<tr>
 						<td><a href="{{ url('ms.commerce.return.view', {returnID: return.id}) }}">{{ return.id }}</a></td>
-						<td><a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">{{ returnItem.order.id }}</a></td>
+						<td>
+							{# May not exist if it is an anon return (e.g. in-store) #}
+							{% if returnItem.order %}
+								<a href="{{ url('ms.commerce.order.view.return', {orderID: returnItem.order.id}) }}">{{ returnItem.order.id }}</a>
+							{% endif %}
+						</td>
 						<td>{{ returnItem.productName }}</td>
 						<td>{{ return.authorship.createdAt|date }}</td>
-						<td><a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a></td>
+						<td>
+							{# May not exist if it is an anon return (e.g. in-store) #}
+							{% if returnItem.order and returnItem.order.user %}
+								<a href="{{ url('ms.cp.user.admin.detail.edit', {userID: returnItem.order.user.id}) }}">{{ return.authorship.createdUser.name }}</a>
+							{% endif %}
+						</td>
 						<td>
 							{% if returnItem.isExchangeResolution %}
 								Exchange
